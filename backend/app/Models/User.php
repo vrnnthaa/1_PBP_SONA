@@ -6,44 +6,55 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Pemesanan;
+use App\Models\Review;
+use App\Models\SaveHotel;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected $table = 'users';
+    protected $primaryKey = 'id_user';
+    protected $keyType = 'int';
+    public $timestamps = false;
+
     protected $fillable = [
-        'name',
+        'photo_profile',
+        'nama',
+        'telp_no',
         'email',
         'password',
+        'pin',
+        'sidik_jari',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
-        'remember_token',
+        'pin',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function setPasswordAttribute($value)
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        $this->attributes['password'] = Hash::make($value);
+    }
+
+    public function setPinAttribute($value)
+    {
+        $this->attributes['pin'] = Hash::make($value);
+    }
+
+    public function pemesanans() {
+        return $this->hasMany(Pemesanan::class, 'id_user', 'id_user');
+    }
+
+    public function reviews() {
+        return $this->hasMany(Review::class, 'id_user', 'id_user');
+    }
+
+    public function saveHotels() {
+        return $this->hasMany(SaveHotel::class, 'id_user', 'id_user');
     }
 }
