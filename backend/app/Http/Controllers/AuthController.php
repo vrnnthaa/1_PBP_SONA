@@ -56,6 +56,12 @@ class AuthController extends Controller
             ], 404);
         }
 
+        if (!$request->pin) {
+            return response()->json([
+                'message' => 'PIN wajib diisi'
+            ], 400);
+        }
+
         $user->pin = $request->pin;
         $user->save();
 
@@ -92,10 +98,22 @@ class AuthController extends Controller
             ], 403);
         }
 
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'message' => 'Login berhasil',
+            'token' => $token,
             'data' => $user
         ], 200);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Logout berhasil'
+        ]);
     }
 }
 

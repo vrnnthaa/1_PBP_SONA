@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index($id)
+    public function index(Request $request)
     {
-        $user = User::find($id);
+        $user = $request->user();
 
         if(!$user)
         {
@@ -25,9 +25,9 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        $user = User::find($id);
+        $user = $request->user();
 
         if(!$user)
         {
@@ -39,7 +39,7 @@ class UserController extends Controller
         $user->update([
             'nama' => $request->nama ?? $user->nama,
             'telp_no' => $request->nomor_telp ?? $user->nomor_telp,
-            'foto_profile' => $request->foto_profile ?? $user->foto_profile,
+            'foto_profile' => $request->photo_profile ?? $user->photo_profile,
         ]);
 
         return response()->json([
@@ -48,9 +48,9 @@ class UserController extends Controller
         ], 200); 
     }
 
-    public function changePassword(Request $request, $id)
+    public function changePassword(Request $request)
     {
-        $user = User::find($id);
+        $user = $request->user();
 
         if (!$user) {
             return response()->json([
@@ -74,9 +74,9 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function changePin(Request $request, $id)
+    public function changePin(Request $request)
     {
-        $user = User::find($id);
+        $user = $request->user();
 
         if (!$user) {
             return response()->json([
