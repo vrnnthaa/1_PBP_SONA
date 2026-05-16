@@ -72,9 +72,24 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        if (!$request->email || !$request->password) {
+        if (!$request->email && !$request->password) {
             return response()->json([
-                'message' => 'Email dan password wajib diisi'
+                'message' => 'Email and password are required',
+                'field' => 'both',
+            ], 400);
+        }
+
+        if (!$request->email) {
+            return response()->json([
+                'message' => 'Email is required',
+                'field' => 'email',
+            ], 400);
+        }
+
+        if (!$request->password) {
+            return response()->json([
+                'message' => 'Password is required',
+                'field' => 'password',
             ], 400);
         }
 
@@ -82,37 +97,47 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Email tidak ditemukan'
+                'message' => 'Email not found',
+                'field' => 'email',
             ], 404);
         }
 
         if (!Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Password salah'
+                'message' => 'Incorrect password',
+                'field' => 'password',
             ], 400);
         }
 
         if (!$user->pin) {
             return response()->json([
-                'message' => 'Silakan set PIN terlebih dahulu'
+                'message' => 'Please set your PIN first'
             ], 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Login berhasil',
+            'message' => 'Login successful',
             'token' => $token,
             'data' => $user
         ], 200);
     }
 
+    public function me(Request $request)
+    {
+        return response()->json([
+            'message' => 'Data user berhasil diambil',
+            'data' => $request->user(),
+        ]);
+    }
+    
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logout berhasil'
+            'message' => 'Logged Out'
         ]);
     }
 }
