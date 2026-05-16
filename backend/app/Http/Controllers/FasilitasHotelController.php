@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\FasilitasHotel;
 use Illuminate\Http\Request;
 
-class FasilitasHotelController extends Controller
+class FasilitasHotelController
 {
     public function index()
     {

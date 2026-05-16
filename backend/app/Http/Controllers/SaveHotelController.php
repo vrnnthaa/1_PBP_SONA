@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\SaveHotel; 
 use Illuminate\Http\Request; 
 
-class SaveHotelController extends Controller{
+class SaveHotelController
+{
     public function index(Request $request){
         $savehotel = SaveHotel::with(
             'hotel'
