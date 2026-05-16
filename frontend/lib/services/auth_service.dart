@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:sona/config/app_config.dart';
 
 class AuthService {
-
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
 
   static Future<Map<String, dynamic>> login({
     required String email,
@@ -11,7 +10,7 @@ class AuthService {
   }) async {
 
     final response = await http.post(
-      Uri.parse('$baseUrl/login'),
+      Uri.parse('${AppConfig.baseUrl}/login'),
 
       headers: {
         'Content-Type': 'application/json',

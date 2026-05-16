@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/pages/login_page.dart';
 import 'package:http/http.dart' as http;
+import 'package:sona/config/app_config.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,8 +15,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String nama = '';
   bool isLoading = true;
-
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
 
   @override
   void initState() {
@@ -31,7 +30,7 @@ class _HomePageState extends State<HomePage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('$baseUrl/me'),
+      Uri.parse('${AppConfig.baseUrl}/me'),
 
       headers: {
         'Authorization': 'Bearer $token',
