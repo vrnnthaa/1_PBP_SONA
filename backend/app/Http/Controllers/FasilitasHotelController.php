@@ -1,144 +1,95 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\FasilitasHotel;
-use App\Models\Hotel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class FasilitasHotelController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $query = FasilitasHotel::with('hotel');
-
-        // Filter berdasarkan id_hotel jika ada
-        if ($request->has('id_hotel')) {
-            $query->where('id_hotel', $request->id_hotel);
-        }
-
-        $fasilitasHotels = $query->paginate($request->per_page ?? 10);
+        $fasilitas = FasilitasHotel::with('hotels')->get();
 
         return response()->json([
-            'success' => true,
-            'data' => $fasilitasHotels
+            'message' => 'Data Fasilitas Hotel berhasil diambil',
+            'data' => $fasilitas,
+        ], 200);
+    }
+
+    public function show($id_fasilitas)
+    {
+        $fasilitas = FasilitasHotel::with('hotels')
+            ->where('id_fasilitas', $id_fasilitas)
+            ->first();
+
+        if (!$fasilitas) {
+            return response()->json([
+                'message' => 'Data Fasilitas tidak ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data Fasilitas berhasil diambil',
+            'data' => $fasilitas,
         ], 200);
     }
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'id_hotel' => 'required|exists:hotel,id_hotel',
-            'nama_fasilitasHotel' => 'required|string|max:255',
-            'keterangan_fasilitasHotel' => 'nullable|string'
+        $validated = $request->validate([
+            'nama_fasilitasKamar' => 'required|string|unique:kamar_fasilitas',
+            'keterangan_fasilitasKamar' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $fasilitasHotel = FasilitasHotel::create([
-            'id_hotel' => $request->id_hotel,
-            'nama_fasilitasHotel' => $request->nama_fasilitasHotel,
-            'keterangan_fasilitasHotel' => $request->keterangan_fasilitasHotel
+        $fasilitas = FasilitasHotel::create([
+            'nama_fasilitasKamar' => $validated['nama_fasilitasKamar'],
+            'keterangan_fasilitasKamar' => $validated['keterangan_fasilitasKamar'] ?? null,
         ]);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Fasilitas hotel berhasil ditambahkan',
-            'data' => $fasilitasHotel->load('hotel')
+            'message' => 'Data Fasilitas berhasil ditambahkan',
+            'data' => $fasilitas,
         ], 201);
     }
 
-    public function show($id)
+    public function update(Request $request, $id_fasilitas)
     {
-        $fasilitasHotel = FasilitasHotel::with('hotel')->find($id);
+        $fasilitas = FasilitasHotel::where('id_fasilitas', $id_fasilitas)->first();
 
-        if (!$fasilitasHotel) {
+        if (!$fasilitas) {
             return response()->json([
-                'success' => false,
-                'message' => 'Fasilitas hotel tidak ditemukan'
+                'message' => 'Data Fasilitas tidak ditemukan.',
             ], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $fasilitasHotel
-        ], 200);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $fasilitasHotel = FasilitasHotel::find($id);
-
-        if (!$fasilitasHotel) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Fasilitas hotel tidak ditemukan'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'id_hotel' => 'sometimes|exists:hotel,id_hotel',
-            'nama_fasilitasHotel' => 'sometimes|string|max:255',
-            'keterangan_fasilitasHotel' => 'nullable|string'
+        $validated = $request->validate([
+            'nama_fasilitasKamar' => 'nullable|string|unique:kamar_fasilitas,nama_fasilitasKamar,' . $id_fasilitas . ',id_fasilitas',
+            'keterangan_fasilitasKamar' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $data = $request->only(['id_hotel', 'nama_fasilitasHotel', 'keterangan_fasilitasHotel']);
-        $fasilitasHotel->update($data);
+        $fasilitas->update($validated);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Fasilitas hotel berhasil diupdate',
-            'data' => $fasilitasHotel->fresh('hotel')
+            'message' => 'Data Fasilitas berhasil diupdate',
+            'data' => $fasilitas,
         ], 200);
     }
 
-    public function destroy($id)
+    public function destroy($id_fasilitas)
     {
-        $fasilitasHotel = FasilitasHotel::find($id);
+        $fasilitas = FasilitasHotel::where('id_fasilitas', $id_fasilitas)->first();
 
-        if (!$fasilitasHotel) {
+        if (!$fasilitas) {
             return response()->json([
-                'success' => false,
-                'message' => 'Fasilitas hotel tidak ditemukan'
+                'message' => 'Data Fasilitas tidak ditemukan.',
             ], 404);
         }
 
-        $fasilitasHotel->delete();
+        $fasilitas->delete();
 
         return response()->json([
-            'success' => true,
-            'message' => 'Fasilitas hotel berhasil dihapus'
-        ], 200);
-    }
-
-    public function getByHotel($hotelId)
-    {
-        $hotel = Hotel::find($hotelId);
-
-        if (!$hotel) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hotel tidak ditemukan'
-            ], 404);
-        }
-
-        $fasilitasHotels = FasilitasHotel::where('id_hotel', $hotelId)->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $fasilitasHotels,
-            'hotel' => $hotel->nama_hotel
+            'message' => 'Data Fasilitas berhasil dihapus',
         ], 200);
     }
 }

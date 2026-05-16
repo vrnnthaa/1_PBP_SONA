@@ -1,26 +1,29 @@
 <?php
 namespace App\Models;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class FasilitasHotel extends Model{
-    protected $table = 'fasilitas_hotel';
-    protected $primaryKey = 'id_fasilitasHotel';
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+class FasilitasHotel extends Model
+{
+    protected $table = 'kamar_fasilitas';
+    protected $primaryKey = 'id_fasilitas';
     public $timestamps = false;
 
     protected $fillable = [
-        'id_hotel',
-        'nama_fasilitasHotel',
-        'keterangan_fasilitasHotel'
+        'nama_fasilitasKamar',
+        'keterangan_fasilitasKamar'
     ];
 
-    protected $casts = [
-        'id_fasilitasHotel' => 'integer',
-        'id_hotel' => 'integer'
-    ];
-
-    public function hotel(): BelongsTo
+    public function hotels(): BelongsToMany
     {
-        return $this->belongsTo(Hotel::class, 'id_hotel', 'id_hotel');
+        return $this->belongsToMany(
+            Hotel::class,
+            'hotel_fasilitas',
+            'id_fasilitasHotel',
+            'id_hotel',
+            'id_fasilitas',
+            'id_hotel'
+        );
     }
 }
