@@ -7,7 +7,7 @@ use App\Models\Pemesanan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class PembayaranController extends Controller
+class PembayaranController
 {
     // GET /pembayaran
     public function index()

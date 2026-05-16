@@ -16,10 +16,12 @@ class Hotel extends Model
         'deskripsi',
         'rating_hotel'
     ];
+
     protected $casts = [
         'id_hotel' => 'integer',
         'rating_hotel' => 'decimal:2'
     ];
+    
     public function fasilitasHotels(): HasMany
     {
         return $this->hasMany(FasilitasHotel::class, 'id_hotel', 'id_hotel');

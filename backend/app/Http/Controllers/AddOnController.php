@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AddOn;
 use Illuminate\Http\Request;
 
-class AddOnController extends Controller {
+class AddOnController{
     public function index() {
         $addOn = AddOn::with('kamar')->latest()->get();
 

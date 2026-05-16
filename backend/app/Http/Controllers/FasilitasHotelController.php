@@ -5,7 +5,7 @@ use App\Models\Hotel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class FasilitasHotelController extends Controller
+class FasilitasHotelController
 {
     public function index(Request $request)
     {

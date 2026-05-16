@@ -6,7 +6,8 @@ use App\Models\Pemesanan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class PemesananController extends Controller {
+class PemesananController 
+{
     public function index(){
         $pemesanan = Pemesanan::with(['user', 'pembayaran', 'review'])->latest()->get();
 
