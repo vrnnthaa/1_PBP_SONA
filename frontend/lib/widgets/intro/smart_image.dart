@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 import 'package:sona/services/api_service.dart';
 
 class SmartImage extends StatelessWidget {
@@ -68,7 +69,7 @@ class SmartImage extends StatelessWidget {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2.0,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0B9AA4)),
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentTeal),
               ),
             ),
           );
@@ -99,13 +100,13 @@ class SmartImage extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFE6F4F4), Color(0xFFB9D6D8)],
+          colors: [AppTheme.softCyan, AppTheme.gradientCyanEnd],
         ),
       ),
       child: const Center(
         child: Icon(
           Icons.image_outlined,
-          color: Color(0xFF004D52),
+          color: AppTheme.deepTeal,
           size: 26,
         ),
       ),

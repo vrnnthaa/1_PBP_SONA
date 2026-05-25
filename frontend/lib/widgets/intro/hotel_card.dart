@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 import 'package:sona/models/hotel_model.dart';
 import 'package:sona/widgets/intro/smart_image.dart';
 import 'package:sona/widgets/intro/bookmark_button.dart';
@@ -140,7 +141,7 @@ class HotelCard extends StatelessWidget {
                             children: [
                               const Icon(
                                 Icons.star_rounded,
-                                color: Color(0xFFFFC22B),
+                                color: AppTheme.starYellow,
                                 size: 13,
                               ),
                               const SizedBox(width: 2),

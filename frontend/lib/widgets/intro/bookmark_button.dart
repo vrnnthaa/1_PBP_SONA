@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class BookmarkButton extends StatefulWidget {
   final VoidCallback onTap;
@@ -69,8 +70,8 @@ class _BookmarkButtonState extends State<BookmarkButton>
                   ? Icons.bookmark_rounded
                   : Icons.bookmark_border_rounded,
               color: widget.isBookmarked
-                  ? const Color(0xFF0B9AA4)
-                  : const Color(0xFF929BA8),
+                  ? AppTheme.accentTeal
+                  : AppTheme.textGrey,
               size: 22,
             ),
           ),

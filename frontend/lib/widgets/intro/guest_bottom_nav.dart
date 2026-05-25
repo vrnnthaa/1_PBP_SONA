@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class GuestBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -82,15 +83,16 @@ class GuestBottomNav extends StatelessWidget {
                 height: 60,
                 decoration: BoxDecoration(
                   color: currentIndex == 2
-                      ? const Color(0xFF004D52)
-                      : const Color(0xFF0B9AA4),
+                      ? AppTheme.deepTeal
+                      : null,
+                  gradient: currentIndex != 2
+                      ? AppTheme.primaryGradient
+                      : null,
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 5),
                   boxShadow: [
                     BoxShadow(
-                      color: (currentIndex == 2
-                              ? const Color(0xFF004D52)
-                              : const Color(0xFF0B9AA4))
+                      color: AppTheme.deepTeal
                           .withOpacity(0.35),
                       blurRadius: 10,
                       spreadRadius: 1,
@@ -129,8 +131,8 @@ class _BottomNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color activeColor = Color(0xFF004D52);
-    const Color inactiveColor = Color(0xFF929BA8);
+    const Color activeColor = AppTheme.deepTeal;
+    const Color inactiveColor = AppTheme.textGrey;
 
     return InkWell(
       onTap: onTap,

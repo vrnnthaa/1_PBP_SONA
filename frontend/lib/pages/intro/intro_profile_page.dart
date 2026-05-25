@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class IntroProfilePage extends StatelessWidget {
   final VoidCallback onLoginTap;
@@ -10,14 +11,12 @@ class IntroProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryColor = Color(0xFF004D52);
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F9),
+      backgroundColor: AppTheme.background,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildProfileHeader(context, primaryColor),
+          _buildProfileHeader(context, AppTheme.primary),
           const SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -27,7 +26,7 @@ class IntroProfilePage extends StatelessWidget {
                 const Text(
                   'SUPPORT & MORE',
                   style: TextStyle(
-                    color: Color(0xFF929BA8),
+                    color: AppTheme.textGrey,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
@@ -72,7 +71,7 @@ class IntroProfilePage extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: const Color(0xFFE2E8F0),
+              color: AppTheme.lightGrey,
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white.withOpacity(0.9), width: 3.5),
               boxShadow: const [
@@ -86,7 +85,7 @@ class IntroProfilePage extends StatelessWidget {
             child: const Center(
               child: Icon(
                 Icons.person_rounded,
-                color: Color(0xFF94A3B8),
+                color: AppTheme.textSlate,
                 size: 38,
               ),
             ),
@@ -152,7 +151,7 @@ class IntroProfilePage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEBF0F5), width: 1.2),
+        border: Border.all(color: AppTheme.borderLight, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.015),
@@ -170,13 +169,13 @@ class IntroProfilePage extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                Icon(icon, color: const Color(0xFF004D52), size: 20),
+                Icon(icon, color: AppTheme.deepTeal, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     title,
                     style: const TextStyle(
-                      color: Color(0xFF242833),
+                      color: AppTheme.textDark,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -184,7 +183,7 @@ class IntroProfilePage extends StatelessWidget {
                 ),
                 const Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: Color(0xFF929BA8),
+                  color: AppTheme.textGrey,
                   size: 13,
                 ),
               ],
@@ -206,7 +205,7 @@ class IntroProfilePage extends StatelessWidget {
           title: const Text(
             'About SONA',
             style: TextStyle(
-              color: Color(0xFF004D52),
+              color: AppTheme.deepTeal,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -218,7 +217,7 @@ class IntroProfilePage extends StatelessWidget {
                 'SONA - Smooth Online Night Accomodation',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF242833),
+                  color: AppTheme.textDark,
                   fontSize: 13.5,
                 ),
               ),
@@ -231,7 +230,7 @@ class IntroProfilePage extends StatelessWidget {
               Text(
                 'Version 1.0.0',
                 style: TextStyle(
-                  color: Color(0xFF929BA8),
+                  color: AppTheme.textGrey,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
@@ -244,7 +243,7 @@ class IntroProfilePage extends StatelessWidget {
               child: const Text(
                 'Close',
                 style: TextStyle(
-                  color: Color(0xFF0B9AA4),
+                  color: AppTheme.accentTeal,
                   fontWeight: FontWeight.bold,
                 ),
               ),

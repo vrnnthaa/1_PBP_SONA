@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 import 'package:sona/pages/login_page.dart';
 import 'package:sona/pages/intro/intro_home_page.dart';
 import 'package:sona/pages/intro/intro_save_page.dart';
-import 'package:sona/pages/intro/map_screen.dart';
+import 'package:sona/pages/map/map_screen.dart';
 import 'package:sona/pages/intro/intro_history_page.dart';
 import 'package:sona/pages/intro/intro_profile_page.dart';
 import 'package:sona/widgets/intro/guest_bottom_nav.dart';
@@ -41,7 +42,7 @@ class _IntroPageState extends State<IntroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F9),
+      backgroundColor: AppTheme.background,
       body: Stack(
         children: [
           // Render the stand-alone tab screen based on current selection index

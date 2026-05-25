@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sona/models/hotel_model.dart';
@@ -45,8 +46,6 @@ class _MapScreenState extends State<MapScreen> {
 
   // Pop up Bottom Sheet dengan desain premium berukuran HP default
   void _showHotelDetails(HotelModel hotel) {
-    const Color primaryColor = Color(0xFF004D52);
-    
     // Generate a beautiful, realistic dynamic price based on the hotel's ID so it feels alive
     final int generatedPrice = 350 + (hotel.id * 180) % 1200;
     final String priceStr = 'Rp ${generatedPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}.000/Night';
@@ -81,7 +80,7 @@ class _MapScreenState extends State<MapScreen> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
+                  color: AppTheme.lightGrey,
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -109,7 +108,7 @@ class _MapScreenState extends State<MapScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Color(0xFF242833),
+                            color: AppTheme.textDark,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Inter',
@@ -125,12 +124,12 @@ class _MapScreenState extends State<MapScreen> {
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF242833),
+                                color: AppTheme.textDark,
                                 fontFamily: 'Inter',
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.location_on_rounded, color: Color(0xFF929BA8), size: 14),
+                            const Icon(Icons.location_on_rounded, color: AppTheme.textGrey, size: 14),
                             const SizedBox(width: 2),
                             Expanded(
                               child: Text(
@@ -138,7 +137,7 @@ class _MapScreenState extends State<MapScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: Color(0xFF929BA8),
+                                  color: AppTheme.textGrey,
                                   fontSize: 11,
                                   fontFamily: 'Inter',
                                 ),
@@ -159,13 +158,13 @@ class _MapScreenState extends State<MapScreen> {
                                 return Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF1F5F9),
+                                    color: AppTheme.backgroundLight,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
                                     hotel.fasilitas[idx].toString(),
                                     style: const TextStyle(
-                                      color: Color(0xFF004D52),
+                                      color: AppTheme.deepTeal,
                                       fontSize: 9,
                                       fontWeight: FontWeight.w600,
                                       fontFamily: 'Inter',
@@ -179,7 +178,7 @@ class _MapScreenState extends State<MapScreen> {
                         Text(
                           priceStr,
                           style: const TextStyle(
-                            color: Color(0xFF0B9AA4),
+                            color: AppTheme.accentTeal,
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             fontFamily: 'Inter',
@@ -200,7 +199,7 @@ class _MapScreenState extends State<MapScreen> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+                          side: const BorderSide(color: AppTheme.lightGrey, width: 1.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -208,7 +207,7 @@ class _MapScreenState extends State<MapScreen> {
                         child: const Text(
                           "Close",
                           style: TextStyle(
-                            color: Color(0xFF929BA8),
+                            color: AppTheme.textGrey,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Inter',
                           ),
@@ -226,7 +225,7 @@ class _MapScreenState extends State<MapScreen> {
                           _openLogin();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
+                          backgroundColor: AppTheme.deepTeal,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -254,7 +253,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F9),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -262,7 +261,7 @@ class _MapScreenState extends State<MapScreen> {
         title: const Text(
           'Hotel Maps',
           style: TextStyle(
-            color: Color(0xFF004D52),
+            color: AppTheme.deepTeal,
             fontSize: 18,
             fontWeight: FontWeight.w800,
             fontFamily: 'Inter',
@@ -271,7 +270,7 @@ class _MapScreenState extends State<MapScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: const Color(0xFFEFF3F8),
+            color: AppTheme.borderGrey,
             height: 1,
           ),
         ),
@@ -279,7 +278,7 @@ class _MapScreenState extends State<MapScreen> {
       body: _isLoading 
         ? const Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF004D52)),
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.deepTeal),
             ),
           ) 
         : FlutterMap(
@@ -304,13 +303,13 @@ class _MapScreenState extends State<MapScreen> {
                       child: Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF0B9AA4).withOpacity(0.18),
+                          color: AppTheme.accentTeal.withOpacity(0.18),
                         ),
                         padding: const EdgeInsets.all(5),
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFF0B9AA4),
+                            color: AppTheme.accentTeal,
                             border: Border.all(color: Colors.white, width: 2),
                             boxShadow: [
                               BoxShadow(

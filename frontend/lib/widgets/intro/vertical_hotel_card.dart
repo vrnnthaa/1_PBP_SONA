@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sona/models/hotel_model.dart';
 import 'package:sona/widgets/intro/smart_image.dart';
@@ -50,13 +51,13 @@ class VerticalHotelCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF003A3F).withOpacity(0.10),
+              color: AppTheme.primary.withOpacity(0.10),
               blurRadius: 20,
               spreadRadius: 0,
               offset: const Offset(0, 8),
             ),
             BoxShadow(
-              color: const Color(0xFF003A3F).withOpacity(0.06),
+              color: AppTheme.primary.withOpacity(0.06),
               blurRadius: 6,
               spreadRadius: 0,
               offset: const Offset(0, 2),
@@ -116,7 +117,7 @@ class VerticalHotelCard extends StatelessWidget {
                           style: GoogleFonts.montserrat(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF003A3F),
+                            color: AppTheme.primary,
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -124,7 +125,7 @@ class VerticalHotelCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       const Icon(
                         Icons.star_rounded,
-                        color: Color(0xFFFFC22B),
+                        color: AppTheme.starYellow,
                         size: 18,
                       ),
                       const SizedBox(width: 2),
@@ -150,7 +151,7 @@ class VerticalHotelCard extends StatelessWidget {
                         child: Icon(
                           Icons.location_on_outlined,
                           size: 14,
-                          color: Color(0xFF6B8A8D),
+                          color: AppTheme.textTealGrey,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -158,7 +159,7 @@ class VerticalHotelCard extends StatelessWidget {
                         child: Text(
                           '${hotel.alamat} | $distanceText',
                           style: GoogleFonts.roboto(
-                            color: const Color(0xFF6B8A8D),
+                            color: AppTheme.textTealGrey,
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
                             height: 1.4,
@@ -182,7 +183,7 @@ class VerticalHotelCard extends StatelessWidget {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: const Color(0xFFCDD8DA),
+                              color: AppTheme.borderTealLight,
                               width: 1,
                             ),
                           ),
@@ -190,7 +191,7 @@ class VerticalHotelCard extends StatelessWidget {
                             fasilitas,
                             style: GoogleFonts.roboto(
                               fontSize: 12,
-                              color: const Color(0xFF4A6568),
+                              color: AppTheme.textTealMedium,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -212,7 +213,7 @@ class VerticalHotelCard extends StatelessWidget {
                               style: GoogleFonts.montserrat(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w800,
-                                color: const Color(0xFF003A3F),
+                                color: AppTheme.primary,
                               ),
                             ),
                             TextSpan(
@@ -220,7 +221,7 @@ class VerticalHotelCard extends StatelessWidget {
                               style: GoogleFonts.roboto(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
-                                color: const Color(0xFF6B8A8D),
+                                color: AppTheme.textTealGrey,
                               ),
                             ),
                           ],
@@ -229,8 +230,8 @@ class VerticalHotelCard extends StatelessWidget {
                       ElevatedButton(
                         onPressed: onTap,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE6EDED),
-                          foregroundColor: const Color(0xFF003A3F),
+                          backgroundColor: AppTheme.buttonLightTeal,
+                          foregroundColor: AppTheme.primary,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 22, vertical: 11),
                           shape: RoundedRectangleBorder(

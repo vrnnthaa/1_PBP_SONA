@@ -1,9 +1,13 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/pages/login_page.dart';
-import 'package:http/http.dart' as http;
-import 'package:sona/config/app_config.dart';
+import 'package:sona/utils/app_theme.dart';
+import 'package:sona/pages/home/user_home_page.dart';
+import 'package:sona/pages/home/user_save_page.dart';
+import 'package:sona/pages/map/map_screen.dart';
+import 'package:sona/pages/home/user_history_page.dart';
+import 'package:sona/pages/home/user_profile_page.dart';
+import 'package:sona/widgets/intro/guest_bottom_nav.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,47 +17,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String nama = '';
-  bool isLoading = true;
+  int _currentTabIndex = 0; // Persistent active tab index (0=Home, 1=Save, 2=Map, 3=History, 4=Profile)
 
-  @override
-  void initState() {
-    super.initState();
-
-    getProfile();
-  }
-
-  Future<void> getProfile() async {
-
+  Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-
-    final token = prefs.getString('token');
-
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/me'),
-
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
-
-    final result = jsonDecode(response.body);
-
-    if (!mounted) return;
-
-    setState(() {
-      nama = result['data']['nama'];
-      isLoading = false;
-    });
-  }
-
-  Future<void> logout(BuildContext context) async {
-
-    final prefs = await SharedPreferences.getInstance();
-
     await prefs.remove('token');
 
+    if (!mounted) return;
+    
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -61,32 +32,61 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
+      body: Stack(
+        children: [
+          // Render the stand-alone tab screen based on current selection index
+          _buildActiveTabContent(),
 
-      appBar: AppBar(
-        title: const Text('Home'),
-
-        actions: [
-
-          IconButton(
-            onPressed: () {
-              logout(context);
-            },
-
-            icon: const Icon(Icons.logout),
+          // Persistent Interactive Bottom Nav Bar (Shared with Intro Flow but fully functional!)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: GuestBottomNav(
+              currentIndex: _currentTabIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentTabIndex = index;
+                });
+              },
+            ),
           ),
         ],
       ),
-
-      body: Center(
-        child: Text(
-          'Hello, $nama',
-          style: const TextStyle(fontSize: 24),
-        ),
-      ),
     );
+  }
+
+  Widget _buildActiveTabContent() {
+    switch (_currentTabIndex) {
+      case 0:
+        return const UserHomePage();
+      case 1:
+        return UserSavePage(
+          onExploreTap: () {
+            setState(() {
+              _currentTabIndex = 0;
+            });
+          },
+        );
+      case 2:
+        return const MapScreen(); // Renders the OpenStreetMap screen
+      case 3:
+        return UserHistoryPage(
+          onExploreTap: () {
+            setState(() {
+              _currentTabIndex = 0;
+            });
+          },
+        );
+      case 4:
+        return UserProfilePage(
+          onLogoutTap: () => _logout(context),
+        );
+      default:
+        return const Center(child: Text('Page Not Found'));
+    }
   }
 }

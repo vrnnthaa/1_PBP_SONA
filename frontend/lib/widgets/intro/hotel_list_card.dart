@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 import 'package:sona/models/hotel_model.dart';
 import 'package:sona/widgets/intro/smart_image.dart';
 import 'package:sona/widgets/intro/bookmark_button.dart';
@@ -35,7 +36,7 @@ class HotelListCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFEFF3F8), width: 1.2),
+          border: Border.all(color: AppTheme.borderGrey, width: 1.2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.03),
@@ -61,23 +62,39 @@ class HotelListCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    hotel.nama,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF242833),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          hotel.nama,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppTheme.textDark,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: BookmarkButton(
+                          onTap: onBookmarkTap,
+                          isBookmarked: isBookmarked,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(
                         Icons.location_on_rounded,
-                        color: Color(0xFF929BA8),
+                        color: AppTheme.textGrey,
                         size: 14,
                       ),
                       const SizedBox(width: 2),
@@ -87,7 +104,7 @@ class HotelListCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Color(0xFF929BA8),
+                            color: AppTheme.textGrey,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -96,14 +113,14 @@ class HotelListCard extends StatelessWidget {
                       const SizedBox(width: 6),
                       const Icon(
                         Icons.star_rounded,
-                        color: Color(0xFFFFC22B),
+                        color: AppTheme.starYellow,
                         size: 15,
                       ),
                       const SizedBox(width: 1),
                       Text(
                         hotel.rating.toStringAsFixed(1),
                         style: const TextStyle(
-                          color: Color(0xFF929BA8),
+                          color: AppTheme.textGrey,
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                         ),
@@ -116,21 +133,12 @@ class HotelListCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: Color(0xFF929BA8),
+                      color: AppTheme.textGrey,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(width: 4),
-            SizedBox(
-              width: 38,
-              height: 38,
-              child: BookmarkButton(
-                onTap: onBookmarkTap,
-                isBookmarked: isBookmarked,
               ),
             ),
           ],

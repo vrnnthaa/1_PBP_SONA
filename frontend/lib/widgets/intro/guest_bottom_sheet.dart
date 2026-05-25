@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class GuestBottomSheet extends StatelessWidget {
   final VoidCallback onLoginTap;
@@ -10,8 +11,6 @@ class GuestBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryColor = Color(0xFF004D52);
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: const BoxDecoration(
@@ -27,7 +26,7 @@ class GuestBottomSheet extends StatelessWidget {
             height: 4,
             margin: const EdgeInsets.only(bottom: 20),
             decoration: BoxDecoration(
-              color: const Color(0xFFE2E8F0),
+              color: AppTheme.lightGrey,
               borderRadius: BorderRadius.circular(10),
             ),
           ),
@@ -35,11 +34,11 @@ class GuestBottomSheet extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: const Color(0xFFE6F4F4),
+              color: AppTheme.softCyan,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0B9AA4).withOpacity(0.08),
+                  color: AppTheme.accentTeal.withOpacity(0.08),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),
@@ -48,7 +47,7 @@ class GuestBottomSheet extends StatelessWidget {
             child: const Center(
               child: Icon(
                 Icons.lock_person_rounded,
-                color: Color(0xFF0B9AA4),
+                color: AppTheme.accentTeal,
                 size: 26,
               ),
             ),
@@ -57,7 +56,7 @@ class GuestBottomSheet extends StatelessWidget {
           const Text(
             'Unlock SONA Premium',
             style: TextStyle(
-              color: primaryColor,
+              color: AppTheme.deepTeal,
               fontSize: 18,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.2,
@@ -68,7 +67,7 @@ class GuestBottomSheet extends StatelessWidget {
             'Register or log in to access this feature, manage bookings, and unlock the full travel dashboard.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Color(0xFF929BA8),
+              color: AppTheme.textGrey,
               fontSize: 13,
               height: 1.45,
               fontWeight: FontWeight.w500,
@@ -90,9 +89,9 @@ class GuestBottomSheet extends StatelessWidget {
                 onLoginTap();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
+                backgroundColor: AppTheme.deepTeal,
                 elevation: 3,
-                shadowColor: primaryColor.withOpacity(0.24),
+                shadowColor: AppTheme.deepTeal.withOpacity(0.24),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -113,7 +112,7 @@ class GuestBottomSheet extends StatelessWidget {
             child: const Text(
               'Maybe Later',
               style: TextStyle(
-                color: Color(0xFF929BA8),
+                color: AppTheme.textGrey,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
@@ -131,17 +130,17 @@ class GuestBottomSheet extends StatelessWidget {
           width: 28,
           height: 28,
           decoration: const BoxDecoration(
-            color: Color(0xFFF1F5F9),
+            color: AppTheme.backgroundLight,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: const Color(0xFF0B9AA4), size: 16),
+          child: Icon(icon, color: AppTheme.accentTeal, size: 16),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
             style: const TextStyle(
-              color: Color(0xFF242833),
+              color: AppTheme.textDark,
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),

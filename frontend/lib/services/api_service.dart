@@ -250,4 +250,128 @@ class ApiService {
       return List<HotelModel>.from(fallbackHotels); // Return list kosong jika gagal (agar aplikasi tidak crash)
     }
   }
+
+  // --- AUTHENTICATED USER SERVICES ---
+
+  /// Fetch user-saved hotels list from database SaveHotel relation
+  Future<Map<String, dynamic>> fetchSavedHotels(int idUser, String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/save-hotels?id_user=$idUser'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final List<dynamic> rawList = responseData['data'] ?? [];
+        
+        // Map to HotelModel and preserve the relationship id_savehotel so we can easily unsave
+        final List<HotelModel> savedHotels = [];
+        final Map<int, int> relationMap = {}; // hotel_id -> id_savehotel
+        
+        for (var item in rawList) {
+          if (item['hotel'] != null) {
+            final hotel = HotelModel.fromJson(item['hotel']);
+            savedHotels.add(hotel);
+            relationMap[hotel.id] = item['id_savehotel'];
+          }
+        }
+        
+        return {
+          'hotels': savedHotels,
+          'relations': relationMap,
+        };
+      }
+      throw Exception('Gagal memuat saved hotels');
+    } catch (e) {
+      print('Error fetching saved hotels: $e');
+      return {'hotels': <HotelModel>[], 'relations': <int, int>{}};
+    }
+  }
+
+  /// Create new save/bookmark relation in Laravel database
+  Future<bool> saveHotel(int idUser, int idHotel, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/save-hotels'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+        body: json.encode({
+          'id_user': idUser,
+          'id_hotel': idHotel,
+        }),
+      );
+      return response.statusCode == 201;
+    } catch (e) {
+      print('Error saving hotel: $e');
+      return false;
+    }
+  }
+
+  /// Toggle/Update existing save hotel status in Laravel database
+  Future<bool> toggleSaveHotel(int idSaveHotel, String token) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/save-hotels/$idSaveHotel'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error toggling saved hotel relation: $e');
+      return false;
+    }
+  }
+
+  /// Fetch user booking history using Laravel PemesananController
+  Future<List<Map<String, dynamic>>> fetchUserBookings(int idUser, String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pemesanan/user/$idUser'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> rawList = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(rawList);
+      }
+      throw Exception('Gagal memuat riwayat booking');
+    } catch (e) {
+      print('Error fetching user bookings: $e');
+      return [];
+    }
+  }
+
+  /// Update user profile data in Laravel UserController
+  Future<bool> updateUserProfile(int idUser, String name, String phone, String token) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/user/$idUser'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+        body: json.encode({
+          'nama': name,
+          'nomor_telp': phone,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating user profile: $e');
+      return false;
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class CategoryTabs extends StatelessWidget {
   final int selectedIndex;
@@ -36,18 +37,18 @@ class CategoryTabs extends StatelessWidget {
               curve: Curves.easeInOut,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF004D52) : Colors.white,
+                color: isSelected ? AppTheme.deepTeal : Colors.white,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF004D52)
-                      : const Color(0xFFE2E8F0),
+                      ? AppTheme.deepTeal
+                      : AppTheme.lightGrey,
                   width: 1.2,
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF004D52).withOpacity(0.15),
+                          color: AppTheme.deepTeal.withOpacity(0.15),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -58,7 +59,7 @@ class CategoryTabs extends StatelessWidget {
                 child: Text(
                   labels[index],
                   style: TextStyle(
-                    color: isSelected ? Colors.white : const Color(0xFF929BA8),
+                    color: isSelected ? Colors.white : AppTheme.textGrey,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
