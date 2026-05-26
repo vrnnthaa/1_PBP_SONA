@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sona/pages/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/pages/home/home_page.dart';
+import 'package:sona/pages/intro/intro_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -65,7 +65,7 @@ class _AuthCheckState extends State<AuthCheck> {
           return const HomePage();
         }
 
-        return const LoginPage();
+        return const IntroPage();
       },
     );
   }

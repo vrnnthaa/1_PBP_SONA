@@ -6,11 +6,11 @@ use App\Models\Hotel;
 use App\Models\Review;
 use Illuminate\Http\Request;
 
-class HotelController extends Controller
+class HotelController 
 {
     public function index()
     {
-        $hotels = Hotel::with(['kamar', 'gambarHotel', 'fasilitasHotel'])
+        $hotels = Hotel::with(['kamar', 'gambarHotel', 'fasilitas'])
             ->where('is_delete', false)
             ->get();
 
@@ -31,7 +31,7 @@ class HotelController extends Controller
 
     public function show($id_hotel)
     {
-        $hotel = Hotel::with(['kamar', 'gambarHotel', 'fasilitasHotel'])
+        $hotel = Hotel::with(['kamar', 'gambarHotel', 'fasilitas'])
             ->where('id_hotel', $id_hotel)
             ->where('is_delete', false)
             ->first();
@@ -62,6 +62,8 @@ class HotelController extends Controller
             'kota' => 'required|string',
             'alamat' => 'required|string',
             'deskripsi' => 'nullable|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
         ]);
 
         $hotel = Hotel::create([
@@ -69,6 +71,8 @@ class HotelController extends Controller
             'kota' => $validated['kota'],
             'alamat' => $validated['alamat'],
             'deskripsi' => $validated['deskripsi'] ?? null,
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
             'is_delete' => false,
         ]);
 
@@ -95,6 +99,8 @@ class HotelController extends Controller
             'kota' => 'nullable|string',
             'alamat' => 'nullable|string',
             'deskripsi' => 'nullable|string',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         $hotel->update($validated);

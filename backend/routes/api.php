@@ -53,6 +53,14 @@ Route::get('/hotels/{id_hotel}/gambar', [GambarHotelController::class, 'byHotel'
 use App\Http\Controllers\PemesananController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\AddOnController;
+use App\Http\Controllers\SaveHotelController;
+
+// ^-^
+// SAVE HOTEL
+// T-T
+Route::get('/save-hotels', [SaveHotelController::class, 'index']);
+Route::post('/save-hotels', [SaveHotelController::class, 'store']);
+Route::put('/save-hotels/{saveHotel}', [SaveHotelController::class, 'update']);
 
 // ^-^
 // PEMESANAN

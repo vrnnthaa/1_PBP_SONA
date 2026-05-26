@@ -6,7 +6,7 @@ use App\Models\GambarHotel;
 use App\Models\Hotel;
 use Illuminate\Http\Request;
 
-class GambarHotelController extends Controller
+class GambarHotelController
 {
     public function index()
     {

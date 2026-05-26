@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FasilitasHotel;
+use App\Models\Fasilitas;
 use Illuminate\Http\Request;
 
 class FasilitasHotelController
 {
     public function index()
     {
-        $fasilitas = FasilitasHotel::with('hotels')->get();
+        $fasilitas = Fasilitas::with('hotels')->get();
 
         return response()->json([
             'message' => 'Data Fasilitas Hotel berhasil diambil',
@@ -19,7 +19,7 @@ class FasilitasHotelController
 
     public function show($id_fasilitas)
     {
-        $fasilitas = FasilitasHotel::with('hotels')
+        $fasilitas = Fasilitas::with('hotels')
             ->where('id_fasilitas', $id_fasilitas)
             ->first();
 
@@ -42,9 +42,9 @@ class FasilitasHotelController
             'keterangan_fasilitasKamar' => 'nullable|string',
         ]);
 
-        $fasilitas = FasilitasHotel::create([
-            'nama_fasilitasKamar' => $validated['nama_fasilitasKamar'],
-            'keterangan_fasilitasKamar' => $validated['keterangan_fasilitasKamar'] ?? null,
+        $fasilitas = Fasilitas::create([
+            'nama_fasilitas' => $validated['nama_fasilitas'],
+            'icon_fasilitas' => $validated['icon_fasilitas'] ?? null,
         ]);
 
         return response()->json([
@@ -55,7 +55,7 @@ class FasilitasHotelController
 
     public function update(Request $request, $id_fasilitas)
     {
-        $fasilitas = FasilitasHotel::where('id_fasilitas', $id_fasilitas)->first();
+        $fasilitas = Fasilitas::where('id_fasilitas', $id_fasilitas)->first();
 
         if (!$fasilitas) {
             return response()->json([
@@ -64,8 +64,8 @@ class FasilitasHotelController
         }
 
         $validated = $request->validate([
-            'nama_fasilitasKamar' => 'nullable|string|unique:kamar_fasilitas,nama_fasilitasKamar,' . $id_fasilitas . ',id_fasilitas',
-            'keterangan_fasilitasKamar' => 'nullable|string',
+            'nama_fasilitas' => 'nullable|string|unique:fasilitas,nama_fasilitas,' . $id_fasilitas . ',id_fasilitas',
+            'icon_fasilitas' => 'nullable|string',
         ]);
 
         $fasilitas->update($validated);
@@ -78,7 +78,7 @@ class FasilitasHotelController
 
     public function destroy($id_fasilitas)
     {
-        $fasilitas = FasilitasHotel::where('id_fasilitas', $id_fasilitas)->first();
+        $fasilitas = Fasilitas::where('id_fasilitas', $id_fasilitas)->first();
 
         if (!$fasilitas) {
             return response()->json([

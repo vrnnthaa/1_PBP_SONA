@@ -17,6 +17,8 @@ class Hotel extends Model
         'deskripsi',
         'rating_hotel',
         'is_delete',
+        'latitude',
+        'longitude'
     ];
 
     public function kamar()
@@ -32,5 +34,9 @@ class Hotel extends Model
     public function fasilitasHotel()
     {
         return $this->belongsToMany(FasilitasHotel::class, 'hotel_fasilitas', 'id_hotel', 'id_fasilitasHotel');
+    }
+
+    public function fasilitas(){
+        return $this->belongsToMany(FasilitasHotel::class, 'hotel_fasilitas', 'id_hotel', 'id_fasilitas');
     }
 }
