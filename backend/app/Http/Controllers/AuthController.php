@@ -5,15 +5,50 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\Controller;
 
-class AuthController
+class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        if(!$request->nama || !$request->telp_no || !$request->email || !$request->password)
+
+        if(!$request->nama)
         {
             return response()->json([
-                'message' => 'Nama, nomor telepon, email, dan password wajib diisi'
+                'message' => 'Name is required',
+                'field' => 'name',
+            ], 400);
+        }
+
+        if(!$request->tanggal_lahir)
+        {
+            return response()->json([
+                'message' => 'Date of birth is required',
+                'field' => 'date_of_birth',
+            ], 400);
+        }
+
+        if(!$request->telp_no)
+        {
+            return response()->json([
+                'message' => 'Phone number is required',
+                'field' => 'telp_no',
+            ], 400);
+        }
+
+        if(!$request->email)
+        {
+            return response()->json([
+                'message' => 'Email is required',
+                'field' => 'email',
+            ], 400);
+        }
+
+        if(!$request->password)
+        {
+            return response()->json([
+                'message' => 'Password is required',
+                'field' => 'password',
             ], 400);
         }
 
@@ -21,52 +56,78 @@ class AuthController
         if($cek)
         {
             return response()->json([
-                'message' => 'Email sudah digunakan'
+                'message' => 'Email is already used',
+                'field' => 'email',
+            ], 400);
+        }
+
+        //regex cek format email
+        if (!preg_match("/^[\w\.-]+@[\w\.-]+\.\w+$/", $request->email)) {
+            return response()->json([
+                'message' => 'Email format is not valid',
+                'field' => 'email',
+            ], 400);
+        }
+
+        if(strlen($request->password) < 6)
+        {
+            return response()->json([
+                'message' => 'Password must be at least 6 characters',
+                'field' => 'password',
             ], 400);
         }
 
         $user = User::create([
             'nama' => $request->nama,
             'email' => $request->email,
-            'password' => $request->password,
+            'password' => Hash::make($request->password),
             'telp_no' => $request->telp_no,
+            'tanggal_lahir' => $request->tanggal_lahir,
+            'sidik_jari' => null,
             'photo_profile' => null,
             'pin' => null,
         ]);
 
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
-            'message' => 'Register berhasil, lanjut set PIN',
-            'id_user' => $user->id_user
+            'message' => 'Register Successful',
+            'token' => $token,
+            'data' => $user,
         ], 201);
     }
 
     public function setPin(Request $request)
     {
-        if (!$request->id_user) {
-            return response()->json([
-                'message' => 'ID user wajib diisi'
-            ], 400);
-        }
 
-        $user = User::find($request->id_user);
+        $user = $request->user();
 
         if (!$user) {
             return response()->json([
-                'message' => 'User tidak ditemukan'
-            ], 404);
+                'message' => 'Unauthenticated'
+            ], 401);
         }
 
         if (!$request->pin) {
             return response()->json([
-                'message' => 'PIN wajib diisi'
+                'message' => 'PIN is required'
             ], 400);
         }
 
-        $user->pin = $request->pin;
+        if(strlen($request->pin) < 4) {
+            return response()->json([
+                'message' => 'Must be a 4 digit PIN'
+            ], 400);
+        }
+
+        $user->pin = Hash::make($request->pin);
         $user->save();
 
+        $request->user()->currentAccessToken()->delete();
+
         return response()->json([
-            'message' => 'PIN berhasil disimpan'
+            'message' => 'PIN Succesfully saved, please log in again',
+            'data' => $user
         ], 200);
     }
 

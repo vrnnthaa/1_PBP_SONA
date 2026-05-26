@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/pages/register_page.dart';
 import 'package:sona/widgets/green_button.dart';
 import 'package:sona/widgets/input_box.dart';
 import 'package:sona/services/auth_service.dart';
@@ -206,15 +207,44 @@ class _LoginPageState extends State<LoginPage> {
 
               const SizedBox(height: 55),
 
-              const Text(
-                'Don\'t have an account? Sign Up',
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
 
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFA29EB6),
-                ),
-              ),
+                children: [
+                  const Text(
+                    'Don\'t have an account?',
+
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFA29EB6),
+                    ),
+                  ),
+
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterPage(),
+                        ),
+                      );
+                    },
+
+                    child: const Text(
+                      'Sign Up',
+
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0077A1),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+
+              
             ],
           ),
         )

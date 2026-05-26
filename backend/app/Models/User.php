@@ -30,6 +30,7 @@ class User extends Authenticatable
         'password',
         'pin',
         'sidik_jari',
+        'tanggal_lahir',
     ];
 
     protected $hidden = [
@@ -37,15 +38,15 @@ class User extends Authenticatable
         'pin',
     ];
 
-    public function setPasswordAttribute($value)
-    {
-        $this->attributes['password'] = Hash::make($value);
-    }
+    // public function setPasswordAttribute($value)
+    // {
+    //     $this->attributes['password'] = Hash::make($value);
+    // }
 
-    public function setPinAttribute($value)
-    {
-        $this->attributes['pin'] = Hash::make($value);
-    }
+    // public function setPinAttribute($value)
+    // {
+    //     $this->attributes['pin'] = Hash::make($value);
+    // }
 
     // public function pemesanans() {
     //     return $this->hasMany(Pemesanan::class, 'id_user', 'id_user');

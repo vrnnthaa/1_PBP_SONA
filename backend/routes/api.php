@@ -9,10 +9,10 @@ use App\Http\Controllers\GambarHotelController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/set-pin', [AuthController::class, 'setPin']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/set-pin', [AuthController::class, 'setPin']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::prefix('user')
