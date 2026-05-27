@@ -7,7 +7,7 @@ import 'package:sona/pages/home/user_save_page.dart';
 import 'package:sona/pages/map/map_screen.dart';
 import 'package:sona/pages/home/user_history_page.dart';
 import 'package:sona/pages/home/user_profile_page.dart';
-import 'package:sona/widgets/intro/guest_bottom_nav.dart';
+import 'package:sona/widgets/navigation/guest_bottom_nav.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

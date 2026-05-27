@@ -1,14 +1,18 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/models/hotel_model.dart';
 import 'package:sona/models/intro_models.dart';
 import 'package:sona/services/api_service.dart';
-import 'package:sona/widgets/intro/smart_image.dart';
-import 'package:sona/widgets/intro/hotel_card.dart';
-import 'package:sona/widgets/intro/place_card.dart';
-import 'package:sona/widgets/intro/hotel_list_card.dart';
-import 'package:sona/widgets/intro/category_tabs.dart';
+import 'package:sona/widgets/home/smart_image.dart';
+import 'package:sona/widgets/home/hotel_card.dart';
+import 'package:sona/widgets/home/place_card.dart';
+import 'package:sona/widgets/home/hotel_list_card.dart';
+import 'package:sona/widgets/home/category_tabs.dart';
+import 'package:sona/widgets/home/search_card.dart';
+import 'package:sona/pages/hotels/hotel_page.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({super.key});
@@ -22,6 +26,8 @@ class _UserHomePageState extends State<UserHomePage> {
   bool _isLoading = true;
   int? _userId;
   String? _token;
+  String _userName = 'Olivia'; // Dynamic greeting name
+  String _deviceLocation = 'Yogyakarta, Indonesia'; // Dynamic device location
 
   List<HotelModel> _allHotels = [];
   List<HotelModel> _recommendedHotels = [];
@@ -39,20 +45,44 @@ class _UserHomePageState extends State<UserHomePage> {
     PlaceData(name: 'Lombok', imagePath: 'assets/images/place_lombok.jpg'),
   ];
 
+  // Interactive fields matching mockups
+  final TextEditingController _locationController = TextEditingController(text: 'Yogyakarta');
+  DateTimeRange? _selectedDateRange;
+  int _selectedGuests = 2;
+
   @override
   void initState() {
     super.initState();
+    // Default selected date range to mock March 10 2026 - March 16 2026
+    _selectedDateRange = DateTimeRange(
+      start: DateTime(2026, 3, 10),
+      end: DateTime(2026, 3, 16),
+    );
     _loadData();
+  }
+
+  String _formatDateRange(DateTimeRange? range) {
+    if (range == null) return 'Select Dates';
+    final start = range.start;
+    final end = range.end;
+    
+    // Correct index lookup safely
+    String getMonthName(int m) {
+      const List<String> names = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return names[m - 1];
+    }
+    
+    return "${getMonthName(start.month)} ${start.day} ${start.year} - ${getMonthName(end.month)} ${end.day} ${end.year}";
   }
 
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     
-    // Parse user ID from the saved credentials or make a quick profile call
     final apiService = ApiService();
-    
-    // For demo/prototype robustness, let's look up /me or user state
     int userId = 1; // Default fallback user ID
     
     setState(() {
@@ -60,12 +90,64 @@ class _UserHomePageState extends State<UserHomePage> {
       _userId = userId;
     });
 
-    final hotels = await apiService.fetchHotels();
+    // 1. Fetch real hotel data from the database
+    List<HotelModel> hotels = [];
+    try {
+      hotels = await apiService.fetchHotels();
+    } catch (e) {
+      debugPrint("Error fetching hotels: $e");
+    }
     
-    // Fetch saved/bookmarked hotels from database
+    // 2. Fetch saved hotels relations
     Map<String, dynamic> savedResult = {};
     if (token != null) {
-      savedResult = await apiService.fetchSavedHotels(userId, token);
+      try {
+        savedResult = await apiService.fetchSavedHotels(userId, token);
+      } catch (e) {
+        debugPrint("Error fetching saved hotels: $e");
+      }
+    }
+
+    // 3. Fetch logged-in user profile details dynamically
+    if (token != null) {
+      try {
+        final profileResponse = await http.get(
+          Uri.parse('${ApiService.baseUrl}/me'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+        if (profileResponse.statusCode == 200) {
+          final result = jsonDecode(profileResponse.body);
+          final userData = result['data'];
+          if (userData != null && userData['nama'] != null) {
+            setState(() {
+              _userName = userData['nama'];
+              if (userData['id_user'] != null) {
+                _userId = userData['id_user'];
+              }
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint("Error fetching logged in profile: $e");
+      }
+    }
+
+    // 4. Fetch dynamic device location based on IP address
+    try {
+      final ipResponse = await http.get(Uri.parse('https://ipapi.co/json/')).timeout(const Duration(seconds: 3));
+      if (ipResponse.statusCode == 200) {
+        final data = jsonDecode(ipResponse.body);
+        if (data['city'] != null) {
+          setState(() {
+            _deviceLocation = "${data['city']}, ${data['country_code'] ?? 'ID'}";
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching device location: $e");
     }
 
     if (mounted) {
@@ -73,17 +155,21 @@ class _UserHomePageState extends State<UserHomePage> {
         _allHotels = hotels;
         _savedHotelRelations = Map<int, int>.from(savedResult['relations'] ?? {});
 
+        // Fallback to real database hotels if the API load failed or is empty
+        final displayHotels = hotels.isNotEmpty ? hotels : ApiService.fallbackHotels;
+
         List<HotelModel> getRandomHotels(List<HotelModel> source, int count) {
           if (source.isEmpty) return [];
           final list = List<HotelModel>.from(source)..shuffle();
           return list.take(count).toList();
         }
 
-        _recommendedHotels = getRandomHotels(hotels, 5);
-        _nearestHotels = getRandomHotels(hotels, 5);
-        _popularHotels = getRandomHotels(hotels, 5);
-        _topRatesHotels = getRandomHotels(hotels, 5);
-        _trendingHotels = getRandomHotels(hotels, 5);
+        // Display raw DB hotels directly as requested!
+        _recommendedHotels = getRandomHotels(displayHotels, 5);
+        _nearestHotels = getRandomHotels(displayHotels, 5);
+        _popularHotels = getRandomHotels(displayHotels, 5);
+        _topRatesHotels = getRandomHotels(displayHotels, 5);
+        _trendingHotels = getRandomHotels(displayHotels, 5);
 
         _isLoading = false;
       });
@@ -101,12 +187,16 @@ class _UserHomePageState extends State<UserHomePage> {
       final saveId = _savedHotelRelations[hotel.id]!;
       final success = await apiService.toggleSaveHotel(saveId, _token!);
       if (success) {
-        setState(() {
-          _savedHotelRelations.remove(hotel.id);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${hotel.nama} removed from bookmarks')),
-        );
+        if (mounted) {
+          setState(() {
+            _savedHotelRelations.remove(hotel.id);
+          });
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${hotel.nama} removed from bookmarks')),
+          );
+        }
       }
     } else {
       // Create new bookmark relation
@@ -114,12 +204,16 @@ class _UserHomePageState extends State<UserHomePage> {
       if (success) {
         // Refresh save map to get the new id_savehotel
         final savedResult = await apiService.fetchSavedHotels(_userId!, _token!);
-        setState(() {
-          _savedHotelRelations = Map<int, int>.from(savedResult['relations'] ?? {});
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${hotel.nama} bookmarked successfully!')),
-        );
+        if (mounted) {
+          setState(() {
+            _savedHotelRelations = Map<int, int>.from(savedResult['relations'] ?? {});
+          });
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${hotel.nama} bookmarked successfully!')),
+          );
+        }
       }
     }
   }
@@ -183,7 +277,7 @@ class _UserHomePageState extends State<UserHomePage> {
                               return HotelCard(
                                 hotel: hotel,
                                 isBookmarked: _savedHotelRelations.containsKey(hotel.id),
-                                onTap: () => _showSuccessBookingDialog(hotel),
+                                onTap: () => _navigateToHotelPage(hotel),
                                 onBookmarkTap: () => _toggleBookmark(hotel),
                               );
                             },
@@ -229,7 +323,7 @@ class _UserHomePageState extends State<UserHomePage> {
                             return HotelListCard(
                               hotel: hotel,
                               isBookmarked: _savedHotelRelations.containsKey(hotel.id),
-                              onTap: () => _showSuccessBookingDialog(hotel),
+                              onTap: () => _navigateToHotelPage(hotel),
                               onBookmarkTap: () => _toggleBookmark(hotel),
                             );
                           },
@@ -245,58 +339,99 @@ class _UserHomePageState extends State<UserHomePage> {
 
   Widget _buildHeroHeader() {
     return SizedBox(
-      height: 240,
+      height: 380, // Taller to fit background and overlapping card
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          const Positioned.fill(
-            child: SmartImage(
+          // Background resort palms image (height: 240)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 240,
+            child: const SmartImage(
               path: 'assets/images/home_hero.jpg',
               fit: BoxFit.cover,
               borderRadius: BorderRadius.zero,
             ),
           ),
-          Positioned.fill(
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 240,
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.35),
+                    Colors.black.withOpacity(0.4),
                     Colors.black.withOpacity(0.12),
-                    AppTheme.background.withOpacity(0.95),
+                    Colors.black.withOpacity(0.0),
                   ],
-                  stops: const [0, 0.65, 1],
                 ),
               ),
             ),
           ),
+          // Current Location Badge and greeting "Hello, [User]!"
           Positioned(
+            top: 48,
             left: 16,
             right: 16,
-            top: 56,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Let's Find\nThe Best Hotel !",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    height: 1.2,
-                    fontWeight: FontWeight.w800,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black26,
-                        offset: Offset(0, 1.5),
-                        blurRadius: 3,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.35),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.location_on_outlined, color: Colors.white, size: 13),
+                      const SizedBox(width: 4),
+                      Text(
+                        _deviceLocation,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                _buildSearchBar(),
+                const SizedBox(height: 10),
+                Text(
+                  'Hello, $_userName!',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.3,
+                  ),
+                ),
               ],
+            ),
+          ),
+          // Overlapping card positioned at the bottom of our 380px header box
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 0,
+            child: SearchCard(
+              locationController: _locationController,
+              dateRangeStr: _selectedDateRange != null 
+                  ? _formatDateRange(_selectedDateRange)
+                  : 'March 10 2026 - March 16 2026',
+              guestsStr: '$_selectedGuests Guest${_selectedGuests > 1 ? 's' : ''}',
+              onTapDates: _showDateRangePicker,
+              onTapGuests: _showGuestsPicker,
+              onSearchPressed: _onSearchPressed,
             ),
           ),
         ],
@@ -304,36 +439,114 @@ class _UserHomePageState extends State<UserHomePage> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.deepTeal.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+  Future<void> _showDateRangePicker() async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      initialDateRange: _selectedDateRange ?? DateTimeRange(
+        start: DateTime(2026, 3, 10),
+        end: DateTime(2026, 3, 16),
       ),
-      child: TextField(
-        readOnly: true,
-        onTap: () {},
-        decoration: InputDecoration(
-          hintText: 'Look for homestay',
-          hintStyle: const TextStyle(
-            color: AppTheme.textGrey,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+      firstDate: DateTime(2026, 1, 1),
+      lastDate: DateTime(2030, 12, 31),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppTheme.tealDark,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppTheme.textDark,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.tealDark,
+              ),
+            ),
           ),
-          suffixIcon: const Icon(
-            Icons.search_rounded,
-            color: AppTheme.accentTeal,
-            size: 22,
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDateRange = picked;
+      });
+    }
+  }
+
+  void _showGuestsPicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Select Number of Guests',
+                style: TextStyle(
+                  color: AppTheme.primary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 18),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: 5,
+                itemBuilder: (context, index) {
+                  final guestCount = index + 1;
+                  return ListTile(
+                    leading: const Icon(Icons.people_outline_rounded, color: AppTheme.accentTeal),
+                    title: Text(
+                      '$guestCount Guest${guestCount > 1 ? 's' : ''}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    trailing: _selectedGuests == guestCount
+                        ? const Icon(Icons.check_circle_rounded, color: AppTheme.tealDark)
+                        : null,
+                    onTap: () {
+                      setState(() {
+                        _selectedGuests = guestCount;
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ],
           ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        );
+      },
+    );
+  }
+
+  void _onSearchPressed() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HotelPage(
+          location: _locationController.text,
+          dateRange: _formatDateRange(_selectedDateRange),
+          guests: '$_selectedGuests Guest${_selectedGuests > 1 ? 's' : ''}',
+        ),
+      ),
+    );
+  }
+
+  void _navigateToHotelPage(HotelModel hotel) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HotelPage(
+          location: hotel.alamat,
+          dateRange: _formatDateRange(_selectedDateRange),
+          guests: '$_selectedGuests Guest${_selectedGuests > 1 ? 's' : ''}',
         ),
       ),
     );

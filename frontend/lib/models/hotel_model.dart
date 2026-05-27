@@ -28,13 +28,22 @@ class HotelModel {
       imgPath = gambarList[0]['url_gambarhotel'];
     }
 
+    double toDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) {
+        return double.tryParse(value) ?? 0.0;
+      }
+      return 0.0;
+    }
+
     return HotelModel(
       id: json['id_hotel'],
       nama: json['nama_hotel'],
       alamat: json['alamat'] ?? '',
-      rating: (json['rating_hotel'] ?? 0).toDouble(),
-      latitude: (json['latitude'] ?? 0.0).toDouble(),
-      longitude: (json['longitude'] ?? 0.0).toDouble(),
+      rating: toDouble(json['rating_hotel']),
+      latitude: toDouble(json['latitude']),
+      longitude: toDouble(json['longitude']),
       fasilitas: json['fasilitas_hotel'] ?? json['fasilitas'] ?? [],
       imagePath: imgPath,
     );

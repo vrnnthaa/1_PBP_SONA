@@ -70,7 +70,7 @@ class _BookmarkButtonState extends State<BookmarkButton>
                   ? Icons.bookmark_rounded
                   : Icons.bookmark_border_rounded,
               color: widget.isBookmarked
-                  ? AppTheme.accentTeal
+                  ? AppTheme.primary
                   : AppTheme.textGrey,
               size: 22,
             ),

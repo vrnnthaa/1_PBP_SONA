@@ -3,11 +3,11 @@ import 'package:sona/utils/app_theme.dart';
 import 'package:sona/models/hotel_model.dart';
 import 'package:sona/models/intro_models.dart';
 import 'package:sona/services/api_service.dart';
-import 'package:sona/widgets/intro/smart_image.dart';
-import 'package:sona/widgets/intro/hotel_card.dart';
-import 'package:sona/widgets/intro/place_card.dart';
-import 'package:sona/widgets/intro/hotel_list_card.dart';
-import 'package:sona/widgets/intro/category_tabs.dart';
+import 'package:sona/widgets/home/smart_image.dart';
+import 'package:sona/widgets/home/hotel_card.dart';
+import 'package:sona/widgets/home/place_card.dart';
+import 'package:sona/widgets/home/hotel_list_card.dart';
+import 'package:sona/widgets/home/category_tabs.dart';
 
 class IntroHomePage extends StatefulWidget {
   final VoidCallback onLoginTap;

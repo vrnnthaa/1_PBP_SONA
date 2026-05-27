@@ -6,8 +6,8 @@ import 'package:sona/pages/intro/intro_save_page.dart';
 import 'package:sona/pages/map/map_screen.dart';
 import 'package:sona/pages/intro/intro_history_page.dart';
 import 'package:sona/pages/intro/intro_profile_page.dart';
-import 'package:sona/widgets/intro/guest_bottom_nav.dart';
-import 'package:sona/widgets/intro/guest_bottom_sheet.dart';
+import 'package:sona/widgets/navigation/guest_bottom_nav.dart';
+import 'package:sona/widgets/navigation/guest_bottom_sheet.dart';
 
 class IntroPage extends StatefulWidget {
   const IntroPage({super.key});

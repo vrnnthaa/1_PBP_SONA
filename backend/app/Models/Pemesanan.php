@@ -3,10 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pemesanan extends Model {
-    use SoftDeletes;
+    public $timestamps = false;
 
     protected $table = 'pemesanan';
     protected $primaryKey = 'id_pemesanan';
@@ -18,7 +17,31 @@ class Pemesanan extends Model {
         'jumlah_pengunjung',
         'total_biaya',
         'status_pemesanan',
+        'is_delete',
     ];
+
+    protected $attributes = [
+        'is_delete' => false,
+    ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope('active', function ($builder) {
+            $builder->where('is_delete', false);
+        });
+    }
+
+    public function delete()
+    {
+        $this->is_delete = true;
+        return $this->save();
+    }
+
+    public function restore()
+    {
+        $this->is_delete = false;
+        return $this->save();
+    }
 
     protected $casts = [
         'check_in'             => 'datetime',

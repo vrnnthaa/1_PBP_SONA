@@ -60,7 +60,7 @@ use App\Http\Controllers\SaveHotelController;
 // T-T
 Route::get('/save-hotels', [SaveHotelController::class, 'index']);
 Route::post('/save-hotels', [SaveHotelController::class, 'store']);
-Route::put('/save-hotels/{saveHotel}', [SaveHotelController::class, 'update']);
+Route::put('/save-hotels/{id}', [SaveHotelController::class, 'update']);
 
 // ^-^
 // PEMESANAN

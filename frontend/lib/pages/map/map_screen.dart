@@ -4,7 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sona/models/hotel_model.dart';
 import 'package:sona/services/api_service.dart';
-import 'package:sona/widgets/intro/smart_image.dart';
+import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/pages/login_page.dart';
 
 class MapScreen extends StatefulWidget {

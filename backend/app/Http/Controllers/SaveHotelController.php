@@ -32,13 +32,13 @@ class SaveHotelController
 
         if($save){
             $save->update([
-                'is_saved' => true
+                'is_saved' => 1
             ]); 
         }else{
             $save = SaveHotel::create([
                 'id_user' => $validated['id_user'],
                 'id_hotel' => $validated['id_hotel'], 
-                'is_saved' => true
+                'is_saved' => 1
             ]); 
         }
 
@@ -48,9 +48,14 @@ class SaveHotelController
         ], 201); 
     }
 
-    public function update(Request $request, SaveHotel $saveHotel){
+    public function update(Request $request, $id){
+        $saveHotel = SaveHotel::findOrFail($id);
+        
+        $currentValue = (bool) $saveHotel->is_saved;
+        $newValue = !$currentValue;
+        
         $saveHotel->update([
-            'is_saved' => !$saveHotel->is_saved
+            'is_saved' => $newValue ? 1 : 0
         ]); 
 
         return response()->json([

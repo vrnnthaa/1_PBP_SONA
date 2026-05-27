@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sona/models/hotel_model.dart';
 import 'package:sona/services/api_service.dart';
-import 'package:sona/widgets/intro/vertical_hotel_card.dart';
+import 'package:sona/widgets/search/vertical_hotel_card.dart';
 
 class SearchResultsPage extends StatefulWidget {
   final String location;
