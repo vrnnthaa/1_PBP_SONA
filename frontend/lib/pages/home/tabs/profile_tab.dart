@@ -34,29 +34,29 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
+        title: Text(
           'Edit Profile',
-          style: TextStyle(color: AppTheme.deepTeal, fontWeight: FontWeight.bold),
+          style: AppTheme.titleStyle.copyWith(color: AppTheme.deepTeal, fontWeight: FontWeight.bold, fontSize: 20),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Full Name',
-                labelStyle: TextStyle(color: AppTheme.textGrey),
-                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.deepTeal)),
+                labelStyle: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey),
+                focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.deepTeal)),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Phone Number',
-                labelStyle: TextStyle(color: AppTheme.textGrey),
-                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.deepTeal)),
+                labelStyle: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey),
+                focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.deepTeal)),
               ),
             ),
           ],
@@ -64,7 +64,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppTheme.textGrey)),
+            child: Text('Cancel', style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -108,7 +108,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
               backgroundColor: AppTheme.deepTeal,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
+            child: Text('Save', style: AppTheme.bodyStyle.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -162,7 +162,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                   children: [
                     Text(
                       isGuest ? 'SUPPORT & MORE' : 'ACCOUNT SETTINGS',
-                      style: const TextStyle(
+                      style: AppTheme.bodyStyle.copyWith(
                         color: AppTheme.textGrey,
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -253,9 +253,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         'Discover Your Dream\nHoliday Experience',
-                        style: TextStyle(
+                        style: AppTheme.titleStyle.copyWith(
                           color: Colors.white,
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
@@ -281,9 +281,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Log in / Sign up',
-                            style: TextStyle(
+                            style: AppTheme.bodyStyle.copyWith(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w800,
                             ),
@@ -298,7 +298,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                     children: [
                       Text(
                         name.isNotEmpty ? name : 'Guest User',
-                        style: const TextStyle(
+                        style: AppTheme.titleStyle.copyWith(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -309,7 +309,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                       const SizedBox(height: 4),
                       Text(
                         email.isNotEmpty ? email : 'No email added',
-                        style: TextStyle(
+                        style: AppTheme.bodyStyle.copyWith(
                           color: Colors.white.withOpacity(0.75),
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -319,7 +319,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                         const SizedBox(height: 2),
                         Text(
                           phone,
-                          style: TextStyle(
+                          style: AppTheme.bodyStyle.copyWith(
                             color: Colors.white.withOpacity(0.75),
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -370,7 +370,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                 Expanded(
                   child: Text(
                     title,
-                    style: TextStyle(
+                    style: AppTheme.bodyStyle.copyWith(
                       color: isDestructive ? AppTheme.errorRed : AppTheme.textDark,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -398,34 +398,35 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text(
+          title: Text(
             'About SONA',
-            style: TextStyle(
+            style: AppTheme.titleStyle.copyWith(
               color: AppTheme.deepTeal,
               fontWeight: FontWeight.bold,
+              fontSize: 20,
             ),
           ),
-          content: const Column(
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'SONA - Smooth Online Night Accommodation',
-                style: TextStyle(
+                style: AppTheme.subtitleStyle.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textDark,
                   fontSize: 13.5,
                 ),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               Text(
                 'SONA is a state-of-the-art hotel booking application built to provide premium quality stay bookings with ease and style.',
-                style: TextStyle(color: Color(0xFF5E6573), fontSize: 13, height: 1.4),
+                style: AppTheme.bodyStyle.copyWith(color: const Color(0xFF5E6573), fontSize: 13, height: 1.4),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(
                 'Version 1.0.0',
-                style: TextStyle(
+                style: AppTheme.bodyStyle.copyWith(
                   color: AppTheme.textGrey,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -436,9 +437,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
+              child: Text(
                 'Close',
-                style: TextStyle(
+                style: AppTheme.bodyStyle.copyWith(
                   color: AppTheme.accentTeal,
                   fontWeight: FontWeight.bold,
                 ),

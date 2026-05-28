@@ -87,11 +87,10 @@ class _MapTabState extends ConsumerState<MapTab> {
                           hotel.nama,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: AppTheme.titleStyle.copyWith(
                             color: AppTheme.textDark,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Inter',
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -101,11 +100,10 @@ class _MapTabState extends ConsumerState<MapTab> {
                             const SizedBox(width: 2),
                             Text(
                               hotel.rating.toStringAsFixed(1),
-                              style: const TextStyle(
+                              style: AppTheme.bodyStyle.copyWith(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.textDark,
-                                fontFamily: 'Inter',
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -116,10 +114,9 @@ class _MapTabState extends ConsumerState<MapTab> {
                                 hotel.alamat,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style: AppTheme.bodyStyle.copyWith(
                                   color: AppTheme.textGrey,
                                   fontSize: 11,
-                                  fontFamily: 'Inter',
                                 ),
                               ),
                             ),
@@ -143,11 +140,10 @@ class _MapTabState extends ConsumerState<MapTab> {
                                   ),
                                   child: Text(
                                     hotel.fasilitas[idx],
-                                    style: const TextStyle(
+                                    style: AppTheme.bodyStyle.copyWith(
                                       color: AppTheme.deepTeal,
                                       fontSize: 9,
                                       fontWeight: FontWeight.w600,
-                                      fontFamily: 'Inter',
                                     ),
                                   ),
                                 );
@@ -157,11 +153,10 @@ class _MapTabState extends ConsumerState<MapTab> {
                         const SizedBox(height: 10),
                         Text(
                           priceStr,
-                          style: const TextStyle(
+                          style: AppTheme.bodyStyle.copyWith(
                             color: AppTheme.accentTeal,
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            fontFamily: 'Inter',
                           ),
                         ),
                       ],
@@ -184,12 +179,11 @@ class _MapTabState extends ConsumerState<MapTab> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           "Close",
-                          style: TextStyle(
+                          style: AppTheme.bodyStyle.copyWith(
                             color: AppTheme.textGrey,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Inter',
                           ),
                         ),
                       ),
@@ -210,12 +204,11 @@ class _MapTabState extends ConsumerState<MapTab> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           "Log in to Book",
-                          style: TextStyle(
+                          style: AppTheme.bodyStyle.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Inter',
                           ),
                         ),
                       ),
@@ -241,13 +234,12 @@ class _MapTabState extends ConsumerState<MapTab> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Hotel Maps',
-          style: TextStyle(
+          style: AppTheme.titleStyle.copyWith(
             color: AppTheme.deepTeal,
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            fontFamily: 'Inter',
           ),
         ),
         bottom: PreferredSize(

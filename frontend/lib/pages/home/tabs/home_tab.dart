@@ -285,9 +285,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Let's Find\nThe Best Hotel !",
-                  style: TextStyle(
+                  style: AppTheme.titleStyle.copyWith(
                     color: Colors.white,
                     fontSize: 26,
                     height: 1.2,
@@ -329,23 +329,23 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: widget.onLoginTap,
-          child: const SizedBox(
+          child: SizedBox(
             height: 50,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       'Look for homestay',
-                      style: TextStyle(
+                      style: AppTheme.bodyStyle.copyWith(
                         color: AppTheme.textGrey,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.search_rounded,
                     color: AppTheme.accentTeal,
                     size: 22,
@@ -417,7 +417,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                       const SizedBox(width: 4),
                       Text(
                         _deviceLocation,
-                        style: const TextStyle(
+                        style: AppTheme.bodyStyle.copyWith(
                           color: Colors.white,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -429,7 +429,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 const SizedBox(height: 10),
                 Text(
                   'Hello, $userName!',
-                  style: const TextStyle(
+                  style: AppTheme.titleStyle.copyWith(
                     color: Colors.white,
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
@@ -507,9 +507,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Select Number of Guests',
-                style: TextStyle(
+                style: AppTheme.titleStyle.copyWith(
                   color: AppTheme.primary,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -525,7 +525,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                     leading: const Icon(Icons.people_outline_rounded, color: AppTheme.accentTeal),
                     title: Text(
                       '$guestCount Guest${guestCount > 1 ? 's' : ''}',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: AppTheme.bodyStyle.copyWith(fontWeight: FontWeight.w600),
                     ),
                     trailing: _selectedGuests == guestCount
                         ? const Icon(Icons.check_circle_rounded, color: AppTheme.tealDark)
@@ -579,7 +579,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: AppTheme.subtitleStyle.copyWith(
             color: AppTheme.deepTeal,
             fontSize: 18,
             fontWeight: FontWeight.w800,
@@ -588,9 +588,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         ),
         GestureDetector(
           onTap: isGuest ? widget.onLoginTap : () {},
-          child: const Text(
+          child: Text(
             'View All',
-            style: TextStyle(
+            style: AppTheme.bodyStyle.copyWith(
               color: AppTheme.accentTeal,
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
@@ -613,7 +613,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: AppTheme.bodyStyle.copyWith(
             color: AppTheme.textGrey,
             fontSize: 13,
             fontWeight: FontWeight.w500,

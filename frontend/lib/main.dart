@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/providers/app_providers.dart';
+import 'package:sona/utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF004D52),
         ),
+        fontFamily: AppTheme.fontPrimary,
       ),
       home: const HomePage(),
     );
