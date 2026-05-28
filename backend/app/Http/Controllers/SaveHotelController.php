@@ -8,9 +8,16 @@ use Illuminate\Http\Request;
 class SaveHotelController
 {
     public function index(Request $request){
-        $savehotel = SaveHotel::with(
-            'hotel'
-        )->where('id_user', $request->id_user)
+        $idUser = $request->id_user;
+        if (!$idUser) {
+            $user = auth('sanctum')->user();
+            if ($user) {
+                $idUser = $user->id_user;
+            }
+        }
+
+        $savehotel = SaveHotel::with('hotel')
+         ->where('id_user', $idUser)
          ->where('is_saved', true)
          ->get(); 
 
@@ -21,9 +28,20 @@ class SaveHotelController
     }
 
     public function store(Request $request){
+        $idUser = $request->id_user;
+        if (!$idUser) {
+            $user = auth('sanctum')->user();
+            if ($user) {
+                $idUser = $user->id_user;
+            }
+        }
+
+        // Merge back into request for validation
+        $request->merge(['id_user' => $idUser]);
+
         $validated = $request->validate([
-            'id_user' => 'nullable|integer|exists:users,id_user', 
-            'id_hotel' => 'nullable|integer|exists:hotel,id_hotel', 
+            'id_user' => 'required|integer|exists:users,id_user', 
+            'id_hotel' => 'required|integer|exists:hotel,id_hotel', 
         ]); 
 
         $save = SaveHotel::where('id_user', $validated['id_user'])

@@ -1,63 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
-import 'package:sona/services/api_service.dart';
+import 'package:sona/providers/app_providers.dart';
 
-class UserHistoryPage extends StatefulWidget {
+class HistoryTab extends ConsumerWidget {
+  final String? token;
   final VoidCallback onExploreTap;
 
-  const UserHistoryPage({
+  const HistoryTab({
     super.key,
+    required this.token,
     required this.onExploreTap,
   });
 
   @override
-  State<UserHistoryPage> createState() => _UserHistoryPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isGuest = token == null || token!.isEmpty;
 
-class _UserHistoryPageState extends State<UserHistoryPage> {
-  bool _isLoading = true;
-  int? _userId;
-  String? _token;
-  List<Map<String, dynamic>> _bookings = [];
+    // Watch bookingsProvider
+    final bookingsAsync = ref.watch(bookingsProvider);
 
-  @override
-  void initState() {
-    super.initState();
-    _loadBookings();
-  }
-
-  Future<void> _loadBookings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    
-    int userId = 1; // Default fallback user ID
-    
-    setState(() {
-      _token = token;
-      _userId = userId;
-    });
-
-    if (token != null) {
-      final apiService = ApiService();
-      final list = await apiService.fetchUserBookings(userId, token);
-      if (mounted) {
-        setState(() {
-          _bookings = list;
-          _isLoading = false;
-        });
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -80,23 +42,35 @@ class _UserHistoryPageState extends State<UserHistoryPage> {
           ),
         ),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-              ),
-            )
-          : _bookings.isEmpty
-              ? _buildEmptyState()
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
-                  itemCount: _bookings.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final booking = _bookings[index];
-                    return _buildBookingCard(booking);
-                  },
+      body: isGuest
+          ? _buildGuestEmptyState()
+          : bookingsAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
                 ),
+              ),
+              error: (err, stack) => Center(
+                child: Text('Error loading booking history: $err'),
+              ),
+              data: (bookings) {
+                return bookings.isEmpty
+                    ? _buildUserEmptyState(context)
+                    : RefreshIndicator(
+                        onRefresh: () => ref.refresh(bookingsProvider.future),
+                        color: AppTheme.primary,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
+                          itemCount: bookings.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final booking = bookings[index];
+                            return _buildBookingCard(booking);
+                          },
+                        ),
+                      );
+              },
+            ),
     );
   }
 
@@ -223,7 +197,7 @@ class _UserHistoryPageState extends State<UserHistoryPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildGuestEmptyState() {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -232,7 +206,118 @@ class _UserHistoryPageState extends State<UserHistoryPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Spacer(flex: 2),
-            _buildOwlIllustration(context),
+            Image.asset(
+              'assets/images/history_image.png',
+              width: 200,
+              height: 200,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'No Booking History Yet',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppTheme.deepTeal,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Your past bookings will appear here',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppTheme.textGrey,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 5,
+                  height: 5,
+                  margin: const EdgeInsets.only(right: 6),
+                  decoration: const BoxDecoration(
+                    color: AppTheme.deepTeal,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const Text(
+                  'Start exploring and book your first stay',
+                  style: TextStyle(
+                    color: AppTheme.deepTeal,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Container(
+              width: 170,
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: AppTheme.softTealGradient,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.deepTeal.withOpacity(0.24),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: onExploreTap,
+                icon: const Icon(
+                  Icons.location_on_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
+                label: const Text(
+                  'Explore Hotel',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ),
+            const Spacer(flex: 3),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserEmptyState(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Spacer(flex: 2),
+            Image.asset(
+              'assets/images/history_image.png',
+              width: 200,
+              height: 200,
+              fit: BoxFit.contain,
+            ),
             const SizedBox(height: 24),
             const Text(
               'No Booking History Yet',
@@ -282,7 +367,7 @@ class _UserHistoryPageState extends State<UserHistoryPage> {
               width: 170,
               height: 44,
               child: ElevatedButton.icon(
-                onPressed: widget.onExploreTap,
+                onPressed: onExploreTap,
                 icon: const Icon(
                   Icons.location_on_rounded,
                   color: Colors.white,
@@ -308,130 +393,6 @@ class _UserHistoryPageState extends State<UserHistoryPage> {
             ),
             const Spacer(flex: 3),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOwlIllustration(BuildContext context) {
-    return Container(
-      width: 140,
-      height: 140,
-      decoration: BoxDecoration(
-        color: AppTheme.softCyan.withOpacity(0.5),
-        shape: BoxShape.circle,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          ...List.generate(3, (index) {
-            return Positioned(
-              left: index == 0 ? 24 : null,
-              right: index == 1 ? 12 : null,
-              top: index == 2 ? 24 : null,
-              bottom: index == 0 ? 18 : null,
-              child: Container(
-                width: 5,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppTheme.accentTeal.withOpacity(0.4),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            );
-          }),
-          Positioned(
-            right: 16,
-            top: 18,
-            child: Icon(
-              Icons.insights_rounded,
-              color: AppTheme.accentTeal.withOpacity(0.26),
-              size: 40,
-            ),
-          ),
-          Container(
-            width: 86,
-            height: 86,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.accentTeal.withOpacity(0.1),
-                  blurRadius: 15,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Positioned(
-                  top: 22,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildOwlEye(),
-                      const SizedBox(width: 8),
-                      _buildOwlEye(),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  top: 38,
-                  child: Container(
-                    width: 8,
-                    height: 11,
-                    decoration: BoxDecoration(
-                      color: AppTheme.starYellow,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 12,
-                  child: Container(
-                    width: 26,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: AppTheme.softCyan,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.search_rounded,
-                        color: AppTheme.accentTeal,
-                        size: 13,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOwlEye() {
-    return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: AppTheme.softCyan,
-        shape: BoxShape.circle,
-        border: Border.all(color: AppTheme.accentTeal, width: 1.2),
-      ),
-      child: Center(
-        child: Container(
-          width: 6,
-          height: 6,
-          decoration: const BoxDecoration(
-            color: AppTheme.deepTeal,
-            shape: BoxShape.circle,
-          ),
         ),
       ),
     );

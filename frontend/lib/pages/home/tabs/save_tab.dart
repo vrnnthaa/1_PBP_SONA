@@ -1,138 +1,56 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
-import 'package:sona/models/hotel_model.dart';
-import 'package:sona/services/api_service.dart';
+import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/widgets/saved/saved_hotel_card.dart';
 import 'package:sona/pages/hotels/hotel_page.dart';
+import 'package:sona/providers/app_providers.dart';
 
-class UserSavePage extends StatefulWidget {
+class SaveTab extends ConsumerStatefulWidget {
+  final String? token;
   final VoidCallback onExploreTap;
 
-  const UserSavePage({
+  const SaveTab({
     super.key,
+    required this.token,
     required this.onExploreTap,
   });
 
   @override
-  State<UserSavePage> createState() => _UserSavePageState();
+  ConsumerState<SaveTab> createState() => _SaveTabState();
 }
 
-class _UserSavePageState extends State<UserSavePage> {
-  bool _isLoading = true;
-  int? _userId;
-  String? _token;
+class _SaveTabState extends ConsumerState<SaveTab> {
   int _selectedTab = 0; // 0 = All, 1 = Popular, 2 = Near me
-  List<HotelModel> _savedHotels = [];
-  Map<int, int> _savedHotelRelations = {}; // hotel_id -> id_savehotel
 
-  @override
-  void initState() {
-    super.initState();
-    _loadSavedHotels();
-  }
-
-  Future<void> _loadSavedHotels() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    
-    int userId = 1; // Default fallback user ID
-    
-    if (mounted) {
-      setState(() {
-        _token = token;
-        _isLoading = true;
-      });
-    }
-
-    if (token != null) {
-      // 1. Fetch user ID dynamically from /me endpoint
-      try {
-        final profileResponse = await http.get(
-          Uri.parse('${ApiService.baseUrl}/me'),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Accept': 'application/json',
-          },
-        );
-        if (profileResponse.statusCode == 200) {
-          final result = jsonDecode(profileResponse.body);
-          final userData = result['data'];
-          if (userData != null && userData['id_user'] != null) {
-            userId = userData['id_user'];
-          }
-        }
-      } catch (e) {
-        debugPrint("Error fetching logged in profile in saved page: $e");
-      }
-
-      if (mounted) {
-        setState(() {
-          _userId = userId;
-        });
-      }
-
-      final apiService = ApiService();
-      final result = await apiService.fetchSavedHotels(userId, token);
-      
-      if (mounted) {
-        setState(() {
-          _savedHotels = List<HotelModel>.from(result['hotels'] ?? []);
-          _savedHotelRelations = Map<int, int>.from(result['relations'] ?? {});
-          _isLoading = false;
-        });
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _removeBookmark(HotelModel hotel) async {
-    if (_token == null || _userId == null) return;
-    
-    final apiService = ApiService();
-    final saveId = _savedHotelRelations[hotel.id];
-    
-    if (saveId != null) {
-      final success = await apiService.toggleSaveHotel(saveId, _token!);
-      if (success) {
-        if (mounted) {
-          setState(() {
-            _savedHotels.removeWhere((item) => item.id == hotel.id);
-            _savedHotelRelations.remove(hotel.id);
-          });
-        }
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${hotel.nama} removed from saved list')),
-          );
-        }
-      }
-    }
-  }
-
-  double _getDistanceForHotel(HotelModel hotel) {
+  double _getDistanceForHotel(Hotel hotel) {
     // Generates a realistic distance (e.g. 2.5 km) based on ID matching SavedHotelCard
     return 1.5 + (hotel.id * 0.7) % 3.0;
   }
 
-  List<HotelModel> get _filteredHotels {
+  List<Hotel> _getFilteredHotels(List<Hotel> savedHotels) {
     if (_selectedTab == 1) {
       // Filter for rating > 4.0 for Popular tab, sorted by rating descending
-      final list = _savedHotels.where((hotel) => hotel.rating > 4.0).toList();
+      final list = savedHotels.where((hotel) => hotel.rating > 4.0).toList();
       list.sort((a, b) => b.rating.compareTo(a.rating));
       return list;
     } else if (_selectedTab == 2) {
       // Filter for distance <= 5.0 km for Near me tab
-      return _savedHotels.where((hotel) => _getDistanceForHotel(hotel) <= 5.0).toList();
+      return savedHotels.where((hotel) => _getDistanceForHotel(hotel) <= 5.0).toList();
     }
-    return _savedHotels;
+    return savedHotels;
+  }
+
+  Future<void> _removeBookmark(Hotel hotel, int idUser) async {
+    final success = await ref.read(savedHotelsProvider.notifier).toggleSave(hotel, idUser);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${hotel.nama} removed from saved list'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   Widget _buildTabItem(int index, String label) {
@@ -167,6 +85,54 @@ class _UserSavePageState extends State<UserSavePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isGuest = widget.token == null || widget.token!.isEmpty;
+
+    // Watch savedHotelsProvider and profileProvider
+    final savedState = ref.watch(savedHotelsProvider);
+    final profileAsync = ref.watch(profileProvider);
+    
+    final idUser = profileAsync.valueOrNull?['id_user'] ?? 1;
+
+    if (savedState.isLoading) {
+      return const Scaffold(
+        backgroundColor: AppTheme.background,
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
+          ),
+        ),
+      );
+    }
+
+    if (isGuest || savedState.hotels.isEmpty) {
+      return Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          title: const Text(
+            'Saved Hotels',
+            style: TextStyle(
+              color: AppTheme.deepTeal,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(
+              color: AppTheme.borderGrey,
+              height: 1,
+            ),
+          ),
+        ),
+        body: _buildEmptyState(),
+      );
+    }
+
+    final filteredHotels = _getFilteredHotels(savedState.hotels);
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -207,41 +173,40 @@ class _UserSavePageState extends State<UserSavePage> {
           ),
         ),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-              ),
-            )
-          : _savedHotels.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: _loadSavedHotels,
-                  color: AppTheme.primary,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
-                    itemCount: _filteredHotels.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final hotel = _filteredHotels[index];
-                      return SavedHotelCard(
-                        hotel: hotel,
-                        showDistance: _selectedTab == 2,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HotelPage(
-                                location: hotel.alamat,
-                              ),
-                            ),
-                          );
-                        },
-                        onBookmarkTap: () => _removeBookmark(hotel),
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(savedHotelsProvider.notifier).loadSavedHotels(),
+        color: AppTheme.primary,
+        child: filteredHotels.isEmpty
+            ? Center(
+                child: Text(
+                  'No stays match this filter',
+                  style: TextStyle(color: AppTheme.textGrey, fontSize: 14),
+                ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
+                itemCount: filteredHotels.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final hotel = filteredHotels[index];
+                  return SavedHotelCard(
+                    hotel: hotel,
+                    showDistance: _selectedTab == 2,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HotelPage(
+                            location: hotel.alamat,
+                          ),
+                        ),
                       );
                     },
-                  ),
-                ),
+                    onBookmarkTap: () => _removeBookmark(hotel, idUser),
+                  );
+                },
+              ),
+      ),
     );
   }
 

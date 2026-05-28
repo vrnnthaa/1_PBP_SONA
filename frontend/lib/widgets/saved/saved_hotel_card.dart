@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:sona/models/hotel_model.dart';
+import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 
 class SavedHotelCard extends StatelessWidget {
-  final HotelModel hotel;
+  final Hotel hotel;
   final bool showDistance;
   final VoidCallback onTap;
   final VoidCallback onBookmarkTap;

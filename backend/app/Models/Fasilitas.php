@@ -17,6 +17,6 @@ class Fasilitas extends Model
 
     public function hotels(): BelongsToMany
     {
-        return $this->belongsToMany( Hotel::class, 'hotel_fasilitas', 'id_fasilitas', 'id_hotel');
+        return $this->belongsToMany( Hotel::class, 'fasilitas_hotel', 'id_fasilitas', 'id_hotel');
     }
 }

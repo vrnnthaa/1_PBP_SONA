@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sona/models/hotel_model.dart';
+import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/widgets/home/bookmark_button.dart';
 
 class VerticalHotelCard extends StatelessWidget {
-  final HotelModel hotel;
+  final Hotel hotel;
   final VoidCallback onBookmarkTap;
   final VoidCallback onTap;
   final bool isBookmarked;

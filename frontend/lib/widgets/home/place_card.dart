@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sona/models/intro_models.dart';
+import 'package:sona/entity/intro_models.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 
 class PlaceCard extends StatelessWidget {

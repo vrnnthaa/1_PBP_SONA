@@ -1,41 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:sona/models/hotel_model.dart';
-import 'package:sona/services/api_service.dart';
+import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/pages/login_page.dart';
+import 'package:sona/providers/app_providers.dart';
 
-class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+class MapTab extends ConsumerStatefulWidget {
+  const MapTab({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  ConsumerState<MapTab> createState() => _MapTabState();
 }
 
-class _MapScreenState extends State<MapScreen> {
-  List<HotelModel> _hotels = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadHotels();
-  }
-
-  // Fungsi untuk mengambil data dari Service Laravel
-  Future<void> _loadHotels() async {
-    final apiService = ApiService();
-    final hotels = await apiService.fetchHotels();
-    if (mounted) {
-      setState(() {
-        _hotels = hotels;
-        _isLoading = false;
-      });
-    }
-  }
-
+class _MapTabState extends ConsumerState<MapTab> {
   // Navigate to login page
   void _openLogin() {
     Navigator.push(
@@ -45,7 +25,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   // Pop up Bottom Sheet dengan desain premium berukuran HP default
-  void _showHotelDetails(HotelModel hotel) {
+  void _showHotelDetails(Hotel hotel) {
     // Generate a beautiful, realistic dynamic price based on the hotel's ID so it feels alive
     final int generatedPrice = 350 + (hotel.id * 180) % 1200;
     final String priceStr = 'Rp ${generatedPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}.000/Night';
@@ -162,7 +142,7 @@ class _MapScreenState extends State<MapScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    hotel.fasilitas[idx].toString(),
+                                    hotel.fasilitas[idx],
                                     style: const TextStyle(
                                       color: AppTheme.deepTeal,
                                       fontSize: 9,
@@ -252,6 +232,9 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch hotels state dynamically
+    final hotelsAsync = ref.watch(hotelsProvider);
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -275,13 +258,17 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ),
       ),
-      body: _isLoading 
-        ? const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.deepTeal),
-            ),
-          ) 
-        : FlutterMap(
+      body: hotelsAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.deepTeal),
+          ),
+        ),
+        error: (err, stack) => Center(
+          child: Text('Error loading maps: $err'),
+        ),
+        data: (hotelsList) {
+          return FlutterMap(
             options: const MapOptions(
               // Center di koordinat area Jogja (sekitar UIN / Muja Muju)
               initialCenter: LatLng(-7.7985, 110.3926),
@@ -293,7 +280,7 @@ class _MapScreenState extends State<MapScreen> {
                 userAgentPackageName: 'com.example.app',
               ),
               MarkerLayer(
-                markers: _hotels.map((hotel) {
+                markers: hotelsList.map((hotel) {
                   return Marker(
                     point: LatLng(hotel.latitude, hotel.longitude),
                     width: 32,
@@ -326,7 +313,9 @@ class _MapScreenState extends State<MapScreen> {
                 }).toList(),
               ),
             ],
-          ),
+          );
+        },
+      ),
     );
   }
 }
