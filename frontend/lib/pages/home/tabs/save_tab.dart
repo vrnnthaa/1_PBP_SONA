@@ -73,7 +73,7 @@ class _SaveTabState extends ConsumerState<SaveTab> {
         ),
         child: Text(
           label,
-          style: TextStyle(
+          style: AppTheme.bodyStyle.copyWith(
             color: isSelected ? AppTheme.deepTeal : AppTheme.textGrey,
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
@@ -111,9 +111,9 @@ class _SaveTabState extends ConsumerState<SaveTab> {
           backgroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
-          title: const Text(
+          title: Text(
             'Saved Hotels',
-            style: TextStyle(
+            style: AppTheme.titleStyle.copyWith(
               color: AppTheme.deepTeal,
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -139,9 +139,9 @@ class _SaveTabState extends ConsumerState<SaveTab> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Saved Hotels',
-          style: TextStyle(
+          style: AppTheme.titleStyle.copyWith(
             color: AppTheme.deepTeal,
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -180,7 +180,7 @@ class _SaveTabState extends ConsumerState<SaveTab> {
             ? Center(
                 child: Text(
                   'No stays match this filter',
-                  style: TextStyle(color: AppTheme.textGrey, fontSize: 14),
+                  style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 14),
                 ),
               )
             : ListView.separated(
@@ -227,10 +227,10 @@ class _SaveTabState extends ConsumerState<SaveTab> {
                 fit: BoxFit.contain,
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'No Saved Hotels Yet',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: AppTheme.titleStyle.copyWith(
                   color: AppTheme.deepTeal,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -238,10 +238,10 @@ class _SaveTabState extends ConsumerState<SaveTab> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Hotels you bookmark will appear here. \nStart exploring and save your favorite stays',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: AppTheme.bodyStyle.copyWith(
                   color: AppTheme.textGrey,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -271,9 +271,9 @@ class _SaveTabState extends ConsumerState<SaveTab> {
                     color: Colors.white,
                     size: 16,
                   ),
-                  label: const Text(
+                  label: Text(
                     'Explore Hotel',
-                    style: TextStyle(
+                    style: AppTheme.bodyStyle.copyWith(
                       color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,

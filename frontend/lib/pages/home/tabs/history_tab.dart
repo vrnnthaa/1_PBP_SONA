@@ -26,9 +26,9 @@ class HistoryTab extends ConsumerWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'History',
-          style: TextStyle(
+          style: AppTheme.titleStyle.copyWith(
             color: AppTheme.deepTeal,
             fontSize: 18,
             fontWeight: FontWeight.w800,
@@ -115,7 +115,7 @@ class HistoryTab extends ConsumerWidget {
             children: [
               Text(
                 'Booking #${booking['id_pemesanan']}',
-                style: const TextStyle(
+                style: AppTheme.titleStyle.copyWith(
                   color: AppTheme.textDark,
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
@@ -129,7 +129,7 @@ class HistoryTab extends ConsumerWidget {
                 ),
                 child: Text(
                   status.toUpperCase(),
-                  style: TextStyle(
+                  style: AppTheme.bodyStyle.copyWith(
                     color: badgeColor,
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
@@ -147,7 +147,7 @@ class HistoryTab extends ConsumerWidget {
               const SizedBox(width: 6),
               Text(
                 '$checkInStr  to  $checkOutStr',
-                style: const TextStyle(
+                style: AppTheme.bodyStyle.copyWith(
                   color: AppTheme.textGrey,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -162,7 +162,7 @@ class HistoryTab extends ConsumerWidget {
               const SizedBox(width: 6),
               Text(
                 '$visitors Visitor(s)',
-                style: const TextStyle(
+                style: AppTheme.bodyStyle.copyWith(
                   color: AppTheme.textGrey,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -174,9 +174,9 @@ class HistoryTab extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Total Cost',
-                style: TextStyle(
+                style: AppTheme.bodyStyle.copyWith(
                   color: AppTheme.textGrey,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -184,7 +184,7 @@ class HistoryTab extends ConsumerWidget {
               ),
               Text(
                 'Rp ${cost.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
-                style: const TextStyle(
+                style: AppTheme.titleStyle.copyWith(
                   color: AppTheme.deepTeal,
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
@@ -213,10 +213,10 @@ class HistoryTab extends ConsumerWidget {
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'No Booking History Yet',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: AppTheme.titleStyle.copyWith(
                 color: AppTheme.deepTeal,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -224,10 +224,10 @@ class HistoryTab extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Your past bookings will appear here',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: AppTheme.bodyStyle.copyWith(
                 color: AppTheme.textGrey,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -279,9 +279,9 @@ class HistoryTab extends ConsumerWidget {
                   color: Colors.white,
                   size: 16,
                 ),
-                label: const Text(
+                label: Text(
                   'Explore Hotel',
-                  style: TextStyle(
+                  style: AppTheme.bodyStyle.copyWith(
                     color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -319,10 +319,10 @@ class HistoryTab extends ConsumerWidget {
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'No Booking History Yet',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: AppTheme.titleStyle.copyWith(
                 color: AppTheme.deepTeal,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -330,10 +330,10 @@ class HistoryTab extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Your past bookings will appear here',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: AppTheme.bodyStyle.copyWith(
                 color: AppTheme.textGrey,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -373,9 +373,9 @@ class HistoryTab extends ConsumerWidget {
                   color: Colors.white,
                   size: 16,
                 ),
-                label: const Text(
+                label: Text(
                   'Explore Hotel',
-                  style: TextStyle(
+                  style: AppTheme.bodyStyle.copyWith(
                     color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
