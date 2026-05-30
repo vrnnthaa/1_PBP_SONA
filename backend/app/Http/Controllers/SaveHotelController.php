@@ -16,7 +16,7 @@ class SaveHotelController
             }
         }
 
-        $savehotel = SaveHotel::with('hotel')
+        $savehotel = SaveHotel::with(['hotel.gambarHotel', 'hotel.kamar', 'hotel.fasilitas'])
          ->where('id_user', $idUser)
          ->where('is_saved', true)
          ->get(); 

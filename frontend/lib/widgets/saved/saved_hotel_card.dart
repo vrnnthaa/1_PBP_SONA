@@ -6,6 +6,7 @@ import 'package:sona/widgets/home/smart_image.dart';
 class SavedHotelCard extends StatelessWidget {
   final Hotel hotel;
   final bool showDistance;
+  final double? distance;
   final VoidCallback onTap;
   final VoidCallback onBookmarkTap;
 
@@ -13,17 +14,17 @@ class SavedHotelCard extends StatelessWidget {
     super.key,
     required this.hotel,
     this.showDistance = false,
+    this.distance,
     required this.onTap,
     required this.onBookmarkTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Generates a realistic distance (e.g. 2.5 km) for the "Near me" tab based on ID
-    final double generatedDistance = 1.5 + (hotel.id * 0.7) % 3.0;
+    // Use real distance if provided, otherwise fallback to realistic mock distance
+    final double generatedDistance = distance ?? (1.5 + (hotel.id * 0.7) % 3.0);
 
-    final String fallbackImagePath = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&auto=format&fit=crop';
-    final String imagePath = hotel.imagePath ?? fallbackImagePath;
+    final String imagePath = hotel.imagePath ?? '';
 
     return GestureDetector(
       onTap: onTap,

@@ -24,9 +24,7 @@ class HotelListCard extends StatelessWidget {
     final int generatedPrice = 350 + (hotel.id * 180) % 1200;
     final String priceStr = 'Rp ${generatedPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}.000/Night';
 
-    // Curated fallback Unsplash/Local asset mapping based on hotel index if no image exists in DB
-    final String fallbackImagePath = 'assets/images/stay_wandala.jpg';
-    final String imagePath = hotel.imagePath ?? fallbackImagePath;
+    final String imagePath = hotel.imagePath ?? '';
 
     return GestureDetector(
       onTap: onTap,
