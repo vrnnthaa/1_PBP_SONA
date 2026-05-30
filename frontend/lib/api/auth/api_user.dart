@@ -23,7 +23,7 @@ class ApiUser {
   }
 
   // 2. Update Profil
-  Future<bool> updateUserProfile(int idUser, String name, String phone, String token) async {
+  Future<bool> updateUserProfile(int idUser, String name, String phone, String token, {String? photoProfile, String? email}) async {
     try {
       final response = await http.put(
         Uri.parse('${ApiConfig.baseUrl}/user/$idUser'),
@@ -31,6 +31,8 @@ class ApiUser {
         body: jsonEncode({
           'nama': name,
           'nomor_telp': phone,
+          if (photoProfile != null) 'photo_profile': photoProfile,
+          if (email != null) 'email': email,
         }),
       );
 

@@ -38,6 +38,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     PlaceData(name: 'Bali', imagePath: 'assets/images/place_bali.jpg'),
     PlaceData(name: 'Labuan Bajo', imagePath: 'assets/images/place_labuan_bajo.jpg'),
     PlaceData(name: 'Lombok', imagePath: 'assets/images/place_lombok.jpg'),
+    PlaceData(name: 'Yogyakarta', imagePath: 'assets/images/place_yogyakarta.jpg'),
   ];
 
   final TextEditingController _locationController = TextEditingController(text: 'Yogyakarta');
@@ -257,7 +258,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         children: [
           const Positioned.fill(
             child: SmartImage(
-              path: 'assets/images/home_hero.jpg',
+              path: 'assets/images/header_picture.jpg',
               fit: BoxFit.cover,
               borderRadius: BorderRadius.zero,
             ),
@@ -372,7 +373,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             right: 0,
             height: 240,
             child: const SmartImage(
-              path: 'assets/images/home_hero.jpg',
+              path: 'assets/images/header_picture.jpg',
               fit: BoxFit.cover,
               borderRadius: BorderRadius.zero,
             ),
