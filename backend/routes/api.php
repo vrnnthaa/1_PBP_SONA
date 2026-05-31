@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\FasilitasHotelController;
 use App\Http\Controllers\GambarHotelController;
+use App\Http\Controllers\ReviewController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -25,6 +26,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
+
+Route::get('/reviews/hotel/{idHotel}', [ReviewController::class, 'byHotel']);
 
 // Hotel
 Route::get('/hotels', [HotelController::class, 'index']);

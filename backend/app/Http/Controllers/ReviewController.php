@@ -105,4 +105,27 @@ class ReviewController
         ], 200);
     }
 
+    public function byHotel($idHotel)
+    {
+        $reviews = Review::with(['user:id_user,nama,photo_profile'])
+            ->where('id_hotel', $idHotel)
+            ->where('is_delete', false)
+            ->orderByDesc('tanggal_review')
+            ->get();
+
+        $totalReview = $reviews->count();
+        $averageRating = $totalReview > 0
+            ? round((float) $reviews->avg('rating'), 1)
+            : 0;
+
+        return response()->json([
+            'message' => 'Data review hotel berhasil diambil',
+            'data' => [
+                'id_hotel' => (int) $idHotel,
+                'total_review' => $totalReview,
+                'average_rating' => $averageRating,
+                'reviews' => $reviews,
+            ],
+        ], 200);
+    }
 }

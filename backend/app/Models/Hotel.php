@@ -37,4 +37,10 @@ class Hotel extends Model
     {
         return $this->belongsToMany(Fasilitas::class, 'fasilitas_hotel','id_hotel','id_fasilitas');
     }
+
+     public function reviews()
+    {
+        return $this->hasMany(Review::class, 'id_hotel', 'id_hotel')
+            ->where('is_delete', false);
+    }
 }
