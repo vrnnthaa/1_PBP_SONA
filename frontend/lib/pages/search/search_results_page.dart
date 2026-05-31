@@ -41,7 +41,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Future<void> _loadHotels() async {
     setState(() => isLoading = true);
     try {
-      final loadedHotels = await apiHotel.fetchHotels();
+      final loadedHotels = await apiHotel.searchHotelsByLocation(
+        widget.location,
+      );
+      if (!mounted) return;
       setState(() {
         hotels = loadedHotels;
         isLoading = false;
@@ -54,17 +57,22 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   double _calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
-    const double R = 6371;
-    double dLat = (lat2 - lat1) * (pi / 180);
-    double dLon = (lon2 - lon1) * (pi / 180);
-    double a = sin(dLat / 2) * sin(dLat / 2) +
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    const double r = 6371;
+    final dLat = (lat2 - lat1) * (pi / 180);
+    final dLon = (lon2 - lon1) * (pi / 180);
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
         cos(lat1 * (pi / 180)) *
             cos(lat2 * (pi / 180)) *
             sin(dLon / 2) *
             sin(dLon / 2);
-    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return R * c;
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return r * c;
   }
 
   void _toggleBookmark(int hotelId) {
@@ -83,8 +91,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor:
-            isSuccess ? const Color(0xFF0B9AA4) : const Color(0xFF6B8A8D),
+        backgroundColor: isSuccess
+            ? const Color(0xFF0B9AA4)
+            : const Color(0xFF6B8A8D),
         duration: const Duration(seconds: 1),
       ),
     );
@@ -101,8 +110,18 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   String _getMonthAbbr(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return months[month - 1];
   }
@@ -145,7 +164,6 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Back arrow + title row
                   Row(
                     children: [
                       IconButton(
@@ -170,14 +188,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                       const SizedBox(width: 48),
                     ],
                   ),
-
                   const SizedBox(height: 8),
-
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Container(
                       width: double.infinity,
-                      // Outer white container — radius 17
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(17),
@@ -193,12 +208,13 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                       padding: const EdgeInsets.all(6),
                       child: Container(
                         width: double.infinity,
-                        // Inner teal-tinted pill — radius 30
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0x1A003A3F),
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(11),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,12 +230,13 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '${_formatDate(widget.checkInDate)} - ${_formatDate(widget.checkOutDate)}, '
-                              '${widget.guests} guest${widget.guests > 1 ? 's' : ''}',
+                              '${_formatDate(widget.checkInDate)} - ${_formatDate(widget.checkOutDate)}, ${widget.guests} guest${widget.guests > 1 ? 's' : ''}',
                               style: GoogleFonts.montserrat(
-                                color: const Color(0xFF003A3F).withOpacity(0.55),
+                                color: const Color(
+                                  0xFF003A3F,
+                                ).withOpacity(0.55),
                                 fontSize: 12,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -230,7 +247,21 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                 ],
               ),
             ),
-
+            if (!isLoading)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${hotels.length} hotel ditemukan di "${widget.location}"',
+                    style: GoogleFonts.montserrat(
+                      color: const Color(0xFF003A3F).withOpacity(0.5),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
             Expanded(
               child: isLoading
                   ? const Center(
@@ -239,50 +270,57 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                       ),
                     )
                   : hotels.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.hotel_outlined,
-                                size: 64,
-                                color: Color(0xFF6B8A8D),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No hotels found',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF003A3F),
-                                ),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.search_off_rounded,
+                            size: 64,
+                            color: Color(0xFF6B8A8D),
                           ),
-                        )
-                      : ListView.builder(
-                          padding:
-                              const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                          itemCount: hotels.length,
-                          itemBuilder: (context, index) {
-                            final hotel = hotels[index];
-                            final distance = _calculateDistance(
-                              -8.3405,
-                              115.0920,
-                              hotel.latitude,
-                              hotel.longitude,
-                            );
-                            return VerticalHotelCard(
-                              hotel: hotel,
-                              distance: distance,
-                              onBookmarkTap: () =>
-                                  _toggleBookmark(hotel.id),
-                              onTap: () => _navigateToDetail(hotel),
-                              isBookmarked:
-                                  bookmarkedHotels.contains(hotel.id),
-                            );
-                          },
-                        ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Tidak ada hotel di\n"${widget.location}"',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF003A3F),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Coba cari lokasi lain',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xFF6B8A8D),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                      itemCount: hotels.length,
+                      itemBuilder: (context, index) {
+                        final hotel = hotels[index];
+                        final distance = _calculateDistance(
+                          -8.3405,
+                          115.0920,
+                          hotel.latitude,
+                          hotel.longitude,
+                        );
+                        return VerticalHotelCard(
+                          hotel: hotel,
+                          distance: distance,
+                          onBookmarkTap: () => _toggleBookmark(hotel.id),
+                          onTap: () => _navigateToDetail(hotel),
+                          isBookmarked: bookmarkedHotels.contains(hotel.id),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

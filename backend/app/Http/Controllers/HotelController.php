@@ -129,4 +129,32 @@ class HotelController
             'message' => 'Data Hotel berhasil dihapus',
         ], 200);
     }
+
+        public function search(Request $request)
+    {
+        $query = $request->query('q', '');
+
+        $hotels = Hotel::with(['kamar', 'gambarHotel', 'fasilitas'])
+            ->where('is_delete', false)
+            ->where(function ($q) use ($query) {
+                $q->where('nama_hotel', 'like', "%{$query}%")
+                  ->orWhere('kota', 'like', "%{$query}%")
+                  ->orWhere('alamat', 'like', "%{$query}%");
+            })
+            ->get();
+
+        foreach ($hotels as $hotel) {
+            $averageRating = Review::where('id_hotel', $hotel->id_hotel)
+                ->where('is_delete', false)
+                ->avg('rating');
+
+            $hotel->rating_hotel = $averageRating ? round($averageRating, 1) : 0;
+            $hotel->save();
+        }
+
+        return response()->json([
+            'message' => 'Hasil pencarian hotel berhasil diambil',
+            'data' => $hotels,
+        ], 200);
+    }
 }

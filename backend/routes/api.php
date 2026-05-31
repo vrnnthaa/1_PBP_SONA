@@ -32,6 +32,7 @@ Route::get('/hotels/{id_hotel}', [HotelController::class, 'show']);
 Route::post('/hotels', [HotelController::class, 'store']);
 Route::put('/hotels/{id_hotel}', [HotelController::class, 'update']);
 Route::delete('/hotels/{id_hotel}', [HotelController::class, 'destroy']);
+Route::get('/hotels/search', [HotelController::class, 'search']);
 
 // Fasilitas Hotel
 Route::get('/fasilitas-hotel', [FasilitasHotelController::class, 'index']);
