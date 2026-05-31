@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/api/hotel/api_hotel.dart';
 import 'package:sona/widgets/search/vertical_hotel_card.dart';
+import 'package:sona/pages/hotels/hotel_detail.dart';
 
 class SearchResultsPage extends StatefulWidget {
   final String location;
@@ -30,7 +31,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Set<int> bookmarkedHotels = {};
   final ApiHotel apiHotel = ApiHotel();
 
-  static const bgColor = Color(0xFFF6F7F9);
+  static const Color bgColor = Color(0xFFF3F4F4);
+  static const Color primaryColor = Color(0xFF003A3F);
+  static const Color secondaryText = Color(0xFF61797B);
+  static const Color pillInnerColor = Color(0xFFDDE3E3);
 
   @override
   void initState() {
@@ -100,7 +104,15 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   void _navigateToDetail(Hotel hotel) {
-    _showSnackBar('Opening ${hotel.nama} details', false);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HotelDetailPage(
+          hotel: hotel,
+          initialBookmarked: bookmarkedHotels.contains(hotel.id),
+        ),
+      ),
+    );
   }
 
   String _formatDate(DateTime? date) {
@@ -126,6 +138,117 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     return months[month - 1];
   }
 
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.10),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 46,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      splashRadius: 22,
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: primaryColor,
+                        size: 32,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Text(
+                    'Search Result',
+                    style: GoogleFonts.montserrat(
+                      color: primaryColor,
+                      fontSize: 21,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.10),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              decoration: BoxDecoration(
+                color: pillInnerColor,
+                borderRadius: BorderRadius.circular(26),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.location,
+                    style: GoogleFonts.montserrat(
+                      color: primaryColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_formatDate(widget.checkInDate)} - ${_formatDate(widget.checkOutDate)}, ${widget.guests} guest${widget.guests > 1 ? 's' : ''}',
+                    style: GoogleFonts.montserrat(
+                      color: secondaryText,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      height: 1.15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -141,127 +264,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(4, 8, 16, 16),
-              decoration: BoxDecoration(
-                color: bgColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF003A3F).withOpacity(0.08),
-                    blurRadius: 12,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 4),
-                  ),
-                  BoxShadow(
-                    color: const Color(0xFF003A3F).withOpacity(0.04),
-                    blurRadius: 4,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_rounded,
-                          color: Color(0xFF003A3F),
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            'Search Result',
-                            style: GoogleFonts.montserrat(
-                              color: const Color(0xFF003A3F),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 48),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(17),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF003A3F).withOpacity(0.08),
-                            blurRadius: 12,
-                            spreadRadius: 0,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(6),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0x1A003A3F),
-                          borderRadius: BorderRadius.circular(11),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              widget.location,
-                              style: GoogleFonts.montserrat(
-                                color: const Color(0xFF003A3F),
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${_formatDate(widget.checkInDate)} - ${_formatDate(widget.checkOutDate)}, ${widget.guests} guest${widget.guests > 1 ? 's' : ''}',
-                              style: GoogleFonts.montserrat(
-                                color: const Color(
-                                  0xFF003A3F,
-                                ).withOpacity(0.55),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (!isLoading)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    '${hotels.length} hotel ditemukan di "${widget.location}"',
-                    style: GoogleFonts.montserrat(
-                      color: const Color(0xFF003A3F).withOpacity(0.5),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
+            _buildHeader(),
             Expanded(
               child: isLoading
                   ? const Center(
@@ -285,7 +288,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                             style: GoogleFonts.montserrat(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF003A3F),
+                              color: primaryColor,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -302,7 +305,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                       itemCount: hotels.length,
                       itemBuilder: (context, index) {
                         final hotel = hotels[index];
