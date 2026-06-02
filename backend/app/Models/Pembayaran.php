@@ -3,10 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pembayaran extends Model {
-    use SoftDeletes; //biar datanya engga kehapus permanen
+    public $timestamps = false;
 
     protected $table = 'Pembayaran';
     protected $primaryKey = 'id_pembayaran';
@@ -17,7 +16,31 @@ class Pembayaran extends Model {
         'jumlah_bayar',
         'status_pembayaran',
         'metode_pembayaran',
+        'is_delete',
     ];
+
+    protected $attributes = [
+        'is_delete' => false,
+    ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope('active', function ($builder) {
+            $builder->where('is_delete', false);
+        });
+    }
+
+    public function delete()
+    {
+        $this->is_delete = true;
+        return $this->save();
+    }
+
+    public function restore()
+    {
+        $this->is_delete = false;
+        return $this->save();
+    }
 
     protected $casts = [
         'tanggal_pembayaran'    => 'date',

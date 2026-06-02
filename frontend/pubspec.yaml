@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   http: ^1.6.0
   shared_preferences: ^2.2.3 #buat simpen token setelab 
+  flutter_riverpod: ^2.5.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -39,6 +40,7 @@ dependencies:
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
   google_fonts: ^8.1.0
+  image_picker: ^1.2.2
 
 dev_dependencies:
   flutter_test:

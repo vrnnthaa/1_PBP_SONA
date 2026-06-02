@@ -1,27 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/pages/login_page.dart';
 import 'package:sona/utils/app_theme.dart';
-import 'package:sona/pages/home/user_home_page.dart';
-import 'package:sona/pages/home/user_save_page.dart';
-import 'package:sona/pages/map/map_screen.dart';
-import 'package:sona/pages/home/user_history_page.dart';
-import 'package:sona/pages/home/user_profile_page.dart';
-import 'package:sona/widgets/intro/guest_bottom_nav.dart';
+import 'package:sona/widgets/navigation/guest_bottom_nav.dart';
+import 'package:sona/widgets/navigation/guest_bottom_sheet.dart';
+import 'package:sona/providers/app_providers.dart';
 
-class HomePage extends StatefulWidget {
+// New tabs:
+import 'package:sona/pages/home/tabs/home_tab.dart';
+import 'package:sona/pages/home/tabs/save_tab.dart';
+import 'package:sona/pages/home/tabs/map_tab.dart';
+import 'package:sona/pages/home/tabs/history_tab.dart';
+import 'package:sona/pages/home/tabs/profile/profile_tab.dart';
+
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   int _currentTabIndex = 0; // Persistent active tab index (0=Home, 1=Save, 2=Map, 3=History, 4=Profile)
 
-  Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
+  void _openLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  }
+
+  void _showGuestPromoBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => GuestBottomSheet(
+        onLoginTap: _openLogin,
+      ),
+    );
+  }
+
+  Future<void> _logout() async {
+    await ref.read(tokenProvider.notifier).clearToken();
 
     if (!mounted) return;
     
@@ -35,14 +56,16 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final token = ref.watch(tokenProvider);
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: Stack(
         children: [
           // Render the stand-alone tab screen based on current selection index
-          _buildActiveTabContent(),
+          _buildActiveTabContent(token),
 
-          // Persistent Interactive Bottom Nav Bar (Shared with Intro Flow but fully functional!)
+          // Persistent Interactive Bottom Nav Bar
           Align(
             alignment: Alignment.bottomCenter,
             child: GuestBottomNav(
@@ -59,12 +82,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildActiveTabContent() {
+  Widget _buildActiveTabContent(String? token) {
     switch (_currentTabIndex) {
       case 0:
-        return const UserHomePage();
+        return HomeTab(
+          token: token,
+          onLoginTap: _openLogin,
+          onActionRestricted: _showGuestPromoBottomSheet,
+        );
       case 1:
-        return UserSavePage(
+        return SaveTab(
+          token: token,
           onExploreTap: () {
             setState(() {
               _currentTabIndex = 0;
@@ -72,9 +100,10 @@ class _HomePageState extends State<HomePage> {
           },
         );
       case 2:
-        return const MapScreen(); // Renders the OpenStreetMap screen
+        return const MapTab(); // Renders the OpenStreetMap screen
       case 3:
-        return UserHistoryPage(
+        return HistoryTab(
+          token: token,
           onExploreTap: () {
             setState(() {
               _currentTabIndex = 0;
@@ -82,8 +111,10 @@ class _HomePageState extends State<HomePage> {
           },
         );
       case 4:
-        return UserProfilePage(
-          onLogoutTap: () => _logout(context),
+        return ProfileTab(
+          token: token,
+          onLoginTap: _openLogin,
+          onLogoutTap: _logout,
         );
       default:
         return const Center(child: Text('Page Not Found'));

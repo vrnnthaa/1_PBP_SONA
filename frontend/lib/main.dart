@@ -1,73 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/pages/home/home_page.dart';
-import 'package:sona/pages/intro/intro_page.dart';
+import 'package:sona/providers/app_providers.dart';
+import 'package:sona/utils/app_theme.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Pre-initialize SharedPreferences synchronously for Riverpod
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'sona',
-
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF004D52)
-        )
+          seedColor: const Color(0xFF004D52),
+        ),
+        fontFamily: AppTheme.fontPrimary,
       ),
-
-      home: const AuthCheck(),
+      home: const HomePage(),
     );
   }
 }
-
-class AuthCheck extends StatefulWidget {
-  const AuthCheck({super.key});
-
-  @override
-  State<AuthCheck> createState() => _AuthCheckState();
-}
-
-class _AuthCheckState extends State<AuthCheck> {
-  
-  Future<bool> checkLogin() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final token = prefs.getString('token');
-
-    return token != null;
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: checkLogin(),
-
-      builder: (context, snapshot)
-      {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if(snapshot.data == true)
-        {
-          return const HomePage();
-        }
-
-        return const IntroPage();
-      },
-    );
-  }
-}
-

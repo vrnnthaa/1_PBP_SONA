@@ -13,7 +13,7 @@ class PembayaranController
     public function index()
     {
         $pembayaran = Pembayaran::with('pemesanan')
-            ->latest()
+            ->latest('id_pembayaran')
             ->get();
 
         return response()->json($pembayaran, 200);

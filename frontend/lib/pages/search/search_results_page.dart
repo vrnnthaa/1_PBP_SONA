@@ -2,9 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sona/models/hotel_model.dart';
-import 'package:sona/services/api_service.dart';
-import 'package:sona/widgets/intro/vertical_hotel_card.dart';
+import 'package:sona/entity/hotel/hotel.dart';
+import 'package:sona/api/hotel/api_hotel.dart';
+import 'package:sona/widgets/search/vertical_hotel_card.dart';
 
 class SearchResultsPage extends StatefulWidget {
   final String location;
@@ -25,10 +25,10 @@ class SearchResultsPage extends StatefulWidget {
 }
 
 class _SearchResultsPageState extends State<SearchResultsPage> {
-  List<HotelModel> hotels = [];
+  List<Hotel> hotels = [];
   bool isLoading = true;
   Set<int> bookmarkedHotels = {};
-  final ApiService apiService = ApiService();
+  final ApiHotel apiHotel = ApiHotel();
 
   static const bgColor = Color(0xFFF6F7F9);
 
@@ -41,7 +41,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Future<void> _loadHotels() async {
     setState(() => isLoading = true);
     try {
-      final loadedHotels = await apiService.fetchHotels();
+      final loadedHotels = await apiHotel.fetchHotels();
       setState(() {
         hotels = loadedHotels;
         isLoading = false;
@@ -90,7 +90,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     );
   }
 
-  void _navigateToDetail(HotelModel hotel) {
+  void _navigateToDetail(Hotel hotel) {
     _showSnackBar('Opening ${hotel.nama} details', false);
   }
 

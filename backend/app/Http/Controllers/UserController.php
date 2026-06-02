@@ -39,7 +39,8 @@ class UserController
         $user->update([
             'nama' => $request->nama ?? $user->nama,
             'telp_no' => $request->nomor_telp ?? $user->nomor_telp,
-            'foto_profile' => $request->photo_profile ?? $user->photo_profile,
+            'email' => $request->email ?? $user->email,
+            'photo_profile' => $request->photo_profile ?? $user->photo_profile,
         ]);
 
         return response()->json([

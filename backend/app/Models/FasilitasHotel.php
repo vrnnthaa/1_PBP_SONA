@@ -19,8 +19,8 @@ class FasilitasHotel extends Model
     {
         return $this->belongsToMany(
             Hotel::class,
-            'hotel_fasilitas',
-            'id_fasilitasHotel',
+            'fasilitas_hotel',
+            'id_hotel_fasilitas',
             'id_hotel',
             'id_fasilitas',
             'id_hotel'

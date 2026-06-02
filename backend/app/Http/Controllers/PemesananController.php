@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 class PemesananController 
 {
     public function index(){
-        $pemesanan = Pemesanan::with(['user', 'pembayaran', 'review'])->latest()->get();
+        $pemesanan = Pemesanan::with(['user', 'pembayaran', 'review'])->latest('id_pemesanan')->get();
 
         return response()->json($pemesanan, 200);
     }
@@ -89,7 +89,7 @@ class PemesananController
 
         $pemesanan = Pemesanan::with(['user', 'pembayaran'])
             ->where('status_pemesanan', $status)
-            ->latest()
+            ->latest('id_pemesanan')
             ->get();
 
         return response()->json($pemesanan, 200);
@@ -98,7 +98,7 @@ class PemesananController
     public function getByUser($id_user){
         $pemesanan = Pemesanan::with(['pembayaran', 'review'])
             ->where('id_user', $id_user)
-            ->latest()
+            ->latest('id_pemesanan')
             ->get();
 
         return response()->json($pemesanan, 200);

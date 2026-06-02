@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class AddOnController{
     public function index() {
-        $addOn = AddOn::with('kamar')->latest()->get();
+        $addOn = AddOn::with('kamar')->latest('id_addon')->get();
 
         return response()->json($addOn, 200);
     }

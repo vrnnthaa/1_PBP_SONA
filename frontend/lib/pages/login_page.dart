@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/pages/register_page.dart';
 import 'package:sona/widgets/green_button.dart';
 import 'package:sona/widgets/input_box.dart';
-import 'package:sona/services/auth_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sona/api/auth/api_auth.dart';
 import 'package:sona/pages/home/home_page.dart';
+import 'package:sona/providers/app_providers.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   TextEditingController controllerEmail = TextEditingController();
   TextEditingController controllerPassword = TextEditingController();
 
@@ -81,16 +82,14 @@ class _LoginPageState extends State<LoginPage> {
                     passwordError = null;
                   });
                   
-                  final result = await AuthService.login(
-                    email: controllerEmail.text,
-                    password: controllerPassword.text,
+                  final result = await ApiAuth().login(
+                    controllerEmail.text,
+                    controllerPassword.text,
                   );
                   
                   if(result['token'] != null)
                   {
-                    final prefs = await SharedPreferences.getInstance();
-
-                    await prefs.setString('token', result['token']);
+                    await ref.read(tokenProvider.notifier).setToken(result['token']);
 
                     Navigator.pushReplacement(
                       context,

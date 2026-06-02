@@ -33,10 +33,10 @@ class Hotel extends Model
 
     public function fasilitasHotel()
     {
-        return $this->belongsToMany(FasilitasHotel::class, 'hotel_fasilitas', 'id_hotel', 'id_fasilitasHotel');
+        return $this->belongsToMany(FasilitasHotel::class, 'fasilitas_hotel', 'id_hotel', 'id_fasilitasHotel');
     }
 
     public function fasilitas(){
-        return $this->belongsToMany(FasilitasHotel::class, 'hotel_fasilitas', 'id_hotel', 'id_fasilitas');
+        return $this->belongsToMany(Fasilitas::class, 'fasilitas_hotel', 'id_hotel', 'id_fasilitas');
     }
 }
