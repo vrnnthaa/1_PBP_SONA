@@ -11,7 +11,7 @@ import 'package:sona/pages/home/tabs/home_tab.dart';
 import 'package:sona/pages/home/tabs/save_tab.dart';
 import 'package:sona/pages/home/tabs/map_tab.dart';
 import 'package:sona/pages/home/tabs/history_tab.dart';
-import 'package:sona/pages/home/tabs/profile_tab.dart';
+import 'package:sona/pages/home/tabs/profile/profile_tab.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});

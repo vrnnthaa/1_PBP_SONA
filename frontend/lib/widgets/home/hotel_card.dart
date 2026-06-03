@@ -26,9 +26,7 @@ class HotelCard extends StatelessWidget {
         ? 'Rp ${(generatedPrice / 1000).toStringAsFixed(1)}jt/night'
         : 'Rp ${generatedPrice}rb/night';
 
-    // Curated fallback Unsplash/Local asset mapping based on hotel index if no image exists in DB
-    final String fallbackImagePath = 'assets/images/hotel_paradise_resort.jpg';
-    final String imagePath = hotel.imagePath ?? fallbackImagePath;
+    final String imagePath = hotel.imagePath ?? '';
 
     return GestureDetector(
       onTap: onTap,

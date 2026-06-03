@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
@@ -24,19 +25,32 @@ class _SaveTabState extends ConsumerState<SaveTab> {
   int _selectedTab = 0; // 0 = All, 1 = Popular, 2 = Near me
 
   double _getDistanceForHotel(Hotel hotel) {
-    // Generates a realistic distance (e.g. 2.5 km) based on ID matching SavedHotelCard
-    return 1.5 + (hotel.id * 0.7) % 3.0;
+    // Koordinat pusat lokasi user (Jogja / Muja Muju - sama dengan Map Tab)
+    const double userLat = -7.7985;
+    const double userLon = 110.3926;
+
+    // Hitung jarak menggunakan formula Haversine (dalam km)
+    const double p = 0.017453292519943295; // Math.PI / 180
+    final double a = 0.5 - 
+        cos((hotel.latitude - userLat) * p) / 2 +
+        cos(userLat * p) * 
+            cos(hotel.latitude * p) *
+            (1 - cos((hotel.longitude - userLon) * p)) / 2;
+    
+    return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
   }
 
   List<Hotel> _getFilteredHotels(List<Hotel> savedHotels) {
     if (_selectedTab == 1) {
-      // Filter for rating > 4.0 for Popular tab, sorted by rating descending
+      // Filter untuk rating > 4.0 untuk tab Popular, diurutkan dari rating tertinggi
       final list = savedHotels.where((hotel) => hotel.rating > 4.0).toList();
       list.sort((a, b) => b.rating.compareTo(a.rating));
       return list;
     } else if (_selectedTab == 2) {
-      // Filter for distance <= 5.0 km for Near me tab
-      return savedHotels.where((hotel) => _getDistanceForHotel(hotel) <= 5.0).toList();
+      // Urutkan list berdasarkan jarak terdekat (Nearest) dari lokasi user
+      final list = savedHotels.toList();
+      list.sort((a, b) => _getDistanceForHotel(a).compareTo(_getDistanceForHotel(b)));
+      return list;
     }
     return savedHotels;
   }
@@ -192,6 +206,7 @@ class _SaveTabState extends ConsumerState<SaveTab> {
                   return SavedHotelCard(
                     hotel: hotel,
                     showDistance: _selectedTab == 2,
+                    distance: _getDistanceForHotel(hotel),
                     onTap: () {
                       Navigator.push(
                         context,
