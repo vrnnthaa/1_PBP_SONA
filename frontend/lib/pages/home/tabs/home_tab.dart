@@ -13,6 +13,7 @@ import 'package:sona/widgets/home/category_tabs.dart';
 import 'package:sona/widgets/home/search_card.dart';
 import 'package:sona/pages/hotels/hotel_page.dart';
 import 'package:sona/providers/app_providers.dart';
+import 'package:sona/pages/search/search_results_page.dart';
 
 class HomeTab extends ConsumerStatefulWidget {
   final String? token;
@@ -32,15 +33,21 @@ class HomeTab extends ConsumerStatefulWidget {
 
 class _HomeTabState extends ConsumerState<HomeTab> {
   int _selectedCategoryIndex = 0;
-  String _deviceLocation = 'Yogyakarta, Indonesia'; // Dynamic device location fallback
+  String _deviceLocation =
+      'Yogyakarta, Indonesia'; // Dynamic device location fallback
 
   final List<PlaceData> _places = const [
     PlaceData(name: 'Bali', imagePath: 'assets/images/place_bali.jpg'),
-    PlaceData(name: 'Labuan Bajo', imagePath: 'assets/images/place_labuan_bajo.jpg'),
+    PlaceData(
+      name: 'Labuan Bajo',
+      imagePath: 'assets/images/place_labuan_bajo.jpg',
+    ),
     PlaceData(name: 'Lombok', imagePath: 'assets/images/place_lombok.jpg'),
   ];
 
-  final TextEditingController _locationController = TextEditingController(text: 'Yogyakarta');
+  final TextEditingController _locationController = TextEditingController(
+    text: 'Yogyakarta',
+  );
   DateTimeRange? _selectedDateRange;
   int _selectedGuests = 2;
 
@@ -56,13 +63,16 @@ class _HomeTabState extends ConsumerState<HomeTab> {
 
   Future<void> _fetchDeviceLocation() async {
     try {
-      final ipResponse = await http.get(Uri.parse('https://ipapi.co/json/')).timeout(const Duration(seconds: 3));
+      final ipResponse = await http
+          .get(Uri.parse('https://ipapi.co/json/'))
+          .timeout(const Duration(seconds: 3));
       if (ipResponse.statusCode == 200) {
         final data = jsonDecode(ipResponse.body);
         if (data['city'] != null) {
           if (mounted) {
             setState(() {
-              _deviceLocation = "${data['city']}, ${data['country_code'] ?? 'ID'}";
+              _deviceLocation =
+                  "${data['city']}, ${data['country_code'] ?? 'ID'}";
             });
           }
         }
@@ -76,27 +86,44 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     if (range == null) return 'Select Dates';
     final start = range.start;
     final end = range.end;
-    
+
     String getMonthName(int m) {
       const List<String> names = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
       ];
       return names[m - 1];
     }
-    
+
     return "${getMonthName(start.month)} ${start.day} ${start.year} - ${getMonthName(end.month)} ${end.day} ${end.year}";
   }
 
   Future<void> _toggleBookmark(Hotel hotel, int idUser) async {
-    final success = await ref.read(savedHotelsProvider.notifier).toggleSave(hotel, idUser);
+    final success = await ref
+        .read(savedHotelsProvider.notifier)
+        .toggleSave(hotel, idUser);
     if (success) {
-      final isSavedNow = ref.read(savedHotelsProvider).relationMap.containsKey(hotel.id);
+      final isSavedNow = ref
+          .read(savedHotelsProvider)
+          .relationMap
+          .containsKey(hotel.id);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isSavedNow 
-              ? '${hotel.nama} bookmarked successfully!' 
-              : '${hotel.nama} removed from bookmarks'),
+          content: Text(
+            isSavedNow
+                ? '${hotel.nama} bookmarked successfully!'
+                : '${hotel.nama} removed from bookmarks',
+          ),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -135,9 +162,8 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
           ),
         ),
-        error: (err, stack) => Center(
-          child: Text('Error loading hotels: $err'),
-        ),
+        error: (err, stack) =>
+            Center(child: Text('Error loading hotels: $err')),
         data: (hotelsList) {
           // Stable filtering without random shuffles to avoid jumping UI
           final recommendedHotels = hotelsList.take(5).toList();
@@ -152,94 +178,102 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             physics: const BouncingScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
-                child: isGuest 
-                    ? _buildIntroHeroHeader() 
+                child: isGuest
+                    ? _buildIntroHeroHeader()
                     : _buildUserHeroHeader(userName),
               ),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
                 sliver: SliverList(
-                  delegate: SliverChildListDelegate(
-                    [
-                      _buildSectionHeader('Recommended Hotels', isGuest),
-                      const SizedBox(height: 12),
-                      recommendedHotels.isEmpty
-                          ? _buildEmptyIndicator('No recommended stays available')
-                          : SizedBox(
-                              height: 195,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: recommendedHotels.length,
-                                physics: const BouncingScrollPhysics(),
-                                separatorBuilder: (_, __) => const SizedBox(width: 14),
-                                itemBuilder: (context, index) {
-                                  final hotel = recommendedHotels[index];
-                                  final isBookmarked = !isGuest && savedState.relationMap.containsKey(hotel.id);
-                                  return HotelCard(
-                                    hotel: hotel,
-                                    isBookmarked: isBookmarked,
-                                    onTap: isGuest 
-                                        ? widget.onActionRestricted 
-                                        : () => _navigateToHotelPage(hotel),
-                                    onBookmarkTap: isGuest 
-                                        ? widget.onActionRestricted 
-                                        : () => _toggleBookmark(hotel, idUser),
-                                  );
-                                },
-                              ),
-                            ),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Explore Place', isGuest),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 95,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _places.length,
-                          physics: const BouncingScrollPhysics(),
-                          separatorBuilder: (_, __) => const SizedBox(width: 12),
-                          itemBuilder: (context, index) {
-                            return PlaceCard(
-                              place: _places[index],
-                              onTap: isGuest ? widget.onActionRestricted : () {},
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      CategoryTabs(
-                        selectedIndex: _selectedCategoryIndex,
-                        onChanged: (index) {
-                          setState(() {
-                            _selectedCategoryIndex = index;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      categoryHotels.isEmpty
-                          ? _buildEmptyIndicator('No stays found under this category')
-                          : ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: categoryHotels.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  delegate: SliverChildListDelegate([
+                    _buildSectionHeader('Recommended Hotels', isGuest),
+                    const SizedBox(height: 12),
+                    recommendedHotels.isEmpty
+                        ? _buildEmptyIndicator('No recommended stays available')
+                        : SizedBox(
+                            height: 195,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: recommendedHotels.length,
+                              physics: const BouncingScrollPhysics(),
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 14),
                               itemBuilder: (context, index) {
-                                final hotel = categoryHotels[index];
-                                final isBookmarked = !isGuest && savedState.relationMap.containsKey(hotel.id);
-                                return HotelListCard(
+                                final hotel = recommendedHotels[index];
+                                final isBookmarked =
+                                    !isGuest &&
+                                    savedState.relationMap.containsKey(
+                                      hotel.id,
+                                    );
+                                return HotelCard(
                                   hotel: hotel,
                                   isBookmarked: isBookmarked,
-                                  onTap: isGuest 
-                                      ? widget.onActionRestricted 
+                                  onTap: isGuest
+                                      ? widget.onActionRestricted
                                       : () => _navigateToHotelPage(hotel),
-                                  onBookmarkTap: isGuest 
-                                      ? widget.onActionRestricted 
+                                  onBookmarkTap: isGuest
+                                      ? widget.onActionRestricted
                                       : () => _toggleBookmark(hotel, idUser),
                                 );
                               },
                             ),
-                    ],
-                  ),
+                          ),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Explore Place', isGuest),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 95,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _places.length,
+                        physics: const BouncingScrollPhysics(),
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          return PlaceCard(
+                            place: _places[index],
+                            onTap: isGuest ? widget.onActionRestricted : () {},
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    CategoryTabs(
+                      selectedIndex: _selectedCategoryIndex,
+                      onChanged: (index) {
+                        setState(() {
+                          _selectedCategoryIndex = index;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    categoryHotels.isEmpty
+                        ? _buildEmptyIndicator(
+                            'No stays found under this category',
+                          )
+                        : ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: categoryHotels.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final hotel = categoryHotels[index];
+                              final isBookmarked =
+                                  !isGuest &&
+                                  savedState.relationMap.containsKey(hotel.id);
+                              return HotelListCard(
+                                hotel: hotel,
+                                isBookmarked: isBookmarked,
+                                onTap: isGuest
+                                    ? widget.onActionRestricted
+                                    : () => _navigateToHotelPage(hotel),
+                                onBookmarkTap: isGuest
+                                    ? widget.onActionRestricted
+                                    : () => _toggleBookmark(hotel, idUser),
+                              );
+                            },
+                          ),
+                  ]),
                 ),
               ),
             ],
@@ -404,16 +438,26 @@ class _HomeTabState extends ConsumerState<HomeTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.35),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.location_on_outlined, color: Colors.white, size: 13),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.white,
+                        size: 13,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         _deviceLocation,
@@ -445,10 +489,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             bottom: 0,
             child: SearchCard(
               locationController: _locationController,
-              dateRangeStr: _selectedDateRange != null 
+              dateRangeStr: _selectedDateRange != null
                   ? _formatDateRange(_selectedDateRange)
                   : 'March 10 2026 - March 16 2026',
-              guestsStr: '$_selectedGuests Guest${_selectedGuests > 1 ? 's' : ''}',
+              guestsStr:
+                  '$_selectedGuests Guest${_selectedGuests > 1 ? 's' : ''}',
               onTapDates: _showDateRangePicker,
               onTapGuests: _showGuestsPicker,
               onSearchPressed: _onSearchPressed,
@@ -462,10 +507,12 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   Future<void> _showDateRangePicker() async {
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDateRange: _selectedDateRange ?? DateTimeRange(
-        start: DateTime(2026, 3, 10),
-        end: DateTime(2026, 3, 16),
-      ),
+      initialDateRange:
+          _selectedDateRange ??
+          DateTimeRange(
+            start: DateTime(2026, 3, 10),
+            end: DateTime(2026, 3, 16),
+          ),
       firstDate: DateTime(2026, 1, 1),
       lastDate: DateTime(2030, 12, 31),
       builder: (context, child) {
@@ -478,9 +525,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
               onSurface: AppTheme.textDark,
             ),
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppTheme.tealDark,
-              ),
+              style: TextButton.styleFrom(foregroundColor: AppTheme.tealDark),
             ),
           ),
           child: child!,
@@ -522,13 +567,21 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 itemBuilder: (context, index) {
                   final guestCount = index + 1;
                   return ListTile(
-                    leading: const Icon(Icons.people_outline_rounded, color: AppTheme.accentTeal),
+                    leading: const Icon(
+                      Icons.people_outline_rounded,
+                      color: AppTheme.accentTeal,
+                    ),
                     title: Text(
                       '$guestCount Guest${guestCount > 1 ? 's' : ''}',
-                      style: AppTheme.bodyStyle.copyWith(fontWeight: FontWeight.w600),
+                      style: AppTheme.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     trailing: _selectedGuests == guestCount
-                        ? const Icon(Icons.check_circle_rounded, color: AppTheme.tealDark)
+                        ? const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppTheme.tealDark,
+                          )
                         : null,
                     onTap: () {
                       setState(() {
@@ -550,10 +603,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => HotelPage(
-          location: _locationController.text,
-          dateRange: _formatDateRange(_selectedDateRange),
-          guests: '$_selectedGuests Guest${_selectedGuests > 1 ? 's' : ''}',
+        builder: (context) => SearchResultsPage(
+          location: _locationController.text.trim(),
+          checkInDate: _selectedDateRange?.start,
+          checkOutDate: _selectedDateRange?.end,
+          guests: _selectedGuests,
         ),
       ),
     );
@@ -563,10 +617,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => HotelPage(
+        builder: (context) => SearchResultsPage(
           location: hotel.alamat,
-          dateRange: _formatDateRange(_selectedDateRange),
-          guests: '$_selectedGuests Guest${_selectedGuests > 1 ? 's' : ''}',
+          checkInDate: _selectedDateRange?.start,
+          checkOutDate: _selectedDateRange?.end,
+          guests: _selectedGuests,
         ),
       ),
     );

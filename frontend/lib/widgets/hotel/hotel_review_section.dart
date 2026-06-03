@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class ReviewItemData {
   final String reviewerName;
@@ -55,7 +56,7 @@ class HotelReviewsSection extends StatelessWidget {
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: const Color(0xFF003A3F),
+                color: AppTheme.primary,
               ),
             ),
             if (_totalReview > 0)
@@ -66,7 +67,7 @@ class HotelReviewsSection extends StatelessWidget {
                   style: GoogleFonts.montserrat(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF4E76D5),
+                    color: AppTheme.starYellow,
                   ),
                 ),
               ),
@@ -79,14 +80,14 @@ class HotelReviewsSection extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: _totalReview == 0
-                    ? const Color(0xFF93A5A7)
-                    : const Color(0xFF0B6F79),
+                    ? AppTheme.textTealGrey
+                    : AppTheme.accentTeal,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 _totalReview == 0 ? '-' : _safeRating.toStringAsFixed(1),
                 style: GoogleFonts.montserrat(
-                  color: Colors.white,
+                  color: AppTheme.textWhite,
                   fontWeight: FontWeight.w800,
                   fontSize: 22,
                 ),
@@ -101,14 +102,14 @@ class HotelReviewsSection extends StatelessWidget {
                   style: GoogleFonts.montserrat(
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF003A3F),
+                    color: AppTheme.primary,
                   ),
                 ),
                 Text(
                   '$_totalReview review${_totalReview == 1 ? '' : 's'}',
                   style: GoogleFonts.montserrat(
                     fontSize: 11.5,
-                    color: const Color(0xFF7B8A8B),
+                    color: AppTheme.textTealGrey,
                   ),
                 ),
               ],
@@ -151,11 +152,11 @@ class ReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFD9DDDD)),
+        color: AppTheme.textWhite,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderTealLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,12 +166,12 @@ class ReviewCard extends StatelessWidget {
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.montserrat(
-              fontSize: 11,
+              fontSize: 12,
               height: 1.4,
-              color: const Color(0xFF2C3E40),
+              color: AppTheme.textTealMedium,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -180,24 +181,27 @@ class ReviewCard extends StatelessWidget {
                       : review.reviewerName.trim(),
                   style: GoogleFonts.montserrat(
                     fontSize: 11,
-                    color: const Color(0xFF7B8A8B),
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textDark,
                   ),
                 ),
               ),
-              const Icon(
-                Icons.star_rounded,
-                size: 14,
-                color: Color(0xFFF6C443),
-              ),
-              const SizedBox(width: 2),
-              Text(
-                _safeRating.toStringAsFixed(1),
-                style: GoogleFonts.montserrat(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF003A3F),
+              if (review.rating != null) ...[
+                const Icon(
+                  Icons.star_rounded,
+                  size: 14,
+                  color: AppTheme.starYellow,
                 ),
-              ),
+                const SizedBox(width: 4),
+                Text(
+                  _safeRating.toStringAsFixed(1),
+                  style: GoogleFonts.montserrat(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ],
             ],
           ),
         ],

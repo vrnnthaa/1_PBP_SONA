@@ -21,7 +21,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  int _currentTabIndex = 0; // Persistent active tab index (0=Home, 1=Save, 2=Map, 3=History, 4=Profile)
+  int _currentTabIndex =
+      0; // Persistent active tab index (0=Home, 1=Save, 2=Map, 3=History, 4=Profile)
 
   void _openLogin() {
     Navigator.push(
@@ -35,9 +36,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => GuestBottomSheet(
-        onLoginTap: _openLogin,
-      ),
+      builder: (context) => GuestBottomSheet(onLoginTap: _openLogin),
     );
   }
 
@@ -45,12 +44,10 @@ class _HomePageState extends ConsumerState<HomePage> {
     await ref.read(tokenProvider.notifier).clearToken();
 
     if (!mounted) return;
-    
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => const LoginPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 

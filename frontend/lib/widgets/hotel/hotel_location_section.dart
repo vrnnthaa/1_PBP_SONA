@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class HotelLocationSection extends StatelessWidget {
   final double latitude;
@@ -33,7 +34,7 @@ class HotelLocationSection extends StatelessWidget {
           style: GoogleFonts.montserrat(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: const Color(0xFF003A3F),
+            color: AppTheme.primary,
           ),
         ),
         const SizedBox(height: 12),
@@ -70,10 +71,10 @@ class HotelLocationSection extends StatelessWidget {
                                   width: 18,
                                   height: 18,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0B6F79),
+                                    color: AppTheme.accentTeal,
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: Colors.white,
+                                      color: AppTheme.textWhite,
                                       width: 3,
                                     ),
                                     boxShadow: const [
@@ -93,14 +94,14 @@ class HotelLocationSection extends StatelessWidget {
                     ],
                   )
                 : Container(
-                    color: const Color(0xFFE8ECEC),
+                    color: AppTheme.borderLight,
                     alignment: Alignment.center,
                     child: Text(
                       'Location is not available',
                       style: GoogleFonts.montserrat(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF6B7B7C),
+                        color: AppTheme.textTealGrey,
                       ),
                     ),
                   ),
@@ -117,7 +118,7 @@ class HotelLocationSection extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCE6E5),
+                  color: AppTheme.buttonLightTeal,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -125,7 +126,7 @@ class HotelLocationSection extends StatelessWidget {
                   style: GoogleFonts.montserrat(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF003A3F),
+                    color: AppTheme.primary,
                   ),
                 ),
               ),

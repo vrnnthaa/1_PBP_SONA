@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 
 class HotelGallerySelector extends StatelessWidget {
@@ -29,11 +30,11 @@ class HotelGallerySelector extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.textWhite,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.16),
+                  color: AppTheme.textDark.withOpacity(0.16),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
