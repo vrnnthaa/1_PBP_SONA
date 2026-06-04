@@ -17,6 +17,7 @@ import 'package:sona/widgets/home/bookmark_button.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/widgets/review/review_models.dart';
 import 'package:sona/pages/hotels/hotel_location_map_page.dart';
+import 'package:sona/pages/kamar/kamar_page.dart';
 
 class HotelDetailPage extends StatefulWidget {
   final Hotel hotel;
@@ -60,14 +61,12 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   String get _mainImage => _galleryImages[selectedImageIndex];
 
   String _formatPrice(int hotelId) {
-    final steps = [500, 750, 1000, 1250, 1500, 1750, 2000, 2500];
-    final price = steps[hotelId % steps.length];
-    if (price >= 1000) {
-      final millions = price ~/ 1000;
-      final remainder = (price % 1000).toString().padLeft(3, '0');
-      return 'Rp $millions.$remainder.000';
-    }
-    return 'Rp $price.000';
+    final int generatedPrice = 350 + (hotelId * 180) % 1200;
+    final formatted = generatedPrice.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
+    return 'Rp $formatted.000';
   }
 
   String _formatReviewDate(String? rawDate) {
@@ -166,7 +165,15 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
       backgroundColor: AppTheme.background,
       bottomNavigationBar: HotelPriceBottomBar(
         price: _formatPrice(hotel.id),
-        onSelectRoom: () {},
+        onSelectRoom: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  HotelRoomListPage(idHotel: hotel.id, hotelName: hotel.nama),
+            ),
+          );
+        },
       ),
       body: CustomScrollView(
         slivers: [

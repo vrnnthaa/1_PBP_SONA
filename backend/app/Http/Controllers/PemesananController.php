@@ -6,103 +6,194 @@ use App\Models\Pemesanan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class PemesananController 
+class PemesananController
 {
-    public function index(){
-        $pemesanan = Pemesanan::with(['user', 'pembayaran', 'review'])->latest('id_pemesanan')->get();
+    public function index()
+    {
+        $pemesanan = Pemesanan::with(['user', 'kamar', 'pembayaran', 'review'])
+            ->latest('id_pemesanan')
+            ->get();
 
-        return response()->json($pemesanan, 200);
+        return response()->json([
+            'message' => 'Data pemesanan berhasil diambil',
+            'data' => $pemesanan,
+        ], 200);
     }
 
-    public function show($id){
-        $pemesanan = Pemesanan::with(['user', 'pembayaran', 'review'])->find($id);
+    public function show($id)
+    {
+        $pemesanan = Pemesanan::with(['user', 'kamar', 'pembayaran', 'review'])
+            ->where('id_pemesanan', $id)
+            ->first();
 
-        if(!$pemesanan) {
-            return response()->json(['message' => 'Pemesanan tidak ditemukan'], 404);
+        if (!$pemesanan) {
+            return response()->json([
+                'message' => 'Pemesanan tidak ditemukan',
+            ], 404);
         }
 
-        return response()->json($pemesanan, 200);
+        return response()->json([
+            'message' => 'Detail pemesanan berhasil diambil',
+            'data' => $pemesanan,
+        ], 200);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $validated = $request->validate([
-            'id_user'               => 'required|integer|exists:users,id_user',
-            'check_in'              => 'required|date|after_or_equal:today',
-            'check_out'             => 'required|date|after:check_in',
-            'jumlah_pengunjung'     => 'required|integer|min:1',
-            'total_biaya'           => 'required|numeric|min:0',
+            'id_user' => 'required|integer|exists:users,id_user',
+            'id_kamar' => 'required|integer|exists:kamar,id_kamar',
+            'check_in' => 'required|date|after_or_equal:today',
+            'check_out' => 'required|date|after:check_in',
+            'jumlah_pengunjung' => 'required|integer|min:1',
+            'total_biaya' => 'required|numeric|min:0',
         ]);
 
-        $validated['status_pembayaran'] = Pemesanan::STATUS_PENDING;
+        $isOverlapping = Pemesanan::where('id_kamar', $validated['id_kamar'])
+            ->whereIn('status_pemesanan', [
+                Pemesanan::STATUS_AKTIF,
+                Pemesanan::STATUS_MENUNGGU_REVIEW,
+            ])
+            ->where('check_in', '<', $validated['check_out'])
+            ->where('check_out', '>', $validated['check_in'])
+            ->exists();
+
+        if ($isOverlapping) {
+            return response()->json([
+                'message' => 'Kamar tidak tersedia pada tanggal yang dipilih',
+            ], 422);
+        }
+
+        $validated['status_pemesanan'] = Pemesanan::STATUS_AKTIF;
 
         $pemesanan = Pemesanan::create($validated);
 
-        return response()->json($pemesanan, 201);
+        return response()->json([
+            'message' => 'Pemesanan berhasil dibuat',
+            'data' => $pemesanan->load(['user', 'kamar', 'pembayaran', 'review']),
+        ], 201);
     }
 
-    public function update(Request $request, $id){
-        $pemesanan = Pemesanan::find($id);
- 
+    public function update(Request $request, $id)
+    {
+        $pemesanan = Pemesanan::where('id_pemesanan', $id)->first();
+
         if (!$pemesanan) {
-            return response()->json(['message' => 'Pemesanan tidak ditemukan'], 404);
+            return response()->json([
+                'message' => 'Pemesanan tidak ditemukan',
+            ], 404);
         }
- 
+
         $validated = $request->validate([
-            'check_in'          => 'sometimes|date|after_or_equal:today',
-            'check_out'         => 'sometimes|date|after:check_in',
+            'id_user' => 'sometimes|integer|exists:users,id_user',
+            'id_kamar' => 'sometimes|integer|exists:kamar,id_kamar',
+            'check_in' => 'sometimes|date|after_or_equal:today',
+            'check_out' => 'sometimes|date',
             'jumlah_pengunjung' => 'sometimes|integer|min:1',
-            'total_biaya'       => 'sometimes|numeric|min:0',
-            'status_pemesanan'  => ['sometimes', Rule::in([
-                Pemesanan::STATUS_PENDING,
-                Pemesanan::STATUS_CONFIRMED,
-                Pemesanan::STATUS_CANCELLED,
-            ])],
+            'total_biaya' => 'sometimes|numeric|min:0',
+            'status_pemesanan' => [
+                'sometimes',
+                Rule::in([
+                    Pemesanan::STATUS_TIDAK_AKTIF,
+                    Pemesanan::STATUS_AKTIF,
+                    Pemesanan::STATUS_CANCELLED,
+                    Pemesanan::STATUS_MENUNGGU_REVIEW,
+                    Pemesanan::STATUS_SUDAH_REVIEW,
+                ]),
+            ],
         ]);
+
+        $idKamar = $validated['id_kamar'] ?? $pemesanan->id_kamar;
+        $checkIn = $validated['check_in'] ?? $pemesanan->check_in;
+        $checkOut = $validated['check_out'] ?? $pemesanan->check_out;
+
+        $checkInDate = is_string($checkIn) ? $checkIn : $checkIn->format('Y-m-d');
+        $checkOutDate = is_string($checkOut) ? $checkOut : $checkOut->format('Y-m-d');
+
+        if ($checkOutDate <= $checkInDate) {
+            return response()->json([
+                'message' => 'Tanggal check_out harus setelah check_in',
+            ], 422);
+        }
+
+        $isOverlapping = Pemesanan::where('id_kamar', $idKamar)
+            ->where('id_pemesanan', '!=', $pemesanan->id_pemesanan)
+            ->whereIn('status_pemesanan', [
+                Pemesanan::STATUS_AKTIF,
+                Pemesanan::STATUS_MENUNGGU_REVIEW,
+            ])
+            ->where('check_in', '<', $checkOutDate)
+            ->where('check_out', '>', $checkInDate)
+            ->exists();
+
+        if ($isOverlapping) {
+            return response()->json([
+                'message' => 'Kamar tidak tersedia pada tanggal yang dipilih',
+            ], 422);
+        }
 
         $pemesanan->update($validated);
 
-        return response()->json($pemesanan, 200);
+        return response()->json([
+            'message' => 'Pemesanan berhasil diperbarui',
+            'data' => $pemesanan->load(['user', 'kamar', 'pembayaran', 'review']),
+        ], 200);
     }
 
-    public function destroy($id){
-        $pemesanan = Pemesanan::find($id);
+    public function destroy($id)
+    {
+        $pemesanan = Pemesanan::where('id_pemesanan', $id)->first();
 
         if (!$pemesanan) {
-            return response()->json(['message' => 'Pemesanan tidak ditemukan'], 404);
+            return response()->json([
+                'message' => 'Pemesanan tidak ditemukan',
+            ], 404);
         }
 
         $pemesanan->delete();
 
-        return response()->json(['message' => 'Pemesanan berhasil dihapus'], 200);
+        return response()->json([
+            'message' => 'Pemesanan berhasil dihapus',
+        ], 200);
     }
 
-    public function getByStatus($status){
+    public function getByStatus($status)
+    {
         $allowedStatus = [
-            Pemesanan::STATUS_PENDING,
-            Pemesanan::STATUS_CONFIRMED,
+            Pemesanan::STATUS_TIDAK_AKTIF,
+            Pemesanan::STATUS_AKTIF,
             Pemesanan::STATUS_CANCELLED,
+            Pemesanan::STATUS_MENUNGGU_REVIEW,
+            Pemesanan::STATUS_SUDAH_REVIEW,
         ];
 
         if (!in_array($status, $allowedStatus)) {
-            return response()->json(['message' => 'Status tidak valid'], 422);
+            return response()->json([
+                'message' => 'Status tidak valid',
+            ], 422);
         }
 
-        $pemesanan = Pemesanan::with(['user', 'pembayaran'])
+        $pemesanan = Pemesanan::with(['user', 'kamar', 'pembayaran', 'review'])
             ->where('status_pemesanan', $status)
             ->latest('id_pemesanan')
             ->get();
 
-        return response()->json($pemesanan, 200);
+        return response()->json([
+            'message' => 'Data pemesanan berdasarkan status berhasil diambil',
+            'data' => $pemesanan,
+        ], 200);
     }
 
-    public function getByUser($id_user){
-        $pemesanan = Pemesanan::with(['pembayaran', 'review'])
+    public function getByUser($id_user)
+    {
+        $pemesanan = Pemesanan::with(['kamar', 'pembayaran', 'review'])
             ->where('id_user', $id_user)
             ->latest('id_pemesanan')
             ->get();
 
-        return response()->json($pemesanan, 200);
+        return response()->json([
+            'message' => 'Data pemesanan user berhasil diambil',
+            'data' => $pemesanan,
+        ], 200);
     }
-
-
 }
