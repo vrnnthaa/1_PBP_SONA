@@ -1,75 +1,22 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart';
-import 'package:sona/api/config/api_config.dart';
 import 'package:sona/entity/hotel/hotel.dart';
+import 'package:sona/entity/review/hotel_review_response.dart';
+import 'package:sona/entity/review/review_model.dart';
+import 'package:sona/api/review/api_review.dart';
+import 'package:sona/pages/review/review_list_page.dart';
 import 'package:sona/utils/app_theme.dart';
-import 'package:sona/widgets/hotel/section_divider.dart';
-import 'package:sona/widgets/home/bookmark_button.dart';
-import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/widgets/hotel/hotel_amenity_item.dart';
 import 'package:sona/widgets/hotel/hotel_gallery_list.dart';
 import 'package:sona/widgets/hotel/hotel_location_section.dart';
 import 'package:sona/widgets/hotel/hotel_policies_section.dart';
 import 'package:sona/widgets/hotel/hotel_price_bottom_bar.dart';
 import 'package:sona/widgets/hotel/hotel_review_section.dart';
-
-class ApiReview {
-  Future<HotelReviewResponse> fetchHotelReviews(int idHotel) async {
-    try {
-      final response = await get(
-        Uri.parse('${ApiConfig.baseUrl}/reviews/hotel/$idHotel'),
-        headers: ApiConfig.getHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        return HotelReviewResponse.fromJson(jsonResponse);
-      } else {
-        throw Exception('Gagal memuat review hotel');
-      }
-    } catch (e) {
-      throw Exception('Terjadi kesalahan jaringan: $e');
-    }
-  }
-}
-
-class HotelReviewResponse {
-  final int idHotel;
-  final int totalReview;
-  final double averageRating;
-  final List<ReviewItemData> reviews;
-
-  const HotelReviewResponse({
-    required this.idHotel,
-    required this.totalReview,
-    required this.averageRating,
-    required this.reviews,
-  });
-
-  factory HotelReviewResponse.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>? ?? {};
-    final reviewsRaw = data['reviews'] as List<dynamic>? ?? [];
-
-    return HotelReviewResponse(
-      idHotel: data['id_hotel'] ?? 0,
-      totalReview: data['total_review'] ?? 0,
-      averageRating: (data['average_rating'] as num?)?.toDouble() ?? 0.0,
-      reviews: reviewsRaw.map((item) {
-        final review = item as Map<String, dynamic>;
-        final user = review['user'] as Map<String, dynamic>?;
-
-        return ReviewItemData(
-          reviewerName: user?['nama'] ?? 'Anonymous',
-          comment: review['komentar'] ?? '',
-          rating: (review['rating'] as num?)?.toDouble(),
-        );
-      }).toList(),
-    );
-  }
-}
+import 'package:sona/widgets/hotel/section_divider.dart';
+import 'package:sona/widgets/home/bookmark_button.dart';
+import 'package:sona/widgets/home/smart_image.dart';
+import 'package:sona/widgets/review/review_models.dart';
+import 'package:sona/pages/hotels/hotel_location_map_page.dart';
 
 class HotelDetailPage extends StatefulWidget {
   final Hotel hotel;
@@ -123,6 +70,29 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
     return 'Rp $price.000';
   }
 
+  String _formatReviewDate(String? rawDate) {
+    if (rawDate == null || rawDate.trim().isEmpty) return '-';
+    final date = DateTime.tryParse(rawDate);
+    if (date == null) return rawDate;
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
   IconData _resolveFacilityIcon(String? value, String fallbackName) {
     final key = (value ?? fallbackName).toLowerCase();
     if (key.contains('pool')) return Icons.pool_rounded;
@@ -145,6 +115,49 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
     return Icons.check_circle_outline_rounded;
   }
 
+  List<ReviewItemData> _mapToPreviewReviews(List<ReviewModel> reviews) {
+    return reviews.map((item) {
+      return ReviewItemData(
+        reviewerName: item.reviewerName,
+        comment: item.komentar,
+        rating: item.rating,
+      );
+    }).toList();
+  }
+
+  List<ReviewListItemData> _mapToReviewListItems(List<ReviewModel> reviews) {
+    return reviews.map((item) {
+      return ReviewListItemData(
+        reviewerName: item.reviewerName,
+        reviewDate: _formatReviewDate(item.tanggalReview),
+        subLabel: null,
+        rating: item.rating,
+        reviewText: item.komentar,
+        reviewImages: item.photoReview != null && item.photoReview!.isNotEmpty
+            ? [item.photoReview!]
+            : [],
+      );
+    }).toList();
+  }
+
+  void _openAllReviews(HotelReviewResponse reviewData) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReviewListPage(
+          title: 'Reviews',
+          headerData: ReviewHeaderData(
+            title: widget.hotel.nama,
+            imagePath: _galleryImages.first,
+            rating: reviewData.averageRating,
+            location: widget.hotel.alamat,
+          ),
+          reviews: _mapToReviewListItems(reviewData.reviews),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hotel = widget.hotel;
@@ -153,9 +166,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
       backgroundColor: AppTheme.background,
       bottomNavigationBar: HotelPriceBottomBar(
         price: _formatPrice(hotel.id),
-        onSelectRoom: () {
-          // TODO: Navigate to room selection
-        },
+        onSelectRoom: () {},
       ),
       body: CustomScrollView(
         slivers: [
@@ -183,6 +194,22 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                     latitude: hotel.latitude,
                     longitude: hotel.longitude,
                     hotelName: hotel.nama,
+                    onViewOnMapTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => HotelLocationMapPage(
+                            latitude: hotel.latitude,
+                            longitude: hotel.longitude,
+                            hotelName: hotel.nama,
+                            priceText: _formatPrice(hotel.id),
+                            onSelectRoomTap: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 18),
                   const SectionDivider(),
@@ -459,7 +486,6 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle bar
             Container(
               margin: const EdgeInsets.only(top: 12),
               width: 40,
@@ -470,7 +496,6 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
               ),
             ),
             const SizedBox(height: 16),
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -503,7 +528,6 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
               ),
             ),
             const SizedBox(height: 20),
-            // Content
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -518,7 +542,6 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
               ),
             ),
             const SizedBox(height: 20),
-            // Bottom button
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: SizedBox(
@@ -572,9 +595,12 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
           return const HotelReviewsSection(rating: 0, reviews: []);
         }
 
+        final previewReviews = _mapToPreviewReviews(reviewData.reviews);
+
         return HotelReviewsSection(
           rating: reviewData.averageRating,
-          reviews: reviewData.reviews,
+          reviews: previewReviews,
+          onViewAllTap: () => _openAllReviews(reviewData),
         );
       },
     );

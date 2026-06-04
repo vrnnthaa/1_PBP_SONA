@@ -27,16 +27,16 @@ class ReviewModel {
     final user = json['user'] as Map<String, dynamic>?;
 
     return ReviewModel(
-      idReview: json['id_review'] ?? 0,
-      idUser: json['id_user'] ?? 0,
-      idPemesanan: json['id_pemesanan'] ?? 0,
-      idHotel: json['id_hotel'] ?? 0,
-      komentar: json['komentar'] ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      photoReview: json['photo_review'],
-      tanggalReview: json['tanggal_review'],
-      reviewerName: user?['nama'] ?? 'Anonymous',
-      reviewerPhoto: user?['photo_profile'],
+      idReview: int.tryParse(json['id_review'].toString()) ?? 0,
+      idUser: int.tryParse(json['id_user'].toString()) ?? 0,
+      idPemesanan: int.tryParse(json['id_pemesanan'].toString()) ?? 0,
+      idHotel: int.tryParse(json['id_hotel'].toString()) ?? 0,
+      komentar: json['komentar']?.toString() ?? '',
+      rating: double.tryParse(json['rating'].toString()) ?? 0.0,
+      photoReview: json['photo_review']?.toString(),
+      tanggalReview: json['tanggal_review']?.toString(),
+      reviewerName: user?['nama']?.toString() ?? 'Anonymous',
+      reviewerPhoto: user?['photo_profile']?.toString(),
     );
   }
 }

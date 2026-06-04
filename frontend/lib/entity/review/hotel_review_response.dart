@@ -18,9 +18,9 @@ class HotelReviewResponse {
     final reviewList = data['reviews'] as List<dynamic>? ?? [];
 
     return HotelReviewResponse(
-      idHotel: data['id_hotel'] ?? 0,
-      totalReview: data['total_review'] ?? 0,
-      averageRating: (data['average_rating'] as num?)?.toDouble() ?? 0.0,
+      idHotel: int.tryParse(data['id_hotel'].toString()) ?? 0,
+      totalReview: int.tryParse(data['total_review'].toString()) ?? 0,
+      averageRating: double.tryParse(data['average_rating'].toString()) ?? 0.0,
       reviews: reviewList
           .map((item) => ReviewModel.fromJson(item as Map<String, dynamic>))
           .toList(),

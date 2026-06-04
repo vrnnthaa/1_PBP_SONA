@@ -11,7 +11,7 @@ import 'package:sona/widgets/home/place_card.dart';
 import 'package:sona/widgets/home/hotel_list_card.dart';
 import 'package:sona/widgets/home/category_tabs.dart';
 import 'package:sona/widgets/home/search_card.dart';
-import 'package:sona/pages/hotels/hotel_page.dart';
+import 'package:sona/pages/hotels/hotel_detail.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/pages/search/search_results_page.dart';
 
@@ -43,7 +43,10 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       imagePath: 'assets/images/place_labuan_bajo.jpg',
     ),
     PlaceData(name: 'Lombok', imagePath: 'assets/images/place_lombok.jpg'),
-    PlaceData(name: 'Yogyakarta', imagePath: 'assets/images/place_yogyakarta.jpg'),
+    PlaceData(
+      name: 'Yogyakarta',
+      imagePath: 'assets/images/place_yogyakarta.jpg',
+    ),
   ];
 
   final TextEditingController _locationController = TextEditingController(
@@ -617,14 +620,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   void _navigateToHotelPage(Hotel hotel) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => SearchResultsPage(
-          location: hotel.alamat,
-          checkInDate: _selectedDateRange?.start,
-          checkOutDate: _selectedDateRange?.end,
-          guests: _selectedGuests,
-        ),
-      ),
+      MaterialPageRoute(builder: (context) => HotelDetailPage(hotel: hotel)),
     );
   }
 

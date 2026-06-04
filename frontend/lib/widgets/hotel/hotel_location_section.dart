@@ -8,14 +8,14 @@ class HotelLocationSection extends StatelessWidget {
   final double latitude;
   final double longitude;
   final String hotelName;
-  final VoidCallback? onSeeMoreTap;
+  final VoidCallback? onViewOnMapTap;
 
   const HotelLocationSection({
     super.key,
     required this.latitude,
     required this.longitude,
     required this.hotelName,
-    this.onSeeMoreTap,
+    this.onViewOnMapTap,
   });
 
   bool get _hasValidCoordinate =>
@@ -39,7 +39,7 @@ class HotelLocationSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           child: SizedBox(
             height: 200,
             width: double.infinity,
@@ -107,22 +107,22 @@ class HotelLocationSection extends StatelessWidget {
                   ),
           ),
         ),
-        if (_hasValidCoordinate && onSeeMoreTap != null) ...[
+        if (_hasValidCoordinate && onViewOnMapTap != null) ...[
           const SizedBox(height: 14),
           Center(
             child: GestureDetector(
-              onTap: onSeeMoreTap,
+              onTap: onViewOnMapTap,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                  horizontal: 18,
+                  vertical: 9,
                 ),
                 decoration: BoxDecoration(
                   color: AppTheme.buttonLightTeal,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  'See More on Map',
+                  'View on Map',
                   style: GoogleFonts.montserrat(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
