@@ -31,9 +31,10 @@ class ReviewController
             'komentar' => 'required|string',
             'rating' => 'required|numeric|min:1|max:5',
             'photo_review' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]); 
+        ]);
 
-        $pemesanan = Pemesanan::where('id_pemesanan', $validated['id_pemesanan'])
+        $pemesanan = Pemesanan::with(['rincianPemesanan.kamar'])
+            ->where('id_pemesanan', $validated['id_pemesanan'])
             ->where('id_user', $validated['id_user'])
             ->first();
 
@@ -43,18 +44,26 @@ class ReviewController
             ], 404);
         }
 
-        if (Carbon::parse($pemesanan->tanggal_checkout)->isFuture()) {
+        if (Carbon::parse($pemesanan->check_out)->isFuture()) {
             return response()->json([
                 'message' => 'Anda baru bisa memberikan review setelah melewati tanggal checkout.'
             ], 400);
         }
 
         $existingReview = Review::where('id_pemesanan', $validated['id_pemesanan'])->first();
-        
+
         if ($existingReview) {
             return response()->json([
                 'message' => 'Anda sudah memberikan review untuk pemesanan ini.'
             ], 400);
+        }
+
+        $rincian = $pemesanan->rincianPemesanan->first();
+
+        if (!$rincian || !$rincian->kamar) {
+            return response()->json([
+                'message' => 'Data kamar dari pemesanan tidak ditemukan.'
+            ], 404);
         }
 
         $photoPath = null;
@@ -65,7 +74,7 @@ class ReviewController
         $review = Review::create([
             'id_user' => $validated['id_user'],
             'id_pemesanan' => $pemesanan->id_pemesanan,
-            'id_hotel' => $pemesanan->id_hotel, 
+            'id_hotel' => $rincian->kamar->id_hotel,
             'komentar' => $validated['komentar'],
             'rating' => $validated['rating'],
             'photo_review' => $photoPath,
@@ -74,9 +83,9 @@ class ReviewController
         ]);
 
         return response()->json([
-            'message' => 'Data Review berhasil disimpan', 
-            'data' => $review, 
-        ], 201); 
+            'message' => 'Data Review berhasil disimpan',
+            'data' => $review,
+        ], 201);
     }
 
     public function destroy(Request $request, $id)
@@ -102,6 +111,30 @@ class ReviewController
 
         return response()->json([
             'message' => 'Review berhasil dihapus.',
+        ], 200);
+    }
+
+    public function byHotel($idHotel)
+    {
+        $reviews = Review::with(['user:id_user,nama,photo_profile'])
+            ->where('id_hotel', $idHotel)
+            ->where('is_delete', false)
+            ->orderByDesc('tanggal_review')
+            ->get();
+
+        $totalReview = $reviews->count();
+        $averageRating = $totalReview > 0
+            ? round((float) $reviews->avg('rating'), 1)
+            : 0;
+
+        return response()->json([
+            'message' => 'Data review hotel berhasil diambil',
+            'data' => [
+                'id_hotel' => (int) $idHotel,
+                'total_review' => $totalReview,
+                'average_rating' => $averageRating,
+                'reviews' => $reviews,
+            ],
         ], 200);
     }
 

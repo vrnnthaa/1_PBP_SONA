@@ -6,6 +6,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\FasilitasHotelController;
 use App\Http\Controllers\GambarHotelController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\RincianPemesananController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -26,12 +28,24 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
+Route::get('/reviews/hotel/{idHotel}', [ReviewController::class, 'byHotel']);
+Route::get('/reviews', [ReviewController::class, 'all']);
+
+
+Route::get('/rincian-pemesanan', [RincianPemesananController::class, 'index']);
+Route::get('/rincian-pemesanan/{id}', [RincianPemesananController::class, 'show']);
+Route::post('/rincian-pemesanan', [RincianPemesananController::class, 'store']);
+Route::put('/rincian-pemesanan/{id}', [RincianPemesananController::class, 'update']);
+Route::delete('/rincian-pemesanan/{id}', [RincianPemesananController::class, 'destroy']);
+Route::get('/rincian-pemesanan/pemesanan/{id_pemesanan}', [RincianPemesananController::class, 'getByPemesanan']);
+
 // Hotel
 Route::get('/hotels', [HotelController::class, 'index']);
 Route::get('/hotels/{id_hotel}', [HotelController::class, 'show']);
 Route::post('/hotels', [HotelController::class, 'store']);
 Route::put('/hotels/{id_hotel}', [HotelController::class, 'update']);
 Route::delete('/hotels/{id_hotel}', [HotelController::class, 'destroy']);
+Route::get('/hotels/search', [HotelController::class, 'search']);
 
 // Fasilitas Hotel
 Route::get('/fasilitas-hotel', [FasilitasHotelController::class, 'index']);

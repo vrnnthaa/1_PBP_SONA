@@ -1,6 +1,7 @@
 class ApiConfig {
-  static const String baseUrl = 'https://mandate-avenge-keenly.ngrok-free.dev/api';
-  
+  static const String baseUrl =
+      'https://celtic-recycled-refining.ngrok-free.dev/api';
+
   static Map<String, String> getHeaders({String? token}) {
     Map<String, String> headers = {
       'Accept': 'application/json',
@@ -8,7 +9,7 @@ class ApiConfig {
       'ngrok-skip-browser-warning': 'true',
     };
 
-    if(token != null && token.isNotEmpty) {
+    if (token != null && token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';
     }
     return headers;

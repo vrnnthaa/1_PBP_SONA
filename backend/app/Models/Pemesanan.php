@@ -60,13 +60,16 @@ class Pemesanan extends Model {
     }
 
     public function pembayaran() {
-        return $this->hasOne(Pembayaran::class, 'id_pembayaran', 'id_pembayaran');
+        return $this->hasOne(Pembayaran::class, 'id_pemesanan', 'id_pemesanan');
     }
 
     public function review() {
-        return $this->hasOne(Review::class, 'id_review', 'id_review');
+        return $this->hasOne(Review::class, 'id_pemesanan', 'id_pemesanan');
     }
-    
+
+    public function rincianPemesanan(){
+        return $this->hasMany(RincianPemesanan::class, 'id_pemesanan', 'id_pemesanan');
+    }
     //=======
     //Scope
     //=======
