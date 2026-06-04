@@ -7,7 +7,9 @@ use App\Http\Controllers\HotelController;
 use App\Http\Controllers\FasilitasHotelController;
 use App\Http\Controllers\GambarHotelController;
 use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\RincianPemesananController;
+use App\Http\Controllers\KamarController;
+use App\Http\Controllers\GambarKamarController;
+use App\Http\Controllers\FasilitasKamarController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -27,17 +29,23 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
+Route::get('/gambar-kamar', [GambarKamarController::class, 'index']);
+Route::get('/gambar-kamar/{id_gambarkamar}', [GambarKamarController::class, 'show']);
+Route::post('/gambar-kamar', [GambarKamarController::class, 'store']);
+Route::put('/gambar-kamar/{id_gambarkamar}', [GambarKamarController::class, 'update']);
+Route::delete('/gambar-kamar/{id_gambarkamar}', [GambarKamarController::class, 'destroy']);
+Route::get('/kamar/{id_kamar}/gambar', [GambarKamarController::class, 'byKamar']);
+
+Route::get('/fasilitas-kamar', [FasilitasKamarController::class, 'index']);
+Route::get('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'show']);
+Route::post('/fasilitas-kamar', [FasilitasKamarController::class, 'store']);
+Route::put('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'update']);
+Route::delete('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'destroy']);
+
 
 Route::get('/reviews/hotel/{idHotel}', [ReviewController::class, 'byHotel']);
 Route::get('/reviews', [ReviewController::class, 'all']);
-
-
-Route::get('/rincian-pemesanan', [RincianPemesananController::class, 'index']);
-Route::get('/rincian-pemesanan/{id}', [RincianPemesananController::class, 'show']);
-Route::post('/rincian-pemesanan', [RincianPemesananController::class, 'store']);
-Route::put('/rincian-pemesanan/{id}', [RincianPemesananController::class, 'update']);
-Route::delete('/rincian-pemesanan/{id}', [RincianPemesananController::class, 'destroy']);
-Route::get('/rincian-pemesanan/pemesanan/{id_pemesanan}', [RincianPemesananController::class, 'getByPemesanan']);
+Route::get('/hotel/{id_hotel}/available-rooms', [KamarController::class, 'getAvailableRooms']);
 
 // Hotel
 Route::get('/hotels', [HotelController::class, 'index']);
@@ -106,3 +114,4 @@ Route::get('/addon/{id}', [AddOnController::class, 'show']);
 Route::post('/addon', [AddOnController::class, 'store']);
 Route::put('/addon/{id}', [AddOnController::class, 'update']);
 Route::delete('/addon/{id}', [AddOnController::class, 'destroy']);
+
