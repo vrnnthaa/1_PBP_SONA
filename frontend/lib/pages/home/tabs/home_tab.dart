@@ -14,6 +14,7 @@ import 'package:sona/widgets/home/search_card.dart';
 import 'package:sona/pages/hotels/hotel_detail.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/pages/search/search_results_page.dart';
+import 'package:sona/widgets/search/date_range_popup.dart';
 
 class HomeTab extends ConsumerStatefulWidget {
   final String? token;
@@ -509,33 +510,22 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   }
 
   Future<void> _showDateRangePicker() async {
-    final DateTimeRange? picked = await showDateRangePicker(
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+
+    final DateTimeRange? picked = await showDialog<DateTimeRange>(
       context: context,
-      initialDateRange:
-          _selectedDateRange ??
-          DateTimeRange(
-            start: DateTime(2026, 3, 10),
-            end: DateTime(2026, 3, 16),
-          ),
-      firstDate: DateTime(2026, 1, 1),
-      lastDate: DateTime(2030, 12, 31),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTheme.tealDark,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppTheme.textDark,
+      barrierDismissible: true,
+      builder: (_) => DateRangePopup(
+        initialRange:
+            _selectedDateRange ??
+            DateTimeRange(
+              start: today.add(const Duration(days: 1)),
+              end: today.add(const Duration(days: 7)),
             ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(foregroundColor: AppTheme.tealDark),
-            ),
-          ),
-          child: child!,
-        );
-      },
+      ),
     );
+
     if (picked != null) {
       setState(() {
         _selectedDateRange = picked;
