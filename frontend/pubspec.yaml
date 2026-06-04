@@ -34,6 +34,7 @@ dependencies:
   shared_preferences: ^2.2.3 #buat simpen token setelab 
   flutter_riverpod: ^2.5.1
   calendar_date_picker2: ^1.1.9
+  intl: ^0.20.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
