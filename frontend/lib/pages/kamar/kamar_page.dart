@@ -5,6 +5,7 @@ import 'package:sona/entity/kamar/kamar_availability.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/kamar/kamar_card.dart';
 import 'package:sona/widgets/kamar/kamar_filter_dialog.dart';
+import 'package:sona/pages/pemesanan/pemesanan_page.dart';
 
 class HotelRoomListPage extends StatefulWidget {
   final int idHotel;
@@ -101,12 +102,21 @@ class _HotelRoomListPageState extends State<HotelRoomListPage> {
   }
 
   void _onSelectRoom(KamarAvailability room) {
-    ScaffoldMessenger.of(
+    
+      Navigator.push(
       context,
-    ).showSnackBar(SnackBar(content: Text('${room.namaKamar} dipilih')));
-
-    // lanjutkan ke page booking / checkout
-    // kirim: room.idKamar, tanggal, guest, harga
+      MaterialPageRoute(
+        builder: (_) => PemesananPage(
+          idKamar: room.idKamar,
+          idUser: 1, // TODO: Ganti dengan user ID yang sebenarnya
+          namaKamar: room.namaKamar,
+          namaHotel: widget.hotelName,
+          hargaPerMalam: room.harga,
+          selectedDateRange: _selectedDateRange,
+          jumlahPengunjung: _guestCount,
+        ),
+      ),
+    );
   }
 
   @override

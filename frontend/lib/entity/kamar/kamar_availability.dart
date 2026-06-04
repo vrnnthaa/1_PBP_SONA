@@ -2,7 +2,7 @@ class KamarAvailability {
   final int idKamar;
   final String namaKamar;
   final int kapasitas;
-  final int harga;
+  final double harga;
   final bool statusAvailable;
   final String availabilityLabel;
   final Map<String, dynamic> data;
@@ -23,8 +23,8 @@ class KamarAvailability {
       namaKamar: json['nama_kamar'] ?? '',
       kapasitas: json['kapasitas'] ?? 0,
       harga: (json['harga'] ?? 0) is int
-          ? json['harga']
-          : int.tryParse(json['harga'].toString()) ?? 0,
+          ? (json['harga'] as int).toDouble()
+          : double.tryParse(json['harga'].toString()) ?? 0.0,
       statusAvailable: json['status_available'] ?? false,
       availabilityLabel: json['availability_label'] ?? 'Unavailable',
       data: json['data'] ?? {},
