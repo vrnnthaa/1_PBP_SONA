@@ -26,7 +26,7 @@ class PemesananController
 
     public function store(Request $request) {
         $validated = $request->validate([
-            'id_user'               => 'required|integer|exists:users, id_user',
+            'id_user'               => 'required|integer|exists:users,id_user',
             'check_in'              => 'required|date|after_or_equal:today',
             'check_out'             => 'required|date|after:check_in',
             'jumlah_pengunjung'     => 'required|integer|min:1',

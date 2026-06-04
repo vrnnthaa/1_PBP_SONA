@@ -7,6 +7,7 @@ use App\Http\Controllers\HotelController;
 use App\Http\Controllers\FasilitasHotelController;
 use App\Http\Controllers\GambarHotelController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\RincianPemesananController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -28,6 +29,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 Route::get('/reviews/hotel/{idHotel}', [ReviewController::class, 'byHotel']);
+Route::get('/reviews', [ReviewController::class, 'all']);
+
+
+Route::get('/rincian-pemesanan', [RincianPemesananController::class, 'index']);
+Route::get('/rincian-pemesanan/{id}', [RincianPemesananController::class, 'show']);
+Route::post('/rincian-pemesanan', [RincianPemesananController::class, 'store']);
+Route::put('/rincian-pemesanan/{id}', [RincianPemesananController::class, 'update']);
+Route::delete('/rincian-pemesanan/{id}', [RincianPemesananController::class, 'destroy']);
+Route::get('/rincian-pemesanan/pemesanan/{id_pemesanan}', [RincianPemesananController::class, 'getByPemesanan']);
 
 // Hotel
 Route::get('/hotels', [HotelController::class, 'index']);
