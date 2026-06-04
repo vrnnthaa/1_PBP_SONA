@@ -35,4 +35,7 @@ class Kamar extends Model
     {
         return $this->belongsTo(Hotel::class, 'id_hotel', 'id_hotel');
     }
+    public function pemesanan(){
+        return $this->hasMany(Pemesanan::class, 'id_kamar', 'id_kamar');
+    }
 }
