@@ -1,8 +1,10 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Hotel extends Model
 {
@@ -21,22 +23,24 @@ class Hotel extends Model
         'longitude'
     ];
 
-    public function kamar()
+    public function kamar(): HasMany
     {
         return $this->hasMany(Kamar::class, 'id_hotel', 'id_hotel');
     }
 
-    public function gambarHotel()
+    public function gambarHotel(): HasMany
     {
         return $this->hasMany(GambarHotel::class, 'id_hotel', 'id_hotel');
     }
 
-    public function fasilitasHotel()
+    public function fasilitas(): BelongsToMany
     {
-        return $this->belongsToMany(FasilitasHotel::class, 'fasilitas_hotel', 'id_hotel', 'id_fasilitasHotel');
+        return $this->belongsToMany(Fasilitas::class, 'fasilitas_hotel','id_hotel','id_fasilitas');
     }
 
-    public function fasilitas(){
-        return $this->belongsToMany(Fasilitas::class, 'fasilitas_hotel', 'id_hotel', 'id_fasilitas');
+     public function reviews()
+    {
+        return $this->hasMany(Review::class, 'id_hotel', 'id_hotel')
+            ->where('is_delete', false);
     }
 }
