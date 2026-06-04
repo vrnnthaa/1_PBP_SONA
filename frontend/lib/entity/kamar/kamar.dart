@@ -5,7 +5,7 @@ class Kamar {
   final int idKamar;
   final String namaKamar;
   final String tipeKamar;
-  final double harga;
+  final int harga;
   final int kapasitas;
   final String deskripsi;
   final List<Fasilitas> daftarFasilitas;
@@ -22,26 +22,53 @@ class Kamar {
     required this.daftarGambar,
   });
 
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString()) ?? 0;
+  }
+
   factory Kamar.fromJson(Map<String, dynamic> json) {
-    var listFasilitasJson = json['fasilitas'] as List?;
-    List<Fasilitas> listFasilitas = listFasilitasJson != null
-        ? listFasilitasJson.map((i) => Fasilitas.fromJson(i)).toList()
+    final listFasilitasJson =
+        (json['fasilitas'] ?? json['fasilitas_kamar']) as List?;
+
+    final List<Fasilitas> listFasilitas = listFasilitasJson != null
+        ? listFasilitasJson.map((item) {
+            final map = item as Map<String, dynamic>;
+            return Fasilitas.fromJson({
+              'id_fasilitas':
+                  map['id_fasilitaskamar'] ?? map['id_fasilitas'] ?? 0,
+              'nama_fasilitas':
+                  map['nama_fasilitaskamar'] ?? map['nama_fasilitas'] ?? '',
+              'icon_fasilitas':
+                  map['icon_fasilitaskamar'] ?? map['icon_fasilitas'] ?? '',
+            });
+          }).toList()
         : [];
 
-    var listGambarJson = json['gambar_kamar'] as List?;
-    List<GambarKamar> listGambar = listGambarJson != null
-        ? listGambarJson.map((i) => GambarKamar.fromJson(i)).toList()
+    final listGambarJson =
+        (json['gambar_kamar'] ?? json['gambarKamar']) as List?;
+    final List<GambarKamar> listGambar = listGambarJson != null
+        ? listGambarJson
+              .map((i) => GambarKamar.fromJson(i as Map<String, dynamic>))
+              .toList()
         : [];
 
     return Kamar(
-      idKamar: json['id_kamar'] ?? 0,
-      namaKamar: json['nama_kamar'] ?? 'Kamar',
-      tipeKamar: json['tipe_kamar'] ?? 'Standard',
-      harga: double.tryParse(json['harga'].toString()) ?? 0.0,
-      kapasitas: json['kapasitas'] ?? 1,
-      deskripsi: json['deskripsi'] ?? '',
+      idKamar: _parseInt(json['id_kamar']),
+      namaKamar: json['nama_kamar']?.toString() ?? 'Kamar',
+      tipeKamar: json['tipe_kamar']?.toString() ?? 'Standard',
+      harga: _parseInt(json['harga']),
+      kapasitas: _parseInt(json['kapasitas']),
+      deskripsi: json['deskripsi']?.toString() ?? '',
       daftarFasilitas: listFasilitas,
       daftarGambar: listGambar,
     );
   }
+
+  List<String> get fasilitas => daftarFasilitas
+      .map((f) => f.nama.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
 }

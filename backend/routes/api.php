@@ -42,6 +42,7 @@ Route::post('/fasilitas-kamar', [FasilitasKamarController::class, 'store']);
 Route::put('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'update']);
 Route::delete('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'destroy']);
 
+Route::get('/reviews/room/{id_kamar}', [ReviewController::class, 'getRoomReviews']);
 
 Route::get('/reviews/hotel/{idHotel}', [ReviewController::class, 'byHotel']);
 Route::get('/reviews', [ReviewController::class, 'all']);

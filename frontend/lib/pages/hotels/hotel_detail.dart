@@ -170,7 +170,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
             context,
             MaterialPageRoute(
               builder: (_) =>
-                  HotelRoomListPage(idHotel: hotel.id, hotelName: hotel.nama),
+                  KamarPage(idHotel: hotel.id, hotelName: hotel.nama),
             ),
           );
         },
