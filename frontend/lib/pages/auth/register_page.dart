@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sona/widgets/green_button.dart';
 import 'package:sona/widgets/input_box.dart';
-import 'package:sona/services/auth_service.dart';
+import 'package:sona/api/auth/api_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sona/pages/home/home_page.dart';
-import 'package:sona/pages/set_pin_page.dart';
+import 'package:sona/pages/auth/set_pin_page.dart';
 import 'package:sona/widgets/top_bar.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -152,17 +151,24 @@ class _RegisterPageState extends State<RegisterPage> {
                                   return;
                                 }
                                 
-                                final result = await AuthService.register(
-                                  email: controllerEmail.text,
-                                  password: controllerPassword.text,
-                                  name: controllerName.text,
-                                  dateOfBirth: controllerDateofBirth.text,
-                                  telp: controllerTelp.text,
+                                final result = await ApiAuth().register(
+                                  controllerName.text,
+                                  controllerEmail.text,
+                                  controllerDateofBirth.text,
+                                  controllerTelp.text,
+                                  controllerPassword.text,
                                 );
 
                                 print(controllerDateofBirth.text);
                                 
                                 if (result['message'] == 'Register Successful') {
+                                  final prefs = await SharedPreferences.getInstance();
+
+                                  await prefs.setString(
+                                    'token',
+                                    result['token'],
+                                  );
+
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(

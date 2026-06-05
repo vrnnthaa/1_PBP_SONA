@@ -22,15 +22,17 @@ class ApiAuth {
         };
       }
 
-      final result = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        return result; // Berisi token dan data user
-      } else {
+      
+
+      try {
+        return jsonDecode(response.body);
+      } catch(e) {
         return {
-          'message': result['message'] ?? 'Gagal login',
-          'field': result['field'] ?? 'both'
+          'message': 'Gagal login karena koneksi server',
+          'field': 'both'
         };
       }
+      
     } catch (e) {
       return {
         'message': 'Connection error. Please check Laravel server: $e',
@@ -40,7 +42,7 @@ class ApiAuth {
   }
 
   // 2. Fungsi Register
-  Future<Map<String, dynamic>> register(String nama, String email, String telpNo, String password) async {
+  Future<Map<String, dynamic>> register(String nama, String email, String tanggal_lahir, String telpNo, String password) async {
     try {
       final response = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/register'),
@@ -48,30 +50,28 @@ class ApiAuth {
         body: jsonEncode({
           'nama': nama,
           'email': email,
+          'tanggal_lahir': tanggal_lahir,
           'telp_no': telpNo,
           'password': password,
         }),
       );
 
-      final result = jsonDecode(response.body);
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        return result; // Berisi id_user untuk lanjut ke set PIN
-      } else {
-        throw Exception(result['message'] ?? 'Gagal register');
-      }
+      print("STATUS: ${response.statusCode}");
+      print("BODY: ${response.body}");
+
+      return jsonDecode(response.body);
     } catch (e) {
       throw Exception('Gagal register: $e');
     }
   }
 
   // 3. Fungsi Set PIN
-  Future<bool> setPin(int idUser, String pin) async {
+  Future<bool> setPin(String token, String pin) async {
     try {
       final response = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/set-pin'),
-        headers: ApiConfig.getHeaders(),
+        headers: ApiConfig.getHeaders(token: token),
         body: jsonEncode({
-          'id_user': idUser,
           'pin': pin,
         }),
       );

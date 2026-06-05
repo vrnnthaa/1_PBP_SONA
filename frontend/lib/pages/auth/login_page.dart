@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sona/pages/register_page.dart';
+import 'package:sona/pages/auth/register_page.dart';
 import 'package:sona/widgets/green_button.dart';
 import 'package:sona/widgets/input_box.dart';
 import 'package:sona/api/auth/api_auth.dart';

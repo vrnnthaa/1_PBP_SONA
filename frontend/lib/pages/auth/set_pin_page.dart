@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sona/widgets/green_button.dart';
 import 'package:sona/widgets/top_bar.dart';
 import 'package:pinput/pinput.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sona/api/auth/api_auth.dart';
 
 class SetPinPage extends StatefulWidget {
   const SetPinPage({super.key});
@@ -49,11 +51,12 @@ class _SetPinPageState extends State<SetPinPage> {
             const TopBar(title: "Create Secret PIN"),
 
             Expanded(
-              child: SingleChildScrollView(
+              child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
 
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Center(
@@ -97,7 +100,7 @@ class _SetPinPageState extends State<SetPinPage> {
                               ),
                             ),
 
-                            SizedBox(height: 12),
+                            SizedBox(height: 48),
 
                             Text(
                               'Enter a 4-digit PIN',
@@ -114,14 +117,62 @@ class _SetPinPageState extends State<SetPinPage> {
                               controller: pinController,
                               defaultPinTheme: defaultPinTheme,
                               length: 4,
-                            ),
+                              obscureText: true,
+                            ), 
+                            if (pinError != null) 
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  pinError!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
 
-                            SizedBox(height: 12),
+                            SizedBox(height: 48),
 
                             GreenButton(
                               text: 'Submit',
                               onPressed: () async {
-                               print("resdsd");
+                               if(pinController.text.length != 4) {
+                                setState(() {
+                                  pinError = "PIN must be 4 digits";
+                                });
+                                return;
+                              }
+
+                                final prefs = await SharedPreferences.getInstance();
+
+                                final token = prefs.getString('token');
+
+                                if (token == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Session expired"),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                final success = await ApiAuth().setPin(
+                                  token,
+                                  pinController.text,
+                                );
+
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("PIN saved successfully"),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Failed to save PIN"),
+                                    ),
+                                  );
+                                }
                               },
                             ),
                           ],

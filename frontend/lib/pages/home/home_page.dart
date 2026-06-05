@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sona/pages/login_page.dart';
+import 'package:sona/pages/auth/login_page.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/navigation/guest_bottom_nav.dart';
 import 'package:sona/widgets/navigation/guest_bottom_sheet.dart';
@@ -50,9 +50,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
+  
 
   @override
   Widget build(BuildContext context) {
+    
     final token = ref.watch(tokenProvider);
 
     return Scaffold(
