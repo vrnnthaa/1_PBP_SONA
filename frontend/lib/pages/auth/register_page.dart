@@ -5,6 +5,9 @@ import 'package:sona/api/auth/api_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/pages/auth/set_pin_page.dart';
 import 'package:sona/widgets/top_bar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:sona/api/auth/sign_in_with_google.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -22,6 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController controllerConfirmPassword = TextEditingController();
 
   String? emailError, passwordError, nameError, dateOfBirthError, telpError, confirmError;
+  final GoogleAuthService _authService = GoogleAuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -250,14 +254,24 @@ class _RegisterPageState extends State<RegisterPage> {
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(8),
 
-                                onTap: () {
-                                  print('Google');
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const SetPinPage(),
-                                    )
-                                  );
+                                onTap: () async {
+                                  User? user = await _authService.signInWithGoogle();
+
+                                  if (user != null) {
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const SetPinPage(),
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Google Sign In gagal"),
+                                      ),
+                                    );
+                                  }
                                 },
 
                                 child: Padding(

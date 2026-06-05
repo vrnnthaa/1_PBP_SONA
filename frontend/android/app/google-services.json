@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "388389040333",
+    "project_id": "sona-dfee3",
+    "storage_bucket": "sona-dfee3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388389040333:android:58a8704a7d2c176fbef984",
+        "android_client_info": {
+          "package_name": "com.example.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQFVybCNW-4CmdXfo4CagEh-Ec8vP3i8g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
