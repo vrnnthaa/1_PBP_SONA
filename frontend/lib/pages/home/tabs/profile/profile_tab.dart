@@ -7,6 +7,7 @@ import 'package:sona/pages/home/tabs/profile/editProfile/edit_profile_page.dart'
 import 'package:sona/pages/home/tabs/profile/changePassword/change_password_page.dart';
 import 'package:sona/pages/home/tabs/profile/about/about_page.dart';
 import 'package:sona/pages/home/tabs/profile/fingerprint/fingerprint_page.dart';
+import 'package:sona/pages/home/tabs/profile/pin/change_pin_page.dart';
 
 class ProfileTab extends ConsumerStatefulWidget {
   final String? token;
@@ -31,28 +32,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
 
 
 
-  void _showFeaturePlaceholder(String featureName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          featureName,
-          style: AppTheme.titleStyle.copyWith(color: AppTheme.deepTeal, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        content: Text(
-          'The $featureName option is integrated and ready in this view!',
-          style: AppTheme.bodyStyle.copyWith(color: AppTheme.textDark),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK', style: AppTheme.bodyStyle.copyWith(color: AppTheme.deepTeal, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   // Custom Bullet/Line Password Icon matching mockup
   Widget _buildPasswordIcon() {
@@ -198,7 +178,17 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                               context,
                               leading: _build123Icon(),
                               title: 'Change Secret PIN',
-                              onTap: () => _showFeaturePlaceholder('Change Secret PIN'),
+                              onTap: () {
+                                if (widget.token == null || widget.token!.isEmpty) return;
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChangePinPage(
+                                      token: widget.token!,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                             _buildMenuTile(
                               context,
@@ -364,10 +354,19 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(48),
-                      child: SmartImage(
-                        path: imagePath,
-                        fit: BoxFit.cover,
-                      ),
+                      child: (isGuest || photoProfile.isEmpty)
+                          ? Container(
+                              color: AppTheme.buttonLightTeal,
+                              child: const Icon(
+                                Icons.person_rounded,
+                                color: AppTheme.primary,
+                                size: 54,
+                              ),
+                            )
+                          : SmartImage(
+                              path: imagePath,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                   if (!isGuest)

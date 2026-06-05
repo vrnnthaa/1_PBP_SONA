@@ -260,11 +260,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       try {
         final String namaFileUnik = 'avatar_${idUser}_${DateTime.now().millisecondsSinceEpoch}.jpg';
         await Supabase.instance.client.storage
-            .from('hotel_images')
+            .from('photo_profile')
             .upload(namaFileUnik, _selectedImageFile!);
         
         finalPhotoUrl = Supabase.instance.client.storage
-            .from('hotel_images')
+            .from('photo_profile')
             .getPublicUrl(namaFileUnik);
       } catch (e) {
         if (mounted) {
@@ -382,10 +382,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(60),
-                          child: SmartImage(
-                            path: avatarUrl,
-                            fit: BoxFit.cover,
-                          ),
+                          child: _photoProfile.isEmpty
+                              ? Container(
+                                  color: AppTheme.buttonLightTeal,
+                                  child: const Icon(
+                                    Icons.person_rounded,
+                                    color: AppTheme.primary,
+                                    size: 68,
+                                  ),
+                                )
+                              : SmartImage(
+                                  path: _photoProfile,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                       ),
                       Positioned(

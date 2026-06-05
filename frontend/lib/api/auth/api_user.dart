@@ -76,4 +76,29 @@ class ApiUser {
       return false;
     }
   }
+
+  // 5. Ubah PIN
+  Future<Map<String, dynamic>> changePin(String token, String pinLama, String pinBaru) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/user/change-pin'),
+        headers: ApiConfig.getHeaders(token: token),
+        body: jsonEncode({
+          'pin_lama': pinLama,
+          'pin_baru': pinBaru,
+        }),
+      );
+
+      final result = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': result['message'] ?? 'Gagal mengubah PIN',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Terjadi kesalahan: $e',
+      };
+    }
+  }
 }
