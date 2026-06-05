@@ -208,6 +208,66 @@ class _RegisterPageState extends State<RegisterPage> {
                                 }
                               }
                             ),
+
+                            const SizedBox(height: 55),
+
+                            const Text(
+                              'Or sign up with',
+
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFA29EB6),
+                              ),
+                            ),
+
+                            const SizedBox(height: 13),
+
+                            Container(
+                              width: 82,
+                              height: 41,
+
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+
+                                borderRadius: BorderRadius.circular(8),
+
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8),
+
+                                onTap: () {
+                                  print('Google');
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const SetPinPage(),
+                                    )
+                                  );
+                                },
+
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8),
+
+                                  child: 
+                                  Image.asset(
+                                    'assets/images/google_logo.png',
+                                    height: 28,
+                                    width: 28,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 55),
                           ],
                         )
                       )
