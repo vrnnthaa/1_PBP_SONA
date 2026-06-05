@@ -13,10 +13,11 @@ use App\Http\Controllers\FasilitasKamarController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/set-pin', [AuthController::class, 'setPin']);
+Route::post('/google-auth', [AuthController::class, 'googleAuth']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/set-pin', [AuthController::class, 'setPin']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::prefix('user')
