@@ -59,4 +59,21 @@ class ApiUser {
       return false;
     }
   }
-}
+
+  // 4. Register Fingerprint
+  Future<bool> registerFingerprint(String token, String? fingerprintString) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/user/change-fingerprint'),
+        headers: ApiConfig.getHeaders(token: token),
+        body: jsonEncode({
+          'sidik_jari': fingerprintString,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+}

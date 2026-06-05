@@ -22,10 +22,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('user')
     ->controller(UserController::class)
     ->group(function () {
+        Route::put('/change-fingerprint', [UserController::class, 'changeFingerprint']);
+        Route::put('/change-password', [UserController::class, 'changePassword']);
+        Route::put('/change-pin', [UserController::class, 'changePin']);
         Route::get('/{id}', [UserController::class, 'index']);
         Route::put('/{id}', [UserController::class, 'update']);
-        Route::put('/change-password/{id}', [UserController::class, 'changePassword']);
-        Route::put('/change-pin/{id}', [UserController::class, 'changePin']);
     });
 });
 

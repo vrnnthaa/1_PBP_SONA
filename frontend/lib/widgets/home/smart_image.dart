@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/config/api_config.dart';
@@ -19,6 +20,7 @@ class SmartImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isDirectUrl = path.startsWith('http://') || path.startsWith('https://');
     final bool isBase64 = path.startsWith('data:image/') || path.contains('base64,') || path.length > 200;
+    final bool isLocalFile = !isDirectUrl && !isBase64 && (path.startsWith('/') || path.contains(':\\') || path.startsWith('file://') || path.contains('/cache/'));
 
     Widget imageWidget;
     if (isDirectUrl) {
@@ -64,6 +66,15 @@ class SmartImage extends StatelessWidget {
       } catch (e) {
         imageWidget = _buildFallbackContainer();
       }
+    } else if (isLocalFile) {
+      final String cleanPath = path.replaceFirst('file://', '');
+      imageWidget = Image.file(
+        File(cleanPath),
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallbackContainer();
+        },
+      );
     } else {
       imageWidget = Image.asset(
         path,

@@ -98,6 +98,26 @@ class UserController
             'message' => 'PIN berhasil diubah'
         ], 200);
     }
+
+    public function changeFingerprint(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User tidak ditemukan'
+            ], 404);
+        }
+
+        $user->sidik_jari = $request->sidik_jari;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Fingerprint berhasil didaftarkan',
+            'data' => $user
+        ], 200);
+    }
 }
+
 
 ?>

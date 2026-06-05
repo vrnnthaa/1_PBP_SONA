@@ -6,6 +6,7 @@ import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/pages/home/tabs/profile/editProfile/edit_profile_page.dart';
 import 'package:sona/pages/home/tabs/profile/changePassword/change_password_page.dart';
 import 'package:sona/pages/home/tabs/profile/about/about_page.dart';
+import 'package:sona/pages/home/tabs/profile/fingerprint/fingerprint_page.dart';
 
 class ProfileTab extends ConsumerStatefulWidget {
   final String? token;
@@ -203,7 +204,17 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                               context,
                               leading: const Icon(Icons.fingerprint_rounded, color: AppTheme.deepTeal, size: 24),
                               title: 'Finger Print Registration',
-                              onTap: () => _showFeaturePlaceholder('Finger Print Registration'),
+                              onTap: () {
+                                if (widget.token == null || widget.token!.isEmpty) return;
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FingerprintPage(
+                                      token: widget.token!,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                             
                             const SizedBox(height: 24),
