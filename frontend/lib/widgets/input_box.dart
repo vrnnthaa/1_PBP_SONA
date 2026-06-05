@@ -4,6 +4,7 @@ class InputBox extends StatefulWidget {
   final String label;
   final String placeholder;
   final bool isConfidential;
+  final bool isDate;
   final TextEditingController? controller;
   final String? errorText;
   final IconData? prefixIcon;
@@ -16,6 +17,7 @@ class InputBox extends StatefulWidget {
     required this.label,
     required this.placeholder,
     this.isConfidential = false,
+    this.isDate = false,
     this.controller,
     this.errorText,
     this.prefixIcon,
@@ -92,12 +94,49 @@ class _InputBoxState extends State<InputBox> {
             ],
           ),
           child: TextField(
-            focusNode: focusNode,
+            focusNode: widget.isDate ? null : focusNode,
             controller: widget.controller,
+
+            onTap: widget.isDate ? () async{
+              DateTime? pickedDate = await showDatePicker(
+                context: context,
+
+                initialDate: DateTime.now(),
+
+                firstDate: DateTime(1900),
+
+                lastDate: DateTime(2100),
+
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: const ColorScheme.light(
+                        primary: Color(0xFF004D57),
+                        onPrimary: Colors.white,
+                        onSurface: Color(0xFF003A3F),
+                      ),
+                    ),
+
+                    child: child!,
+                  );
+                },
+              );
+              if (pickedDate != null) {
+
+                String formattedDate =
+    "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+
+                widget.controller?.text = formattedDate;
+
+                print("SELECTED DATE RAW: $pickedDate");
+                print("SELECTED DATE FORMATTED: $formattedDate");
+
+              }
+            }   
+            : widget.onTap,
             obscureText: widget.isConfidential ? isHidden : false,
             keyboardType: widget.keyboardType,
-            readOnly: widget.readOnly,
-            onTap: widget.onTap,
+            readOnly: widget.isDate || widget.readOnly,
             style: const TextStyle(
               fontSize: 14.5,
               fontWeight: FontWeight.w600,
@@ -138,11 +177,17 @@ class _InputBoxState extends State<InputBox> {
                             });
                           },
                           icon: Icon(
-                            isHidden ? Icons.visibility_off : Icons.visibility,
+                            isHidden  ? Icons.visibility_off : Icons.visibility,
                             color: isFocused ? const Color(0xFF0C3D3E) : const Color(0xFFA29EB6),
                           ),
                         )
-                      : null,
+                      : widget.isDate 
+                  ? const Icon(
+                    Icons.calendar_month,
+                    color: Color(0xFF00727C),
+                  )
+
+                : null,
             ),
           ),
         ),
