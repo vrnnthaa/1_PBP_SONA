@@ -6,6 +6,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\FasilitasHotelController;
 use App\Http\Controllers\GambarHotelController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\KamarController;
+use App\Http\Controllers\GambarKamarController;
+use App\Http\Controllers\FasilitasKamarController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -25,6 +29,24 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
+Route::get('/gambar-kamar', [GambarKamarController::class, 'index']);
+Route::get('/gambar-kamar/{id_gambarkamar}', [GambarKamarController::class, 'show']);
+Route::post('/gambar-kamar', [GambarKamarController::class, 'store']);
+Route::put('/gambar-kamar/{id_gambarkamar}', [GambarKamarController::class, 'update']);
+Route::delete('/gambar-kamar/{id_gambarkamar}', [GambarKamarController::class, 'destroy']);
+Route::get('/kamar/{id_kamar}/gambar', [GambarKamarController::class, 'byKamar']);
+
+Route::get('/fasilitas-kamar', [FasilitasKamarController::class, 'index']);
+Route::get('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'show']);
+Route::post('/fasilitas-kamar', [FasilitasKamarController::class, 'store']);
+Route::put('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'update']);
+Route::delete('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'destroy']);
+
+Route::get('/reviews/room/{id_kamar}', [ReviewController::class, 'getRoomReviews']);
+
+Route::get('/reviews/hotel/{idHotel}', [ReviewController::class, 'byHotel']);
+Route::get('/reviews', [ReviewController::class, 'all']);
+Route::get('/hotel/{id_hotel}/available-rooms', [KamarController::class, 'getAvailableRooms']);
 
 // Hotel
 Route::get('/hotels', [HotelController::class, 'index']);
@@ -32,6 +54,7 @@ Route::get('/hotels/{id_hotel}', [HotelController::class, 'show']);
 Route::post('/hotels', [HotelController::class, 'store']);
 Route::put('/hotels/{id_hotel}', [HotelController::class, 'update']);
 Route::delete('/hotels/{id_hotel}', [HotelController::class, 'destroy']);
+Route::get('/hotels/search', [HotelController::class, 'search']);
 
 // Fasilitas Hotel
 Route::get('/fasilitas-hotel', [FasilitasHotelController::class, 'index']);
@@ -92,3 +115,4 @@ Route::get('/addon/{id}', [AddOnController::class, 'show']);
 Route::post('/addon', [AddOnController::class, 'store']);
 Route::put('/addon/{id}', [AddOnController::class, 'update']);
 Route::delete('/addon/{id}', [AddOnController::class, 'destroy']);
+

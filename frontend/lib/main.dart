@@ -7,15 +7,13 @@ import 'package:sona/utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Pre-initialize SharedPreferences synchronously for Riverpod
   final prefs = await SharedPreferences.getInstance();
 
   runApp(
     ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: const MyApp(),
     ),
   );
@@ -30,9 +28,7 @@ class MyApp extends StatelessWidget {
       title: 'sona',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF004D52),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF004D52)),
         fontFamily: AppTheme.fontPrimary,
       ),
       home: const HomePage(),

@@ -101,13 +101,11 @@ class VerticalHotelCard extends StatelessWidget {
                 ),
               ],
             ),
-
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Hotel name + star rating
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -139,10 +137,7 @@ class VerticalHotelCard extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 6),
-
-                  // Address + distance
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -168,39 +163,53 @@ class VerticalHotelCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (hotel.fasilitas.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 32,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: hotel.fasilitas.asMap().entries.map((
+                            entry,
+                          ) {
+                            final index = entry.key;
+                            final fasilitas = entry.value;
 
-                  const SizedBox(height: 10),
-
-                  if (hotel.fasilitas.isNotEmpty)
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: hotel.fasilitas.map((fasilitas) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: AppTheme.borderTealLight,
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            fasilitas,
-                            style: GoogleFonts.roboto(
-                              fontSize: 12,
-                              color: AppTheme.textTealMedium,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                            return Container(
+                              margin: EdgeInsets.only(
+                                right: index == hotel.fasilitas.length - 1
+                                    ? 0
+                                    : 6,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppTheme.borderTealLight,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                fasilitas,
+                                style: GoogleFonts.roboto(
+                                  fontSize: 12,
+                                  color: AppTheme.textTealMedium,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
-
+                  ],
                   const SizedBox(height: 14),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -233,7 +242,9 @@ class VerticalHotelCard extends StatelessWidget {
                           backgroundColor: AppTheme.buttonLightTeal,
                           foregroundColor: AppTheme.primary,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 22, vertical: 11),
+                            horizontal: 22,
+                            vertical: 11,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
