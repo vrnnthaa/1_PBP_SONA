@@ -5,11 +5,16 @@ import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sona/firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   // Pre-initialize SharedPreferences synchronously for Riverpod
   final prefs = await SharedPreferences.getInstance();
 

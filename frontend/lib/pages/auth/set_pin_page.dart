@@ -4,6 +4,7 @@ import 'package:sona/widgets/top_bar.dart';
 import 'package:pinput/pinput.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/api/auth/api_auth.dart';
+import 'package:sona/pages/auth/login_page.dart';
 
 class SetPinPage extends StatefulWidget {
   const SetPinPage({super.key});
@@ -161,10 +162,19 @@ class _SetPinPageState extends State<SetPinPage> {
                                 );
 
                                 if (success) {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.remove('token');
+
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text("PIN saved successfully"),
                                     ),
+                                  );
+
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                                    (route) => false,
                                   );
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(

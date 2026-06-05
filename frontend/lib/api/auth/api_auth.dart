@@ -22,8 +22,6 @@ class ApiAuth {
         };
       }
 
-      
-
       try {
         return jsonDecode(response.body);
       } catch(e) {
@@ -79,6 +77,29 @@ class ApiAuth {
       return response.statusCode == 200;
     } catch (e) {
       return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> googleLogin({required String email, required String nama}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/google-auth'),
+        headers: ApiConfig.getHeaders(),
+        body: jsonEncode({
+          'email': email,
+          'nama': nama,
+        }),
+      );
+
+      print("GOOGLE AUTH STATUS: ${response.statusCode}");
+      print("GOOGLE AUTH BODY: ${response.body}");
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch(e) {
+      print('Google login error: $e');
+      return null;
     }
   }
 

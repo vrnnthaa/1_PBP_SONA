@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sona/providers/app_providers.dart';
 import 'package:sona/widgets/green_button.dart';
 import 'package:sona/widgets/input_box.dart';
 import 'package:sona/api/auth/api_auth.dart';
@@ -8,15 +10,16 @@ import 'package:sona/widgets/top_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sona/api/auth/sign_in_with_google.dart';
+import 'package:sona/pages/home/home_page.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   TextEditingController controllerName = TextEditingController();
   TextEditingController controllerDateofBirth = TextEditingController();
   TextEditingController controllerTelp = TextEditingController();
@@ -255,22 +258,37 @@ class _RegisterPageState extends State<RegisterPage> {
                                 borderRadius: BorderRadius.circular(8),
 
                                 onTap: () async {
-                                  User? user = await _authService.signInWithGoogle();
+                                  try {
+                                    final result = await _authService.signInWithGoogle();
 
-                                  if (user != null) {
+                                    if (result != null) {
+                                      final token = result['token'];
+                                      final hasPin = result['has_pin'] == true;
 
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const SetPinPage(),
-                                      ),
-                                    );
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Google Sign In gagal"),
-                                      ),
-                                    );
+                                      ProviderScope.containerOf(context)
+                                      .read(tokenProvider.notifier)
+                                      .setToken(token);
+
+                                      if (hasPin) {
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const HomePage()),
+                                        (route) => false,
+                                      );
+                                    } else {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const SetPinPage()),
+                                      );
+                                    }
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text("Google Sign In gagal")),
+                                      );
+                                    }
+                                  } catch (e, stack) {
+                                    print("GOOGLE SIGN IN ERROR: $e");
+                                    print(stack);
                                   }
                                 },
 
