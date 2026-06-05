@@ -138,4 +138,44 @@ class ReviewController
         ], 200);
     }
 
+    public function getRoomReviews($id_kamar)
+    {
+        $reviews = Review::with(['user', 'pemesanan'])
+            ->where('is_delete', false)
+            ->whereHas('pemesanan', function ($query) use ($id_kamar) {
+                $query->where('id_kamar', $id_kamar)
+                      ->where('is_delete', false);
+            })
+            ->latest()
+            ->get();
+
+        $averageRating = $reviews->avg('rating');
+        $totalReviews = $reviews->count();
+
+        return response()->json([
+            'message' => 'Data review kamar berhasil diambil',
+            'data' => [
+                'id_kamar' => (int) $id_kamar,
+                'average_rating' => $averageRating ? round($averageRating, 1) : 0,
+                'total_reviews' => $totalReviews,
+                'reviews' => $reviews->map(function ($review) {
+                    return [
+                        'id_review' => $review->id_review,
+                        'rating' => (int) $review->rating,
+                        'komentar' => $review->komentar,
+                        'tanggal_review' => $review->created_at,
+                        'user' => [
+                            'id_user' => $review->user->id_user ?? null,
+                            'nama' => $review->user->nama ?? 'Anonymous',
+                        ],
+                        'pemesanan' => [
+                            'id_pemesanan' => $review->pemesanan->id_pemesanan ?? null,
+                            'id_kamar' => $review->pemesanan->id_kamar ?? null,
+                        ],
+                    ];
+                })->values(),
+            ],
+        ], 200);
+    }
+
 }

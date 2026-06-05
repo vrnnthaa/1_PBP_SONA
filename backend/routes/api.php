@@ -13,10 +13,11 @@ use App\Http\Controllers\FasilitasKamarController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/set-pin', [AuthController::class, 'setPin']);
+Route::post('/google-auth', [AuthController::class, 'googleAuth']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/set-pin', [AuthController::class, 'setPin']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::prefix('user')
@@ -42,6 +43,7 @@ Route::post('/fasilitas-kamar', [FasilitasKamarController::class, 'store']);
 Route::put('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'update']);
 Route::delete('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController::class, 'destroy']);
 
+Route::get('/reviews/room/{id_kamar}', [ReviewController::class, 'getRoomReviews']);
 
 Route::get('/reviews/hotel/{idHotel}', [ReviewController::class, 'byHotel']);
 Route::get('/reviews', [ReviewController::class, 'all']);

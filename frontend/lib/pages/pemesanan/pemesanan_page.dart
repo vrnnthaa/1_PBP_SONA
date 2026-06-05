@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import 'package:sona/utils/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+
 import 'package:sona/api/pemesanan/api_pemesanan.dart';
 import 'package:sona/pages/pembayaran/ringkasan_pembayaran_page.dart';
 
@@ -126,11 +131,25 @@ class _PemesananPageState extends State<PemesananPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Selected Room'),
+                  Text(
+                    'Selected Room',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF003A3F),
+                    ),
+                  ),
                   const SizedBox(height: 11),
-                  _buildRoomCard(),       // ← sekarang pakai data real
+                  _buildRoomCard(),      
                   const SizedBox(height: 24),
-                  const Text('Add-ons'),
+                  Text(
+                    'Add-ons',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF003A3F),
+                    ),
+                  ),
                   const SizedBox(height: 11),
                   _buildAddonList(),
                 ],
@@ -144,17 +163,37 @@ class _PemesananPageState extends State<PemesananPage> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-            ),
-            const Expanded(child: Text('Booking')),
-          ],
+    return Container(
+      color: AppTheme.textWhite,
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 42,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: AppTheme.primary,
+                    size: 28,
+                  ),
+                ),
+              ),
+              Text(
+                'Book Your Stay',
+                style: GoogleFonts.montserrat(
+                  color: AppTheme.primary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -164,45 +203,80 @@ class _PemesananPageState extends State<PemesananPage> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.black.withOpacity(0.15)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black.withOpacity(0.12)),
         boxShadow: const [
-          BoxShadow(color: Color(0x3F000000), blurRadius: 2, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x3F000000), 
+            blurRadius: 4, 
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Image.network(
-              'https://placehold.co/320x178',
+              'https://placehold.co/320x178', //ini nanti jangan lupa minta gambar kamar sama verrent
               height: 178,
               width: double.infinity,
               fit: BoxFit.cover,
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ← Nama hotel & kamar dari widget (data real)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${widget.namaHotel}, ${widget.namaKamar}'),
-                    const SizedBox(height: 4),
-                    Text('Date: $_formattedDateRange'),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${widget.namaHotel}, ${widget.namaKamar}',
+                        style:  GoogleFonts.montserrat(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF003A3F),
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('Date: $_formattedDateRange',
+                        style:  GoogleFonts.montserrat(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF003A3F),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                // ← Harga dari widget (data real)
+
+                const SizedBox(width: 12),
+
+                //Harga dari widget kamar yang dipilih
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Rp ${widget.hargaPerMalam.toStringAsFixed(0)}'),
-                    const Text('/Night'),
+                    Text(
+                      'Rp ${_formatHarga(widget.hargaPerMalam)}',
+                      style:  GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                    Text(
+                      '/Night',
+                      style:  GoogleFonts.montserrat(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primary,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -212,6 +286,21 @@ class _PemesananPageState extends State<PemesananPage> {
       ),
     );
   }
+
+  String _formatHarga(double harga) {
+    final parts = harga.toStringAsFixed(0).split(''); 
+    final buffer = StringBuffer();
+
+    int count = 0;
+    for (int i = parts.length - 1; i >= 0; i--) {
+  
+      if (count > 0 && count % 3 == 0) buffer.write('.');
+      buffer.write(parts[i]);
+      count++;
+    }
+    return buffer.toString().split('').reversed.join('');
+  }
+
 
   Widget _buildAddonList() {
     return Column(
@@ -243,9 +332,9 @@ class _PemesananPageState extends State<PemesananPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black.withOpacity(0.15)),
+          border: Border.all(color: Colors.black.withOpacity(0.12)),
           boxShadow: const [
-            BoxShadow(color: Color(0x3F000000), blurRadius: 2, offset: Offset(0, 2)),
+            BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 2)),
           ],
         ),
         child: Row(
@@ -259,8 +348,22 @@ class _PemesananPageState extends State<PemesananPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(addon.name),
-                    Text(addon.price),
+                    Text(
+                      addon.name,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF003A3F),
+                      ),
+                    ),
+                    Text(
+                      addon.price,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF003A3F),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -289,12 +392,32 @@ class _PemesananPageState extends State<PemesananPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ← Jumlah malam dihitung otomatis
-                  Text('Total for $_jumlahMalam nights'),
+                  Text(
+                    'Total for $_jumlahMalam nights',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF003A3F),
+                    ),
+                  ),
                   // ← Total biaya dihitung otomatis
-                  Text('Rp ${_totalBiaya.toStringAsFixed(0)}'),
+                  Text('Rp ${_formatHarga(_totalBiaya)}',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF003A3F),
+                    ),
+                  ),
                 ],
               ),
-              const Text('+Include taxes'),
+              Text(
+                '+Include taxes',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF003A3F),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -320,8 +443,9 @@ class _PemesananPageState extends State<PemesananPage> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text('Continue to Summary',
-                        style: TextStyle(color: Colors.white)),
+                    : Text(
+                      'Continue to Summary',
+                        style: GoogleFonts.montserrat(color: Colors.white)),
               ),
             ),
           ),
