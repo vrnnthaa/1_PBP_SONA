@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/widgets/input_box.dart';
+import 'package:sona/widgets/confirmation_pop_up.dart';
 
 class ChangePasswordPage extends ConsumerStatefulWidget {
   final String token;
@@ -100,13 +101,16 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password updated successfully!'),
-            backgroundColor: AppTheme.deepTeal,
-          ),
+
+        // Show bouncy success alert pop-up (Password Changes.svg)
+        await CustomPopUp.showSuccess(
+          context: context,
+          assetPath: 'assets/alert/Password Changes.svg',
         );
-        Navigator.pop(context);
+
+        if (mounted) {
+          Navigator.pop(context);
+        }
       }
     } else {
       if (mounted) {

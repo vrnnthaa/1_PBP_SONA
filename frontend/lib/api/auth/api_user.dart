@@ -101,4 +101,28 @@ class ApiUser {
       };
     }
   }
+
+  // 6. Verifikasi PIN
+  Future<Map<String, dynamic>> verifyPin(String token, String pin) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/user/verify-pin'),
+        headers: ApiConfig.getHeaders(token: token),
+        body: jsonEncode({
+          'pin': pin,
+        }),
+      );
+
+      final result = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': result['message'] ?? 'Verifikasi PIN gagal',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Terjadi kesalahan: $e',
+      };
+    }
+  }
 }

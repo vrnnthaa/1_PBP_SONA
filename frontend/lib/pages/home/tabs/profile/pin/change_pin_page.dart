@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
+import 'package:sona/widgets/confirmation_pop_up.dart';
 
 enum PinState {
   enterCurrent,
@@ -91,13 +92,32 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
     });
 
     if (_currentState == PinState.enterCurrent) {
-      // Step 1: Save current PIN and transition to New PIN screen
-      _currentPin = enteredPin;
+      // Step 1: Check if current PIN is correct via backend API
       setState(() {
-        _currentState = PinState.enterNew;
-        _pinController.clear();
+        _isLoading = true;
       });
-      _focusNode.requestFocus();
+
+      final apiUser = ApiUser();
+      final response = await apiUser.verifyPin(widget.token, enteredPin);
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response['success'] == true) {
+        _currentPin = enteredPin;
+        setState(() {
+          _currentState = PinState.enterNew;
+          _pinController.clear();
+        });
+        _focusNode.requestFocus();
+      } else {
+        setState(() {
+          _errorText = response['message'] ?? 'Your current PIN is incorrect';
+          _pinController.clear();
+        });
+        _focusNode.requestFocus();
+      }
     } else if (_currentState == PinState.enterNew) {
       // Step 2: Save new PIN and transition to Confirm PIN screen
       _newPin = enteredPin;
@@ -113,7 +133,9 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
       if (_confirmPin != _newPin) {
         setState(() {
           _errorText = 'The new confirmation PIN does not match the new PIN';
+          _pinController.clear();
         });
+        _focusNode.requestFocus();
         return;
       }
 
@@ -130,21 +152,21 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
 
       if (response['success'] == true) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('PIN updated successfully!'),
-              backgroundColor: AppTheme.primary,
-            ),
+          // Show bouncy success alert pop-up (Secret PIN Changes.svg)
+          await CustomPopUp.showSuccess(
+            context: context,
+            assetPath: 'assets/alert/Secret PIN Changes.svg',
           );
-          Navigator.pop(context);
+
+          if (mounted) {
+            Navigator.pop(context);
+          }
         }
       } else {
         if (mounted) {
-          // If the backend indicates incorrect old/current PIN, transition back to enterCurrent state
           setState(() {
-            _currentState = PinState.enterCurrent;
-            _pinController.text = _currentPin;
-            _errorText = 'Your current PIN is incorrect';
+            _errorText = response['message'] ?? 'Failed to update PIN';
+            _pinController.clear();
           });
           _focusNode.requestFocus();
         }
@@ -322,10 +344,20 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
                           submittedPinTheme: submittedPinTheme,
                           errorPinTheme: errorPinTheme,
                           forceErrorState: _errorText != null,
-                          obscureText: false,
+                          obscureText: true,
+                          obscuringWidget: Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: _errorText != null
+                                  ? AppTheme.errorRed
+                                  : AppTheme.primary,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                           showCursor: false,
                           onChanged: (value) {
-                            if (_errorText != null) {
+                            if (_errorText != null && value.isNotEmpty) {
                               setState(() {
                                 _errorText = null;
                               });

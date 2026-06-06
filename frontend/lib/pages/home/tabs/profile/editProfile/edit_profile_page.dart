@@ -10,6 +10,7 @@ import 'package:sona/providers/app_providers.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/widgets/input_box.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sona/widgets/confirmation_pop_up.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   final Map<String, dynamic> profileData;
@@ -249,6 +250,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       return;
     }
 
+    // Show custom confirmation pop-up dialog first
+    final bool? confirm = await CustomPopUp.showConfirmation(context: context);
+    if (confirm != true) {
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -299,13 +306,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully!'),
-            backgroundColor: AppTheme.deepTeal,
-          ),
+
+        // Show bouncy success alert pop-up (Profile-Success.svg)
+        await CustomPopUp.showSuccess(
+          context: context,
+          assetPath: 'assets/alert/Profile-Success.svg',
         );
-        Navigator.pop(context);
+
+        if (mounted) {
+          Navigator.pop(context);
+        }
       }
     } else {
       if (mounted) {

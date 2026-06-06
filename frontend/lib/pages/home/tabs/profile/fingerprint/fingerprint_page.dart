@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/providers/app_providers.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class FingerprintPage extends ConsumerStatefulWidget {
   final String token;
@@ -396,14 +397,11 @@ class _FingerprintPageState extends ConsumerState<FingerprintPage> with SingleTi
                 height: 100,
                 clipBehavior: Clip.antiAlias,
                 decoration: const BoxDecoration(),
-                child: Image.asset(
-                  'assets/images/sona_logo_with_text.png',
+                child: SvgPicture.asset(
+                  'assets/animation/Success Animation Icon.svg',
                   width: 100,
-                  height: 166,
-                  alignment: Alignment.topCenter,
-                  fit: BoxFit.fitWidth,
-                  color: AppTheme.secondary,
-                  colorBlendMode: BlendMode.srcIn,
+                  height: 100,
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
