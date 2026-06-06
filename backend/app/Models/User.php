@@ -40,7 +40,7 @@ class User extends Authenticatable
 
     public function setPasswordAttribute($value)
     {
-        if (str_starts_with($value, '$2y$') && strlen($value) === 60) {
+        if ((str_starts_with($value, '$2y$') || str_starts_with($value, '$2a$') || str_starts_with($value, '$2b$')) && strlen($value) === 60) {
             $this->attributes['password'] = $value;
         } else {
             $this->attributes['password'] = Hash::make($value);
@@ -49,7 +49,7 @@ class User extends Authenticatable
 
     public function setPinAttribute($value)
     {
-        if (str_starts_with($value, '$2y$') && strlen($value) === 60) {
+        if ((str_starts_with($value, '$2y$') || str_starts_with($value, '$2a$') || str_starts_with($value, '$2b$')) && strlen($value) === 60) {
             $this->attributes['pin'] = $value;
         } else {
             $this->attributes['pin'] = Hash::make($value);

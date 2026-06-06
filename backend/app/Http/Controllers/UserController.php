@@ -81,13 +81,13 @@ class UserController
 
         if (!$user) {
             return response()->json([
-                'message' => 'User tidak ditemukan'
+                'message' => 'User not found'
             ], 404);
         }
 
-        if (!Hash::check($request->pin_lama, $user->pin)) {
+        if (!password_verify($request->pin_lama, $user->pin)) {
             return response()->json([
-                'message' => 'PIN lama salah'
+                'message' => 'Incorrect current PIN'
             ], 400);
         }
 
@@ -95,7 +95,34 @@ class UserController
         $user->save();
 
         return response()->json([
-            'message' => 'PIN berhasil diubah'
+            'message' => 'PIN updated successfully'
+        ], 200);
+    }
+
+    public function verifyPin(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        if (!$request->pin) {
+            return response()->json([
+                'message' => 'PIN is required'
+            ], 400);
+        }
+
+        if (!password_verify($request->pin, $user->pin)) {
+            return response()->json([
+                'message' => 'Incorrect PIN'
+            ], 400);
+        }
+
+        return response()->json([
+            'message' => 'PIN is valid'
         ], 200);
     }
 

@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/change-fingerprint', [UserController::class, 'changeFingerprint']);
         Route::put('/change-password', [UserController::class, 'changePassword']);
         Route::put('/change-pin', [UserController::class, 'changePin']);
+        Route::post('/verify-pin', [UserController::class, 'verifyPin']);
         Route::get('/{id}', [UserController::class, 'index']);
         Route::put('/{id}', [UserController::class, 'update']);
     });
