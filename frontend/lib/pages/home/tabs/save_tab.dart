@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/widgets/saved/saved_hotel_card.dart';
-import 'package:sona/pages/hotels/hotel_page.dart';
+import 'package:sona/pages/hotels/hotel_detail.dart';
 import 'package:sona/providers/app_providers.dart';
 
 class SaveTab extends ConsumerStatefulWidget {
@@ -211,8 +211,8 @@ class _SaveTabState extends ConsumerState<SaveTab> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => HotelPage(
-                            location: hotel.alamat,
+                          builder: (context) => HotelDetailPage(
+                            hotel: hotel,
                           ),
                         ),
                       );

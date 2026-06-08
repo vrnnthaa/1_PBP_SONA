@@ -9,7 +9,7 @@ import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/pages/auth/login_page.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/widgets/map_search_bar.dart';
-import 'package:sona/pages/hotels/hotel_page.dart';
+import 'package:sona/pages/hotels/hotel_detail.dart';
 
 class MapTab extends ConsumerStatefulWidget {
   const MapTab({super.key});
@@ -470,14 +470,14 @@ class _MapTabState extends ConsumerState<MapTab> {
                               ? Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // Clicking popup card/image redirects to HotelPage
+                                    // Clicking popup card/image redirects to HotelDetailPage
                                     GestureDetector(
                                       onTap: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => HotelPage(
-                                              location: hotel.alamat,
+                                            builder: (context) => HotelDetailPage(
+                                              hotel: hotel,
                                             ),
                                           ),
                                         );

@@ -15,15 +15,6 @@ class KamarController
             ->where('is_delete', false)
             ->get();
 
-        foreach ($kamars as $kamar) {
-            $averageRating = Review::where('id_hotel', $kamar->id_hotel)
-                ->where('is_delete', false)
-                ->avg('rating');
-
-            $kamar->rating_kamar = $averageRating ? round($averageRating, 1) : 0;
-            $kamar->save();
-        }
-
         return response()->json([
             'message' => 'Data Kamar berhasil diambil',
             'data' => $kamars,
