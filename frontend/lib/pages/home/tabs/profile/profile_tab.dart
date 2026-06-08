@@ -304,208 +304,205 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     final String defaultHamster = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=400&q=80';
     final String imagePath = photoProfile.isNotEmpty ? photoProfile : defaultHamster;
 
-    return ClipPath(
-      clipper: ProfileHeaderClipper(),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(24, 60, 24, 48), // Padding bottom is slightly larger for the curve
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0F3A3B), // Premium dark teal colors
-              Color(0xFF09292A),
-            ],
-          ),
-        ),
-        child: Row(
-          children: [
-            // Circular Profile Photo with floating edit button (now navigates to EditProfilePage)
-            GestureDetector(
-              onTap: () {
-                if (!isGuest && rawProfileData != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditProfilePage(
-                        profileData: rawProfileData,
-                        token: widget.token!,
-                      ),
-                    ),
-                  );
-                }
-              },
-              child: Stack(
-                children: [
-                  Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(48),
-                      child: (isGuest || photoProfile.isEmpty)
-                          ? Container(
-                              color: AppTheme.buttonLightTeal,
-                              child: const Icon(
-                                Icons.person_rounded,
-                                color: AppTheme.primary,
-                                size: 54,
-                              ),
-                            )
-                          : SmartImage(
-                              path: imagePath,
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                  ),
-                  if (!isGuest)
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0C3D3E),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.edit_outlined,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 20),
-            // User Profile Details or Guest Greeting
-            Expanded(
-              child: isGuest
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Discover Your Dream\nHoliday Experience',
-                          style: AppTheme.titleStyle.copyWith(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            height: 1.25,
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 36,
-                          child: ElevatedButton(
-                            onPressed: widget.onLoginTap,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: AppTheme.deepTeal,
-                              elevation: 2,
-                              shadowColor: Colors.black26,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 0,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Text(
-                              'Log in / Sign up',
-                              style: AppTheme.bodyStyle.copyWith(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Name matching mockup exactly (no edit pencil)
-                        Text(
-                          name.isNotEmpty ? name : 'Guest User',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTheme.titleStyle.copyWith(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        // Email
-                        Text(
-                          email.isNotEmpty ? email : 'No email added',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTheme.bodyStyle.copyWith(
-                            color: Colors.white.withOpacity(0.75),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Orders count badge (Matches mockup)
-                        Container(
-                          width: 76,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '100',
-                                style: TextStyle(
-                                  color: Color(0xFF0C3D3E),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.1,
-                                ),
-                              ),
-                              Text(
-                                'ORDERS',
-                                style: TextStyle(
-                                  color: AppTheme.textGrey,
-                                  fontSize: 7,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-            ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 60, 24, 24), // Reduced bottom padding since bottom is straight
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF0F3A3B), // Premium dark teal colors
+            Color(0xFF09292A),
           ],
         ),
+      ),
+      child: Row(
+        children: [
+          // Circular Profile Photo with floating edit button (now navigates to EditProfilePage)
+          GestureDetector(
+            onTap: () {
+              if (!isGuest && rawProfileData != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfilePage(
+                      profileData: rawProfileData,
+                      token: widget.token!,
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Stack(
+              children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 3.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(48),
+                    child: (isGuest || photoProfile.isEmpty)
+                        ? Container(
+                            color: AppTheme.buttonLightTeal,
+                            child: const Icon(
+                              Icons.person_rounded,
+                              color: AppTheme.primary,
+                              size: 54,
+                              ),
+                            )
+                        : SmartImage(
+                            path: imagePath,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                ),
+                if (!isGuest)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0C3D3E),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.edit_outlined,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 20),
+          // User Profile Details or Guest Greeting
+          Expanded(
+            child: isGuest
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Discover Your Dream\nHoliday Experience',
+                        style: AppTheme.titleStyle.copyWith(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          height: 1.25,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 36,
+                        child: ElevatedButton(
+                          onPressed: widget.onLoginTap,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: AppTheme.deepTeal,
+                            elevation: 2,
+                            shadowColor: Colors.black26,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Log in / Sign up',
+                            style: AppTheme.bodyStyle.copyWith(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Name matching mockup exactly (no edit pencil)
+                      Text(
+                        name.isNotEmpty ? name : 'Guest User',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTheme.titleStyle.copyWith(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      // Email
+                      Text(
+                        email.isNotEmpty ? email : 'No email added',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTheme.bodyStyle.copyWith(
+                          color: Colors.white.withOpacity(0.75),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Orders count badge (Matches mockup)
+                      Container(
+                        width: 76,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              '100',
+                              style: TextStyle(
+                                color: Color(0xFF0C3D3E),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                height: 1.1,
+                              ),
+                            ),
+                            Text(
+                              'ORDERS',
+                              style: TextStyle(
+                                color: AppTheme.textGrey,
+                                fontSize: 7,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -554,39 +551,5 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
 
 }
 
-// Custom Clipper that draws the wavy curve at the bottom of the profile banner
-class ProfileHeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 30);
-    
-    // Wave curve that curves down slightly on the left under the avatar,
-    // goes up, and curves slightly down on the right.
-    final firstControlPoint = Offset(size.width * 0.22, size.height + 12);
-    final firstEndPoint = Offset(size.width * 0.5, size.height - 25);
-    path.quadraticBezierTo(
-      firstControlPoint.dx,
-      firstControlPoint.dy,
-      firstEndPoint.dx,
-      firstEndPoint.dy,
-    );
-    
-    final secondControlPoint = Offset(size.width * 0.78, size.height - 55);
-    final secondEndPoint = Offset(size.width, size.height - 25);
-    path.quadraticBezierTo(
-      secondControlPoint.dx,
-      secondControlPoint.dy,
-      secondEndPoint.dx,
-      secondEndPoint.dy,
-    );
-    
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
 
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
-}
 
