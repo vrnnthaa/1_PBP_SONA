@@ -18,7 +18,7 @@ class SplashScreen extends StatelessWidget {
       ),
       duration: 6000,
       nextScreen: const HomePage(),
-      splashIconSize: 1000,
+      splashIconSize: 1200,
       backgroundColor: AppTheme.primary,
     );
   }
