@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:sona/firebase_options.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sona/pages/animation/splash_screen.dart';
+import 'package:sona/pages/onboarding/onboarding_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
         fontFamily: AppTheme.fontPrimary,
       ),
       home: const SplashScreen(
-        nextscreen: const HomePage(),
+        nextscreen: const OnboardingPage(),
       ),
     );
   }
