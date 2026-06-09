@@ -6,6 +6,7 @@ import 'package:sona/api/kamar/api_kamar.dart';
 import 'package:sona/entity/kamar/kamar_availability.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/kamar/kamar_card.dart';
+import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/search/date_range_popup.dart';
 import 'package:sona/pages/kamar/kamar_detail.dart';
 
@@ -453,9 +454,7 @@ class _KamarPageState extends State<KamarPage> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF0B9AA4),
-                      ),
+                      child: LoadingAnimation(),
                     )
                   : _rooms.isEmpty
                   ? _buildEmptyState()

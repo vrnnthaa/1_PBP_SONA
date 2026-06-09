@@ -109,9 +109,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
       return const Scaffold(
         backgroundColor: AppTheme.background,
         body: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-          ),
+          child: LoadingAnimation(),
         ),
       );
     }

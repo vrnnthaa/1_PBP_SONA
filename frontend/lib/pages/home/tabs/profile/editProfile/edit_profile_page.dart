@@ -9,6 +9,7 @@ import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/widgets/input_box.dart';
+import 'package:sona/widgets/loading_animation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sona/widgets/confirmation_pop_up.dart';
 
@@ -363,9 +364,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-              ),
+              child: LoadingAnimation(),
             )
           : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),

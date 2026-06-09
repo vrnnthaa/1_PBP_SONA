@@ -5,6 +5,7 @@ import 'package:pinput/pinput.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/widgets/confirmation_pop_up.dart';
+import 'package:sona/widgets/loading_animation.dart';
 
 enum PinState {
   enterCurrent,
@@ -270,9 +271,7 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
         ),
         body: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-                ),
+                child: LoadingAnimation(),
               )
             : SafeArea(
                 child: SingleChildScrollView(

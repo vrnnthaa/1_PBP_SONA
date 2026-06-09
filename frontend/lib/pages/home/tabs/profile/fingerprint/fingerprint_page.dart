@@ -7,6 +7,7 @@ import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sona/widgets/loading_animation.dart';
 
 class FingerprintPage extends ConsumerStatefulWidget {
   final String token;
@@ -191,9 +192,7 @@ class _FingerprintPageState extends ConsumerState<FingerprintPage> with SingleTi
       loading: () => const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-          ),
+          child: LoadingAnimation(),
         ),
       ),
       error: (err, stack) => Scaffold(
@@ -237,9 +236,7 @@ class _FingerprintPageState extends ConsumerState<FingerprintPage> with SingleTi
           ),
           body: _isLoading
               ? const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-                  ),
+                  child: LoadingAnimation(),
                 )
               : Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),

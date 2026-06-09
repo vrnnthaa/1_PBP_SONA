@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/entity/hotel/hotel.dart';
+import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/saved/saved_hotel_card.dart';
 import 'package:sona/pages/hotels/hotel_detail.dart';
 import 'package:sona/providers/app_providers.dart';
@@ -111,9 +112,7 @@ class _SaveTabState extends ConsumerState<SaveTab> {
       return const Scaffold(
         backgroundColor: AppTheme.background,
         body: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-          ),
+          child: LoadingAnimation(),
         ),
       );
     }

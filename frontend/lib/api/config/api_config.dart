@@ -1,6 +1,6 @@
 class ApiConfig {
   static const String baseUrl =
-      'https://mandate-avenge-keenly.ngrok-free.dev/api';
+      'https://cesspool-backlog-repossess.ngrok-free.dev/api';
 
   static Map<String, String> getHeaders({String? token}) {
     Map<String, String> headers = {

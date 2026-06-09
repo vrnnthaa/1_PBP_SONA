@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/config/api_config.dart';
+import 'package:sona/widgets/loading_animation.dart';
 
 class SmartImage extends StatelessWidget {
   final String path;
@@ -34,10 +35,7 @@ class SmartImage extends StatelessWidget {
             child: SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.0,
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentTeal),
-              ),
+              child: LoadingAnimation(),
             ),
           );
         },
