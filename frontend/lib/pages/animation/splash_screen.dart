@@ -15,6 +15,7 @@ class SplashScreen extends StatelessWidget {
         "assets/Lottie/Splash_Sona.json",
         width: 250,
         height: 250,
+        repeat: false,
       ),
       duration: 6000,
       nextScreen: nextscreen,

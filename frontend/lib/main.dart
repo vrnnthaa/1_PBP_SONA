@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/providers/app_providers.dart';
@@ -25,6 +26,12 @@ void main() async {
   // Pre-initialize SharedPreferences synchronously for Riverpod
   final prefs = await SharedPreferences.getInstance();
 
+  await Future.wait([
+    AssetLottie('assets/Lottie/Splash_Sona.json').load(),
+    AssetLottie('assets/Lottie/Loading.json').load(),
+    AssetLottie('assets/Lottie/Onboarding_Splash.json').load(),
+  ]);
+
   runApp(
     ProviderScope(
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
@@ -46,7 +53,7 @@ class MyApp extends StatelessWidget {
         fontFamily: AppTheme.fontPrimary,
       ),
       home: const SplashScreen(
-        nextscreen: const OnboardingPage(),
+        nextscreen: OnboardingPage(),
       ),
     );
   }
