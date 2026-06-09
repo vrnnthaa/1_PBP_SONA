@@ -37,7 +37,6 @@ class OnboardingButton extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 8),
         ],
       ),
     );
