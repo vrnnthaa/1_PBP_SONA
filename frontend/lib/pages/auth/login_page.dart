@@ -7,10 +7,7 @@ import 'package:sona/api/auth/api_auth.dart';
 import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/pages/auth/set_pin_page.dart';
 import 'package:sona/providers/app_providers.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:sona/api/auth/sign_in_with_google.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});

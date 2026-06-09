@@ -6,9 +6,8 @@ import 'package:sona/providers/app_providers.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sona/firebase_options.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sona/pages/animation/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +44,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF004D52)),
         fontFamily: AppTheme.fontPrimary,
       ),
-      home: const HomePage(),
+      home: const SplashScreen(),
     );
   }
 }
