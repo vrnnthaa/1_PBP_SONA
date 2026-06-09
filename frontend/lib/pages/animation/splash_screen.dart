@@ -6,7 +6,8 @@ import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/utils/app_theme.dart';
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+  final Widget nextscreen;
+  const SplashScreen({super.key, required this.nextscreen});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class SplashScreen extends StatelessWidget {
         height: 250,
       ),
       duration: 6000,
-      nextScreen: const HomePage(),
+      nextScreen: nextscreen,
       splashIconSize: 1200,
       backgroundColor: AppTheme.primary,
     );

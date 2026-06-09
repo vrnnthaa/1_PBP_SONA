@@ -44,7 +44,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF004D52)),
         fontFamily: AppTheme.fontPrimary,
       ),
-      home: const SplashScreen(),
+      home: const SplashScreen(
+        nextscreen: const HomePage(),
+      ),
     );
   }
 }
