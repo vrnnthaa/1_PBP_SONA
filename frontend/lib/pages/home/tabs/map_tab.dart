@@ -8,6 +8,7 @@ import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/pages/auth/login_page.dart';
 import 'package:sona/providers/app_providers.dart';
+import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/map_search_bar.dart';
 import 'package:sona/pages/hotels/hotel_detail.dart';
 
@@ -415,11 +416,7 @@ class _MapTabState extends ConsumerState<MapTab> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: hotelsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.deepTeal),
-          ),
-        ),
+        loading: () => const LoadingAnimation(),
         error: (err, stack) => Center(
           child: Text('Error loading maps: $err'),
         ),
