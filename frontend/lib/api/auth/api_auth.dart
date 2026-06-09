@@ -40,7 +40,7 @@ class ApiAuth {
   }
 
   // 2. Fungsi Register
-  Future<Map<String, dynamic>> register(String nama, String email, String tanggal_lahir, String telpNo, String password) async {
+  Future<Map<String, dynamic>> register(String nama, String email, String tanggalLahir, String telpNo, String password) async {
     try {
       final response = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/register'),
@@ -48,14 +48,11 @@ class ApiAuth {
         body: jsonEncode({
           'nama': nama,
           'email': email,
-          'tanggal_lahir': tanggal_lahir,
+          'tanggal_lahir': tanggalLahir,
           'telp_no': telpNo,
           'password': password,
         }),
       );
-
-      print("STATUS: ${response.statusCode}");
-      print("BODY: ${response.body}");
 
       return jsonDecode(response.body);
     } catch (e) {
@@ -76,7 +73,7 @@ class ApiAuth {
 
       return response.statusCode == 200;
     } catch (e) {
-      return false;
+      throw Exception('Gagal setpin: $e');
     }
   }
 
@@ -91,15 +88,11 @@ class ApiAuth {
         }),
       );
 
-      print("GOOGLE AUTH STATUS: ${response.statusCode}");
-      print("GOOGLE AUTH BODY: ${response.body}");
-
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
     } catch(e) {
-      print('Google login error: $e');
-      return null;
+      throw Exception('Gagal masuk google: $e');
     }
   }
 
@@ -113,7 +106,7 @@ class ApiAuth {
 
       return response.statusCode == 200;
     } catch (e) {
-      return false;
+      throw Exception('Gagal logout: $e');
     }
   }
 }

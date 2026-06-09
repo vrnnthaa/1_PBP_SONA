@@ -8,6 +8,7 @@ import 'package:sona/pages/home/tabs/profile/changePassword/change_password_page
 import 'package:sona/pages/home/tabs/profile/about/about_page.dart';
 import 'package:sona/pages/home/tabs/profile/fingerprint/fingerprint_page.dart';
 import 'package:sona/pages/home/tabs/profile/pin/change_pin_page.dart';
+import 'package:sona/widgets/loading_animation.dart';
 
 class ProfileTab extends ConsumerStatefulWidget {
   final String? token;
@@ -108,9 +109,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
       return const Scaffold(
         backgroundColor: AppTheme.background,
         body: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-          ),
+          child: LoadingAnimation(),
         ),
       );
     }
@@ -120,11 +119,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
       body: isGuest
           ? _buildGuestView()
           : profileAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-                ),
-              ),
+              loading: () => const LoadingAnimation(),
               error: (err, stack) => Center(
                 child: Text('Error loading profile: $err'),
               ),

@@ -4,6 +4,7 @@ import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/widgets/input_box.dart';
 import 'package:sona/widgets/confirmation_pop_up.dart';
+import 'package:sona/widgets/loading_animation.dart';
 
 class ChangePasswordPage extends ConsumerStatefulWidget {
   final String token;
@@ -151,9 +152,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-              ),
+              child: LoadingAnimation()
             )
           : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),

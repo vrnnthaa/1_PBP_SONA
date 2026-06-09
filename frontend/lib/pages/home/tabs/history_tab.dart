@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/providers/app_providers.dart';
+import 'package:sona/widgets/loading_animation.dart';
 
 class HistoryTab extends ConsumerWidget {
   final String? token;
@@ -45,11 +46,7 @@ class HistoryTab extends ConsumerWidget {
       body: isGuest
           ? _buildGuestEmptyState()
           : bookingsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-                ),
-              ),
+              loading: () => const LoadingAnimation(),
               error: (err, stack) => Center(
                 child: Text('Error loading booking history: $err'),
               ),

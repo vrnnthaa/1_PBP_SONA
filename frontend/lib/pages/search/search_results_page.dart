@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/api/hotel/api_hotel.dart';
+import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/search/vertical_hotel_card.dart';
 import 'package:sona/pages/hotels/hotel_detail.dart';
 
@@ -268,9 +269,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             Expanded(
               child: isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF0B9AA4),
-                      ),
+                      child: LoadingAnimation(),
                     )
                   : hotels.isEmpty
                   ? Center(

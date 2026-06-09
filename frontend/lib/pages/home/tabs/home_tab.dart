@@ -15,6 +15,7 @@ import 'package:sona/pages/hotels/hotel_detail.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/pages/search/search_results_page.dart';
 import 'package:sona/widgets/search/date_range_popup.dart';
+import 'package:sona/widgets/loading_animation.dart';
 
 class HomeTab extends ConsumerStatefulWidget {
   final String? token;
@@ -162,11 +163,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: hotelsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-          ),
-        ),
+        loading: () => const LoadingAnimation(),
         error: (err, stack) =>
             Center(child: Text('Error loading hotels: $err')),
         data: (hotelsList) {
