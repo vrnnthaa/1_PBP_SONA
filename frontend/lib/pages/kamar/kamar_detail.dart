@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:sona/entity/kamar/kamar_availability.dart';
 import 'package:sona/utils/app_theme.dart';
+import 'package:sona/pages/pemesanan/pemesanan_page.dart';
 
 class RoomDetailPage extends StatefulWidget {
   final KamarAvailability room;
+  final DateTimeRange selectedDateRange;
 
-  const RoomDetailPage({super.key, required this.room});
+  const RoomDetailPage({
+    super.key, 
+    required this.room,
+    required this.selectedDateRange,
+    }); //Izin juga ini, verr
 
   @override
   State<RoomDetailPage> createState() => _RoomDetailPageState();
@@ -17,7 +22,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
   final PageController _pageController = PageController();
   int _currentImage = 0;
 
-  String _formatPrice(int price) {
+  String _formatPrice(double price) {
     final formatted = price.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',
@@ -43,6 +48,33 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
       return 'Comfortable room with complete facilities for your stay.';
     }
     return desc;
+  }
+
+  void navigateToBooking(KamarAvailability room) {
+    
+    final jumlahMalam = widget.selectedDateRange.end.difference(widget.selectedDateRange.start).inDays;
+    final totalHarga = room.harga * jumlahMalam;
+    
+    final listGambar = _getImages();
+    final gambarPertama = listGambar.isNotEmpty ? listGambar.first : null;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PemesananPage(
+          idKamar: room.idKamar,
+          namaKamar: room.namaKamar,
+          hargaTotal: totalHarga,
+          idUser: 1, // Ganti dengan ID pengguna yang sesuai
+          selectedDateRange: DateTimeRange(
+            start: widget.selectedDateRange.start,
+            end: widget.selectedDateRange.end,
+          ),
+          jumlahPengunjung: room.kapasitas,
+          imageUrl: gambarPertama,
+        ),
+      ),
+    );
   }
 
   @override
@@ -112,7 +144,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
               SizedBox(
                 height: 44,
                 child: ElevatedButton(
-                  onPressed: widget.room.statusAvailable ? () {} : null,
+                  onPressed: widget.room.statusAvailable ? () => navigateToBooking(widget.room) : null,
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     backgroundColor: const Color(0xFFDDE8E6),
@@ -649,6 +681,6 @@ class _ReviewCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    );  
   }
 }

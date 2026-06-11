@@ -4,42 +4,44 @@ import 'package:intl/intl.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
 import 'package:sona/api/pemesanan/api_pemesanan.dart';
 import 'package:sona/pages/pembayaran/ringkasan_pembayaran_page.dart';
 
-// MODEL ADDON (tidak berubah)
 class AddonItem {
-  final String name;
-  final String price;
-  final bool isSelected;
+  final String nama;
+  final double harga;
+  final String hargaDisplay;
+  final String keterangan;
+  final bool isPerNight; 
 
   const AddonItem({
-    required this.name,
-    required this.price,
-    this.isSelected = false,
+    required this.nama,
+    required this.hargaDisplay,
+    required this.harga,
+    required this.keterangan,
+    this.isPerNight = false,
   });
 }
 
 class PemesananPage extends StatefulWidget {
-  // ← Data yang diterima dari HotelRoomListPage
   final int idKamar;
   final int idUser;
   final String namaKamar;
-  final String namaHotel;
-  final double hargaPerMalam;
+  final double hargaTotal;
   final DateTimeRange selectedDateRange;
   final int jumlahPengunjung;
+  final String? imageUrl; 
+
 
   const PemesananPage({
     super.key,
     required this.idKamar,
     required this.idUser,
     required this.namaKamar,
-    required this.namaHotel,
-    required this.hargaPerMalam,
+    required this.hargaTotal,
     required this.selectedDateRange,
     required this.jumlahPengunjung,
+    this.imageUrl, 
   });
 
   @override
@@ -48,15 +50,31 @@ class PemesananPage extends StatefulWidget {
 
 class _PemesananPageState extends State<PemesananPage> {
   final ApiPemesanan _apiPemesanan = ApiPemesanan();
-
   late List<bool> _selectedAddons;
   bool _isLoading = false;
 
-  // Addon dummy — nanti bisa diganti fetch dari API per hotel
   final List<AddonItem> _addons = [
-    AddonItem(name: 'Breakfast Included', price: '+ Rp 75.000 / day'),
-    AddonItem(name: 'Massages', price: '+ Rp 125.000 / session'),
-    AddonItem(name: 'Late Check-out', price: '+ Rp 100.000'),
+    AddonItem(
+      nama: 'Breakfast Included', 
+      hargaDisplay: 'Rp 75.000 / day',
+      harga: 75000, 
+      keterangan: 'Breakfast included in your stay',
+      isPerNight: true,
+    ),
+    AddonItem(
+      nama: 'Massages',
+      hargaDisplay: '+ Rp 125.000 / session', 
+      harga: 125000, 
+      keterangan: 'Relaxing massage session',
+      isPerNight: false,
+    ),
+    AddonItem(
+      nama: 'Late Check-out', 
+      hargaDisplay: 'Rp 100.000', 
+      harga: 100000, 
+      keterangan: 'Extend your checkout time',
+      isPerNight: false,
+    ),
   ];
 
   @override
@@ -65,12 +83,28 @@ class _PemesananPageState extends State<PemesananPage> {
     _selectedAddons = List.filled(_addons.length, false);
   }
 
-  // Hitung jumlah malam
-  int get _jumlahMalam =>
-      widget.selectedDateRange.end.difference(widget.selectedDateRange.start).inDays;
+  // Hitung jumlah malam 
+  int get _jumlahMalam => widget.selectedDateRange.end.difference(widget.selectedDateRange.start).inDays;
 
   // Hitung total biaya (kamar saja, addon belum dihitung karena masih dummy)
-  double get _totalBiaya => widget.hargaPerMalam * _jumlahMalam;
+  double get _totalBiaya {
+    
+    double total = widget.hargaTotal;
+
+    if(_selectedAddons[0]){
+      total += (_addons[0].harga * _jumlahMalam);
+    }
+
+    if(_selectedAddons[1]){
+      total += _addons[1].harga;
+    }
+
+    if(_selectedAddons[2]){
+      total += _addons[2].harga;
+    }
+
+    return total;
+  }  // nanti ditambah harga addon jika ada
 
   // Format tanggal untuk ditampilkan
   String get _formattedDateRange {
@@ -85,11 +119,111 @@ class _PemesananPageState extends State<PemesananPage> {
   String get _checkOutStr =>
       DateFormat('yyyy-MM-dd').format(widget.selectedDateRange.end);
 
-  // Tombol "Continue to Summary" ditekan
-  Future<void> _onContinue() async {
+  // // aksi saat "Continue to Summary" ditekan
+  // Future<void> _navigateToSummaryPaymentPage() async {
+  //   setState(() => _isLoading = true);
+
+  //   try {
+  //     final pemesanan = await _apiPemesanan.storePemesanan(
+  //       idUser: widget.idUser,
+  //       idKamar: widget.idKamar,
+  //       checkIn: _checkInStr,
+  //       checkOut: _checkOutStr,
+  //       jumlahPengunjung: widget.jumlahPengunjung,
+  //       totalBiaya: _totalBiaya,
+  //     );
+
+  //     final int idPemesananBaru = pemesanan.idPemesanan;
+
+  //     if(_selectedAddons[0]) {
+  //       double hargaFinal = _addons[0].harga * _jumlahMalam;
+
+  //       await _apiAddOn.storeAddOn(
+  //         idPemesananBaru, 
+  //         _addons[0].nama, 
+  //         hargaFinal, 
+  //         _addons[0].keterangan
+  //       );
+  //     }
+
+  //     if(_selectedAddons[1]) {
+  //       await _apiAddOn.storeAddOn(
+  //         idPemesananBaru, 
+  //         _addons[1].nama, 
+  //         _addons[1].harga, 
+  //         _addons[1].keterangan
+  //       );
+  //     }
+
+  //     if(_selectedAddons[2]) {
+  //       await _apiAddOn.storeAddOn(
+  //         idPemesananBaru, 
+  //         _addons[2].nama, 
+  //         _addons[2].harga, 
+  //         _addons[2].keterangan
+  //       );
+  //     }
+
+  //     if (!mounted) return;
+
+  //     // Navigasi ke halaman summary, kirim hasil pemesanan
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: (_) => RingkasanPembayaranPage(
+  //           idPemesanan: idPemesananBaru,
+  //           totalBiaya: _totalBiaya,
+  //           namaKamar: widget.namaKamar,
+  //           checkIn: _checkInStr,
+  //           checkOut: _checkOutStr,
+  //           jumlahPengunjung: widget.jumlahPengunjung,
+  //           imageUrl: widget.imageUrl,
+  //         ),
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     if (!mounted) return;
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text(e.toString())),
+  //     );
+  //   } finally {
+  //     if (mounted) setState(() => _isLoading = false);
+  //   }
+  // }
+
+    //Versi 2
+    // aksi saat "Continue to Summary" ditekan
+  Future<void> _navigateToSummaryPaymentPage() async {
     setState(() => _isLoading = true);
 
     try {
+      
+      List<Map<String, dynamic>> addonData = [];
+
+      if(_selectedAddons[0]) {
+        addonData.add({
+          'nama': _addons[0].nama,
+          'harga': _addons[0].harga * _jumlahMalam, 
+          'keterangan': _addons[0].keterangan,
+        });
+      }
+
+      if(_selectedAddons[1]) {
+        addonData.add({
+          'nama': _addons[1].nama,
+          'harga': _addons[1].harga, 
+          'keterangan': _addons[1].keterangan,
+        });
+      }
+
+      if(_selectedAddons[2]) {
+        addonData.add({
+          'nama': _addons[2].nama,
+          'harga': _addons[2].harga, 
+          'keterangan': _addons[2].keterangan,
+        });
+      }
+
       final pemesanan = await _apiPemesanan.storePemesanan(
         idUser: widget.idUser,
         idKamar: widget.idKamar,
@@ -97,15 +231,23 @@ class _PemesananPageState extends State<PemesananPage> {
         checkOut: _checkOutStr,
         jumlahPengunjung: widget.jumlahPengunjung,
         totalBiaya: _totalBiaya,
+        addons: addonData, 
       );
 
       if (!mounted) return;
 
-      // Navigasi ke halaman summary, kirim hasil pemesanan
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => RingkasanPembayaranPage(pemesanan: pemesanan), // dibuat di bawah
+          builder: (_) => RingkasanPembayaranPage(
+            idPemesanan: pemesanan.idPemesanan, 
+            totalBiaya: _totalBiaya,
+            namaKamar: widget.namaKamar,
+            checkIn: _checkInStr,
+            checkOut: _checkOutStr,
+            jumlahPengunjung: widget.jumlahPengunjung,
+            imageUrl: widget.imageUrl,
+          ),
         ),
       );
     } catch (e) {
@@ -118,10 +260,11 @@ class _PemesananPageState extends State<PemesananPage> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.background,
       body: Column(
         children: [
           _buildHeader(context),
@@ -133,10 +276,10 @@ class _PemesananPageState extends State<PemesananPage> {
                 children: [
                   Text(
                     'Selected Room',
-                    style: GoogleFonts.montserrat(
+                    style: AppTheme.titleStyle.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF003A3F),
+                      color: AppTheme.primary,
                     ),
                   ),
                   const SizedBox(height: 11),
@@ -144,10 +287,10 @@ class _PemesananPageState extends State<PemesananPage> {
                   const SizedBox(height: 24),
                   Text(
                     'Add-ons',
-                    style: GoogleFonts.montserrat(
+                    style: AppTheme.titleStyle.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF003A3F),
+                      color: AppTheme.primary,
                     ),
                   ),
                   const SizedBox(height: 11),
@@ -156,7 +299,7 @@ class _PemesananPageState extends State<PemesananPage> {
               ),
             ),
           ),
-          _buildBottomSummary(),          // ← total harga real
+          _buildBottomSummary(),
         ],
       ),
     );
@@ -199,6 +342,17 @@ class _PemesananPageState extends State<PemesananPage> {
     );
   }
 
+  Widget _buildFallbackImage() {
+    return Container(
+      height: 178,
+      width: double.infinity,
+      color: const Color(0xFFE7E7E7),
+      child: const Center(
+        child: Icon(Icons.image_outlined, size: 34, color: Color(0xFF888888)),
+      ),
+    );
+  }
+
   Widget _buildRoomCard() {
     return Container(
       decoration: BoxDecoration(
@@ -218,12 +372,15 @@ class _PemesananPageState extends State<PemesananPage> {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.network(
-              'https://placehold.co/320x178', //ini nanti jangan lupa minta gambar kamar sama verrent
-              height: 178,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            child: widget.imageUrl != null && widget.imageUrl!.isNotEmpty
+                ? Image.network(
+                    widget.imageUrl!,
+                    height: 178,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildFallbackImage(),
+                  )
+                :  _buildFallbackImage(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -235,21 +392,21 @@ class _PemesananPageState extends State<PemesananPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${widget.namaHotel}, ${widget.namaKamar}',
-                        style:  GoogleFonts.montserrat(
+                      Text('${widget.namaKamar}',
+                        style:  AppTheme.titleStyle.copyWith(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF003A3F),
+                          color: AppTheme.primary,
                           height: 1.3,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text('Date: $_formattedDateRange',
-                        style:  GoogleFonts.montserrat(
+                        style:  AppTheme.titleStyle.copyWith(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF003A3F),
-                        ),
+                          color: AppTheme.primary,
+                        ),      
                       ),
                     ],
                   ),
@@ -262,16 +419,16 @@ class _PemesananPageState extends State<PemesananPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Rp ${_formatHarga(widget.hargaPerMalam)}',
-                      style:  GoogleFonts.montserrat(
+                      'Rp ${_formatHarga(widget.hargaTotal)}', 
+                      style:  AppTheme.titleStyle.copyWith(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: AppTheme.primary,
                       ),
                     ),
                     Text(
-                      '/Night',
-                      style:  GoogleFonts.montserrat(
+                      '/Total',
+                      style:  AppTheme.titleStyle.copyWith(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: AppTheme.primary,
@@ -349,19 +506,19 @@ class _PemesananPageState extends State<PemesananPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      addon.name,
-                      style: GoogleFonts.montserrat(
+                      addon.nama,
+                      style: AppTheme.titleStyle.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF003A3F),
+                        color: AppTheme.primary,
                       ),
                     ),
                     Text(
-                      addon.price,
-                      style: GoogleFonts.montserrat(
+                      addon.hargaDisplay,
+                      style: AppTheme.titleStyle.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF003A3F),
+                        color: AppTheme.primary,
                       ),
                     ),
                   ],
@@ -391,31 +548,30 @@ class _PemesananPageState extends State<PemesananPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ← Jumlah malam dihitung otomatis
                   Text(
-                    'Total for $_jumlahMalam nights',
-                    style: GoogleFonts.montserrat(
+                    'Total for $_jumlahMalam night(s)',
+                    style: AppTheme.titleStyle.copyWith(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF003A3F),
+                      color: AppTheme.primary,
                     ),
                   ),
                   // ← Total biaya dihitung otomatis
                   Text('Rp ${_formatHarga(_totalBiaya)}',
-                    style: GoogleFonts.montserrat(
+                    style: AppTheme.titleStyle.copyWith(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF003A3F),
+                      color: AppTheme.primary,
                     ),
                   ),
                 ],
               ),
               Text(
                 '+Include taxes',
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
+                style: AppTheme.titleStyle.copyWith(
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF003A3F),
+                  color: AppTheme.primary.withOpacity(0.7),
                 ),
               ),
             ],
@@ -427,13 +583,13 @@ class _PemesananPageState extends State<PemesananPage> {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF003A3F), Color(0xFF0097A5)],
+                  colors: [AppTheme.primary, AppTheme.tealDark],
                 ),
                 borderRadius: BorderRadius.circular(11),
               ),
               child: TextButton(
                 // ← Panggil _onContinue, disable saat loading
-                onPressed: _isLoading ? null : _onContinue,
+                onPressed: _isLoading ? null : _navigateToSummaryPaymentPage,
                 child: _isLoading
                     ? const SizedBox(
                         width: 20,
@@ -445,7 +601,12 @@ class _PemesananPageState extends State<PemesananPage> {
                       )
                     : Text(
                       'Continue to Summary',
-                        style: GoogleFonts.montserrat(color: Colors.white)),
+                        style: AppTheme.titleStyle.copyWith(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          ),
+                        ),
               ),
             ),
           ),

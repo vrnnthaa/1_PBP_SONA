@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pemesanan;
+use App\Models\AddOn;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
-class PemesananController
+class PemesananController extends Controller
 {
     public function index()
     {
@@ -64,14 +66,50 @@ class PemesananController
             ], 422);
         }
 
-        $validated['status_pemesanan'] = Pemesanan::STATUS_AKTIF;
+        DB::beginTransaction();
 
-        $pemesanan = Pemesanan::create($validated);
+        try {
+            $pemesananData = [
+                'id_user' => $validated['id_user'],
+                'id_kamar' => $validated['id_kamar'],
+                'check_in' => $validated['check_in'],
+                'check_out' => $validated['check_out'],
+                'jumlah_pengunjung' => $validated['jumlah_pengunjung'],
+                'total_biaya' => $validated['total_biaya'],
+                'status_pemesanan' => Pemesanan::STATUS_AKTIF,
+            ];
+    
+            $pemesanan = Pemesanan::create($pemesananData);
 
-        return response()->json([
-            'message' => 'Pemesanan berhasil dibuat',
-            'data' => $pemesanan->load(['user', 'kamar', 'pembayaran', 'review']),
-        ], 201);
+            if (!empty($validated['addons'])) {
+                foreach ($validated['addons'] as $addon) {
+                    $addonData = [
+                        'id_pemesanan' => $pemesanan->id_pemesanan,
+                        'nama_addon' => $addon['nama'],
+                        'harga_addon' => $addon['harga'],
+                        'keterangan_addon' => $addon['keterangan'],
+                    ];
+                    AddOn::create($addonData);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Pemesanan berhasil dibuat',
+                'data' => $pemesanan->load(['user', 'kamar', 'pembayaran', 'review']),
+            ], 201);
+            
+        }catch (\Exception $e) {
+            
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat membuat pemesanan',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
     }
 
     public function update(Request $request, $id)

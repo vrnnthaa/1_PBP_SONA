@@ -94,6 +94,8 @@ class ApiPemesanan {
     required String checkOut,
     required int jumlahPengunjung,
     required double totalBiaya,
+    List<Map<String, dynamic>>? addons,
+
   }) async {
     try {
       final response = await post(
@@ -106,6 +108,7 @@ class ApiPemesanan {
           'check_out': checkOut,
           'jumlah_pengunjung': jumlahPengunjung,
           'total_biaya': totalBiaya,
+          'addons': addons,
         }),
       );
 
@@ -132,6 +135,8 @@ class ApiPemesanan {
     int? jumlahPengunjung,
     double? totalBiaya,
     String? statusPemesanan,
+    List<Map<String, dynamic>>? addons,
+
   }) async {
     try {
       final Map<String, dynamic> body = {
@@ -142,6 +147,7 @@ class ApiPemesanan {
         if (jumlahPengunjung != null) 'jumlah_pengunjung': jumlahPengunjung,
         if (totalBiaya != null) 'total_biaya': totalBiaya,
         if (statusPemesanan != null) 'status_pemesanan': statusPemesanan,
+        if (addons != null) 'addons': addons,
       };
 
       final response = await put(

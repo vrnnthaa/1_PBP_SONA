@@ -33,7 +33,7 @@ class Pemesanan extends Model
         'check_in' => 'date',
         'check_out' => 'date',
         'jumlah_pengunjung' => 'integer',
-        'total_biaya' => 'decimal:2',
+        'total_biaya' => 'float',
         'is_delete' => 'boolean',
     ];
 
@@ -80,6 +80,11 @@ class Pemesanan extends Model
     public function review()
     {
         return $this->hasOne(Review::class, 'id_pemesanan', 'id_pemesanan');
+    }
+
+    public function addons()
+    {
+        return $this->hasMany(AddOn::class, 'id_pemesanan', 'id_pemesanan');
     }
 
     public function scopeTidakAktif($query)

@@ -110,7 +110,7 @@ Route::delete('/pembayaran/{id}', [PembayaranController::class, 'destroy']);
 // ^-^
 // Add-On
 // T-T
-Route::get('/addon/kamar/{id_kamar}', [AddOnController::class, 'getByKamar']);
+Route::get('/addon/pemesanan/{id_pemesanan}', [AddOnController::class, 'getByPemesanan']);
 Route::get('/addon', [AddOnController::class, 'index']);
 Route::get('/addon/{id}', [AddOnController::class, 'show']);
 Route::post('/addon', [AddOnController::class, 'store']);

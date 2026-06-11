@@ -263,9 +263,14 @@ class _KamarPageState extends State<KamarPage> {
   void _onSelectRoom(KamarAvailability room) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => RoomDetailPage(room: room)),
+      MaterialPageRoute(builder: (_) => RoomDetailPage(
+        room: room, 
+        selectedDateRange: _selectedDateRange
+        ),
+      ),
     );
   }
+  //Izin verr
 
   Widget _buildHeader() {
     return Container(
