@@ -48,13 +48,13 @@ class User extends Authenticatable
     //     $this->attributes['pin'] = Hash::make($value);
     // }
 
-    // public function pemesanans() {
-    //     return $this->hasMany(Pemesanan::class, 'id_user', 'id_user');
-    // }
+    public function pemesanans() {
+        return $this->hasMany(Pemesanan::class, 'id_user', 'id_user');
+    }
 
-    // public function reviews() {
-    //     return $this->hasMany(Review::class, 'id_user', 'id_user');
-    // }
+    public function reviews() {
+        return $this->hasMany(Review::class, 'id_user', 'id_user');
+    }
 
     public function saveHotels() {
         return $this->hasMany(SaveHotel::class, 'id_user', 'id_user');

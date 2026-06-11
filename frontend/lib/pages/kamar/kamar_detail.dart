@@ -65,7 +65,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
           idKamar: room.idKamar,
           namaKamar: room.namaKamar,
           hargaTotal: totalHarga,
-          idUser: 1, // Ganti dengan ID pengguna yang sesuai
+          idUser: 1, // Jangan lupa diubah ya, ganteng
           selectedDateRange: DateTimeRange(
             start: widget.selectedDateRange.start,
             end: widget.selectedDateRange.end,
