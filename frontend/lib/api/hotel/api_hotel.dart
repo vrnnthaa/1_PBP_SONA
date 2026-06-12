@@ -45,14 +45,19 @@ class ApiHotel {
 
   Future<List<Hotel>> searchHotelsByLocation(String query) async {
     try {
-      final allHotels = await fetchHotels();
-      final keyword = query.toLowerCase().trim();
+      final response = await get(
+        Uri.parse('${ApiConfig.baseUrl}/hotels/search?q=$query'),
+        headers: ApiConfig.getHeaders(),
+      );
 
-      return allHotels.where((hotel) {
-        return hotel.nama.toLowerCase().contains(keyword) ||
-            hotel.kota.toLowerCase().contains(keyword) ||
-            hotel.alamat.toLowerCase().contains(keyword);
-      }).toList();
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        final List<dynamic> data = jsonResponse['data'] ?? [];
+
+        return data.map((json) => Hotel.fromJson(json)).toList();
+      } else {
+        throw Exception('Gagal mencari hotel');
+      }
     } catch (e) {
       throw Exception('Gagal mencari hotel: $e');
     }

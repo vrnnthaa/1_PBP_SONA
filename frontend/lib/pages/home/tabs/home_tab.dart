@@ -16,6 +16,7 @@ import 'package:sona/providers/app_providers.dart';
 import 'package:sona/pages/search/search_results_page.dart';
 import 'package:sona/widgets/search/date_range_popup.dart';
 import 'package:sona/widgets/loading_animation.dart';
+import 'package:sona/pages/hotels/recommended_hotels_page.dart';
 
 class HomeTab extends ConsumerStatefulWidget {
   final String? token;
@@ -50,6 +51,21 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       imagePath: 'assets/images/place_yogyakarta.jpg',
     ),
   ];
+
+  void _navigateToRecommendedPage(List<Hotel> recommendedHotels) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RecommendedHotelsPage(
+          hotels: recommendedHotels,
+          checkInDate: _selectedDateRange?.start,
+          checkOutDate: _selectedDateRange?.end,
+          guests: _selectedGuests,
+          title: 'Recommended Hotels',
+        ),
+      ),
+    );
+  }
 
   final TextEditingController _locationController = TextEditingController(
     text: 'Yogyakarta',
@@ -188,7 +204,12 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    _buildSectionHeader('Recommended Hotels', isGuest),
+                    _buildSectionHeader(
+                      'Recommended Hotels',
+                      isGuest,
+                      onViewAllTap: () =>
+                          _navigateToRecommendedPage(recommendedHotels),
+                    ),
                     const SizedBox(height: 12),
                     recommendedHotels.isEmpty
                         ? _buildEmptyIndicator('No recommended stays available')
@@ -221,7 +242,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                             ),
                           ),
                     const SizedBox(height: 24),
-                    _buildSectionHeader('Explore Place', isGuest),
+                    _buildSectionHeader(
+                      'Explore Place',
+                      isGuest,
+                      onViewAllTap: () {},
+                    ),
                     const SizedBox(height: 12),
                     SizedBox(
                       height: 95,
@@ -612,7 +637,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   }
 
   // --- Shared View Builders ---
-  Widget _buildSectionHeader(String title, bool isGuest) {
+  Widget _buildSectionHeader(
+    String title,
+    bool isGuest, {
+    required VoidCallback onViewAllTap,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -626,7 +655,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
           ),
         ),
         GestureDetector(
-          onTap: isGuest ? widget.onLoginTap : () {},
+          onTap: isGuest ? widget.onLoginTap : onViewAllTap,
           child: Text(
             'View All',
             style: AppTheme.bodyStyle.copyWith(

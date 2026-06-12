@@ -20,7 +20,16 @@ class Hotel extends Model
         'rating_hotel',
         'is_delete',
         'latitude',
-        'longitude'
+        'longitude',
+        'policies',
+    ];
+
+    protected $casts = [
+        'is_delete' => 'boolean',
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'rating_hotel' => 'float',
+        'policies' => 'array',
     ];
 
     public function kamar(): HasMany
@@ -35,10 +44,10 @@ class Hotel extends Model
 
     public function fasilitas(): BelongsToMany
     {
-        return $this->belongsToMany(Fasilitas::class, 'fasilitas_hotel','id_hotel','id_fasilitas');
+        return $this->belongsToMany(Fasilitas::class, 'fasilitas_hotel', 'id_hotel', 'id_fasilitas');
     }
 
-     public function reviews()
+    public function reviews(): HasMany
     {
         return $this->hasMany(Review::class, 'id_hotel', 'id_hotel')
             ->where('is_delete', false);

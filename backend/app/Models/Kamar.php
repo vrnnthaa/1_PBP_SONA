@@ -1,7 +1,8 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Kamar extends Model
 {
@@ -18,7 +19,21 @@ class Kamar extends Model
         'deskripsi',
         'rating_kamar',
         'kapasitas',
+        'ukuran_kamar',
+        'offer',
+        'occupancy',
         'is_delete',
+    ];
+
+    protected $casts = [
+        'harga' => 'integer',
+        'kapasitas' => 'integer',
+        'rating_kamar' => 'float',
+        'ukuran_kamar' => 'integer',
+        'status_kamar' => 'boolean',
+        'is_delete' => 'boolean',
+        'offer' => 'array',
+        'occupancy' => 'array',
     ];
 
     public function fasilitasKamar()
@@ -35,7 +50,9 @@ class Kamar extends Model
     {
         return $this->belongsTo(Hotel::class, 'id_hotel', 'id_hotel');
     }
-    public function pemesanan(){
+
+    public function pemesanan()
+    {
         return $this->hasMany(Pemesanan::class, 'id_kamar', 'id_kamar');
     }
 }
