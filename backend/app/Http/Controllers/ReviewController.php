@@ -82,6 +82,20 @@ class ReviewController
             'is_delete' => false
         ]);
 
+        // Recalculate average rating for hotel and rooms
+        $id_hotel = $review->id_hotel;
+        $averageRating = Review::where('id_hotel', $id_hotel)
+            ->where('is_delete', false)
+            ->avg('rating');
+        $rating = $averageRating ? round($averageRating, 1) : 0;
+
+        \App\Models\Hotel::where('id_hotel', $id_hotel)->update([
+            'rating_hotel' => $rating
+        ]);
+        \App\Models\Kamar::where('id_hotel', $id_hotel)->update([
+            'rating_kamar' => $rating
+        ]);
+
         return response()->json([
             'message' => 'Data Review berhasil disimpan',
             'data' => $review,
@@ -107,6 +121,20 @@ class ReviewController
         // Soft delete menggunakan field is_delete
         $review->update([
             'is_delete' => true
+        ]);
+
+        // Recalculate average rating for hotel and rooms
+        $id_hotel = $review->id_hotel;
+        $averageRating = Review::where('id_hotel', $id_hotel)
+            ->where('is_delete', false)
+            ->avg('rating');
+        $rating = $averageRating ? round($averageRating, 1) : 0;
+
+        \App\Models\Hotel::where('id_hotel', $id_hotel)->update([
+            'rating_hotel' => $rating
+        ]);
+        \App\Models\Kamar::where('id_hotel', $id_hotel)->update([
+            'rating_kamar' => $rating
         ]);
 
         return response()->json([

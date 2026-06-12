@@ -15,6 +15,7 @@ import 'package:sona/widgets/hotel/hotel_review_section.dart';
 import 'package:sona/widgets/hotel/section_divider.dart';
 import 'package:sona/widgets/home/bookmark_button.dart';
 import 'package:sona/widgets/home/smart_image.dart';
+import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/review/review_models.dart';
 import 'package:sona/pages/hotels/hotel_location_map_page.dart';
 import 'package:sona/pages/kamar/kamar_page.dart';
@@ -588,7 +589,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
           return const Center(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
-              child: CircularProgressIndicator(),
+              child: LoadingAnimation(),
             ),
           );
         }

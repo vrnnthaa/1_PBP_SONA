@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,6 +9,9 @@ import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/widgets/input_box.dart';
+import 'package:sona/widgets/loading_animation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sona/widgets/confirmation_pop_up.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   final Map<String, dynamic> profileData;
@@ -35,6 +39,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   String? _dobError;
 
   late String _photoProfile;
+  File? _selectedImageFile;
   bool _isLoading = false;
 
   @override
@@ -113,14 +118,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   Navigator.pop(context);
                   final pickedFile = await picker.pickImage(
                     source: ImageSource.gallery,
-                    imageQuality: 70, // Optimized compression for DB storage
+                    imageQuality: 80,
                     maxWidth: 600,
                     maxHeight: 600,
                   );
                   if (pickedFile != null) {
-                    final bytes = await pickedFile.readAsBytes();
                     setState(() {
-                      _photoProfile = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+                      _selectedImageFile = File(pickedFile.path);
+                      _photoProfile = pickedFile.path;
                     });
                   }
                 },
@@ -135,14 +140,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   Navigator.pop(context);
                   final pickedFile = await picker.pickImage(
                     source: ImageSource.camera,
-                    imageQuality: 70,
+                    imageQuality: 80,
                     maxWidth: 600,
                     maxHeight: 600,
                   );
                   if (pickedFile != null) {
-                    final bytes = await pickedFile.readAsBytes();
                     setState(() {
-                      _photoProfile = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+                      _selectedImageFile = File(pickedFile.path);
+                      _photoProfile = pickedFile.path;
                     });
                   }
                 },
@@ -246,18 +251,52 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       return;
     }
 
+    // Show custom confirmation pop-up dialog first
+    final bool? confirm = await CustomPopUp.showConfirmation(context: context);
+    if (confirm != true) {
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     final int idUser = widget.profileData['id_user'] ?? 1;
+    String finalPhotoUrl = _photoProfile;
+
+    if (_selectedImageFile != null) {
+      try {
+        final String namaFileUnik = 'avatar_${idUser}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        await Supabase.instance.client.storage
+            .from('photo_profile')
+            .upload(namaFileUnik, _selectedImageFile!);
+        
+        finalPhotoUrl = Supabase.instance.client.storage
+            .from('photo_profile')
+            .getPublicUrl(namaFileUnik);
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload image to Supabase: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
     final apiUser = ApiUser();
     final success = await apiUser.updateUserProfile(
       idUser,
       name,
       phone,
       widget.token,
-      photoProfile: _photoProfile,
+      photoProfile: finalPhotoUrl,
       email: email,
     );
 
@@ -268,13 +307,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully!'),
-            backgroundColor: AppTheme.deepTeal,
-          ),
+
+        // Show bouncy success alert pop-up (Profile-Success.svg)
+        await CustomPopUp.showSuccess(
+          context: context,
+          assetPath: 'assets/alert/Profile-Success.svg',
         );
-        Navigator.pop(context);
+
+        if (mounted) {
+          Navigator.pop(context);
+        }
       }
     } else {
       if (mounted) {
@@ -322,9 +364,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-              ),
+              child: LoadingAnimation(),
             )
           : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -351,10 +391,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(60),
-                          child: SmartImage(
-                            path: avatarUrl,
-                            fit: BoxFit.cover,
-                          ),
+                          child: _photoProfile.isEmpty
+                              ? Container(
+                                  color: AppTheme.buttonLightTeal,
+                                  child: const Icon(
+                                    Icons.person_rounded,
+                                    color: AppTheme.primary,
+                                    size: 68,
+                                  ),
+                                )
+                              : SmartImage(
+                                  path: _photoProfile,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                       ),
                       Positioned(

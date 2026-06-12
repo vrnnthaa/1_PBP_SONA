@@ -34,17 +34,13 @@ class GoogleAuthService {
 
         if (firebaseUser == null) return null;
 
-        final idToken = await firebaseUser.getIdToken();
-
         return await ApiAuth().googleLogin(
           email: firebaseUser.email ?? googleUser.email,
           nama: firebaseUser.displayName ?? googleUser.displayName ?? 'Google User',
         );
 
-      } catch (e, stack) {
-        print("Sign-in error: $e");
-        print(stack);
-        return null;
+      } catch (e) {
+        throw Exception('Gagal login dengan google: $e');
       }
     }
     

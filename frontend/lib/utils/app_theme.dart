@@ -90,6 +90,12 @@ class AppTheme {
     fontWeight: FontWeight.bold,
   );
 
+  static TextStyle titleStyle_white = GoogleFonts.montserrat(
+    color: textWhite,
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+  );
+
   // Gunakan GoogleFonts.roboto() untuk font kedua
   static TextStyle bodyStyle = GoogleFonts.roboto(
     color: const Color(0xFF242833),
@@ -102,5 +108,10 @@ class AppTheme {
     fontSize: 16,
     fontWeight: FontWeight.w600,
   );
-
+  
+  static TextStyle subtitleStyle_white = GoogleFonts.montserrat(
+    color: textWhite,
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+  );
 }

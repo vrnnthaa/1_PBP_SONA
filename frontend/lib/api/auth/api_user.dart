@@ -59,4 +59,70 @@ class ApiUser {
       return false;
     }
   }
-}
+
+  // 4. Register Fingerprint
+  Future<bool> registerFingerprint(String token, String? fingerprintString) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/user/change-fingerprint'),
+        headers: ApiConfig.getHeaders(token: token),
+        body: jsonEncode({
+          'sidik_jari': fingerprintString,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 5. Ubah PIN
+  Future<Map<String, dynamic>> changePin(String token, String pinLama, String pinBaru) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/user/change-pin'),
+        headers: ApiConfig.getHeaders(token: token),
+        body: jsonEncode({
+          'pin_lama': pinLama,
+          'pin_baru': pinBaru,
+        }),
+      );
+
+      final result = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': result['message'] ?? 'Gagal mengubah PIN',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Terjadi kesalahan: $e',
+      };
+    }
+  }
+
+  // 6. Verifikasi PIN
+  Future<Map<String, dynamic>> verifyPin(String token, String pin) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/user/verify-pin'),
+        headers: ApiConfig.getHeaders(token: token),
+        body: jsonEncode({
+          'pin': pin,
+        }),
+      );
+
+      final result = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': result['message'] ?? 'Verifikasi PIN gagal',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Terjadi kesalahan: $e',
+      };
+    }
+  }
+}

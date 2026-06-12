@@ -14,15 +14,6 @@ class HotelController
             ->where('is_delete', false)
             ->get();
 
-        foreach ($hotels as $hotel) {
-            $averageRating = Review::where('id_hotel', $hotel->id_hotel)
-                ->where('is_delete', false)
-                ->avg('rating');
-
-            $hotel->rating_hotel = $averageRating ? round($averageRating, 1) : 0;
-            $hotel->save();
-        }
-
         return response()->json([
             'message' => 'Data Hotel berhasil diambil',
             'data' => $hotels,
@@ -41,13 +32,6 @@ class HotelController
                 'message' => 'Data Hotel tidak ditemukan.',
             ], 404);
         }
-
-        $averageRating = Review::where('id_hotel', $hotel->id_hotel)
-            ->where('is_delete', false)
-            ->avg('rating');
-
-        $hotel->rating_hotel = $averageRating ? round($averageRating, 1) : 0;
-        $hotel->save();
 
         return response()->json([
             'message' => 'Data Hotel berhasil diambil',
@@ -130,7 +114,7 @@ class HotelController
         ], 200);
     }
 
-        public function search(Request $request)
+    public function search(Request $request)
     {
         $query = $request->query('q', '');
 
@@ -142,15 +126,6 @@ class HotelController
                   ->orWhere('alamat', 'like', "%{$query}%");
             })
             ->get();
-
-        foreach ($hotels as $hotel) {
-            $averageRating = Review::where('id_hotel', $hotel->id_hotel)
-                ->where('is_delete', false)
-                ->avg('rating');
-
-            $hotel->rating_hotel = $averageRating ? round($averageRating, 1) : 0;
-            $hotel->save();
-        }
 
         return response()->json([
             'message' => 'Hasil pencarian hotel berhasil diambil',

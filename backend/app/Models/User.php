@@ -38,15 +38,23 @@ class User extends Authenticatable
         'pin',
     ];
 
-    // public function setPasswordAttribute($value)
-    // {
-    //     $this->attributes['password'] = Hash::make($value);
-    // }
+    public function setPasswordAttribute($value)
+    {
+        if ((str_starts_with($value, '$2y$') || str_starts_with($value, '$2a$') || str_starts_with($value, '$2b$')) && strlen($value) === 60) {
+            $this->attributes['password'] = $value;
+        } else {
+            $this->attributes['password'] = Hash::make($value);
+        }
+    }
 
-    // public function setPinAttribute($value)
-    // {
-    //     $this->attributes['pin'] = Hash::make($value);
-    // }
+    public function setPinAttribute($value)
+    {
+        if ((str_starts_with($value, '$2y$') || str_starts_with($value, '$2a$') || str_starts_with($value, '$2b$')) && strlen($value) === 60) {
+            $this->attributes['pin'] = $value;
+        } else {
+            $this->attributes['pin'] = Hash::make($value);
+        }
+    }
 
     public function pemesanans() {
         return $this->hasMany(Pemesanan::class, 'id_user', 'id_user');
