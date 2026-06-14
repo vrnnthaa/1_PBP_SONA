@@ -17,6 +17,7 @@ import 'package:sona/pages/search/search_results_page.dart';
 import 'package:sona/widgets/search/date_range_popup.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/pages/hotels/recommended_hotels_page.dart';
+import 'package:sona/pages/hotels/explore_places_hotel_list.dart';
 
 class HomeTab extends ConsumerStatefulWidget {
   final String? token;
@@ -62,6 +63,18 @@ class _HomeTabState extends ConsumerState<HomeTab> {
           checkOutDate: _selectedDateRange?.end,
           guests: _selectedGuests,
           title: 'Recommended Hotels',
+        ),
+      ),
+    );
+  }
+
+  void _navigateToExplorePlacePage(List<Hotel> hotelsList, String placeName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExplorePlacesHotelListPage(
+          hotels: hotelsList,
+          placeName: placeName,
         ),
       ),
     );
@@ -258,7 +271,12 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                         itemBuilder: (context, index) {
                           return PlaceCard(
                             place: _places[index],
-                            onTap: isGuest ? widget.onActionRestricted : () {},
+                            onTap: isGuest
+                                ? widget.onActionRestricted
+                                : () => _navigateToExplorePlacePage(
+                                    hotelsList,
+                                    _places[index].name,
+                                  ),
                           );
                         },
                       ),

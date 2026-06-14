@@ -3,8 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:sona/entity/kamar/kamar.dart';
 import 'package:sona/entity/kamar/kamar_availability.dart';
+import 'package:sona/entity/review/hotel_review_response.dart';
+import 'package:sona/entity/review/review_model.dart';
+import 'package:sona/api/review/api_review.dart';
+import 'package:sona/pages/review/review_list_page.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/pages/pemesanan/pemesanan_page.dart';
+import 'package:sona/widgets/hotel/hotel_review_section.dart';
+import 'package:sona/widgets/loading_animation.dart';
+import 'package:sona/widgets/review/review_models.dart';
 
 class RoomDetailPage extends StatefulWidget {
   final KamarAvailability room;
@@ -30,13 +37,25 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
   final PageController _pageController = PageController();
   int _currentImage = 0;
 
+  // Fetch review khusus kamar ini saja (bukan seluruh hotel)
+  late Future<HotelReviewResponse> _reviewsFuture;
+
   Kamar? get _detail => widget.room.detailKamar;
+
+  @override
+  void initState() {
+    super.initState();
+    // fetchRoomReviews(idKamar) — hanya review kamar ini
+    _reviewsFuture = ApiReview().fetchRoomReviews(widget.room.idKamar);
+  }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
   }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   String _formatPrice(int price) {
     final formatted = price.toString().replaceAllMapped(
@@ -46,22 +65,15 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     return 'Rp $formatted';
   }
 
-  String _formatShortDate(DateTime date) {
-    return DateFormat('dd MMM yyyy').format(date);
-  }
-
-  String _formatBookingDateRange() {
-    return '${_formatShortDate(widget.checkInDate)} - ${_formatShortDate(widget.checkOutDate)}';
-  }
+  String _formatShortDate(DateTime date) =>
+      DateFormat('dd MMM yyyy').format(date);
 
   int _getNightCount() {
     final nights = widget.checkOutDate.difference(widget.checkInDate).inDays;
     return nights > 0 ? nights : 1;
   }
 
-  int _getTotalPrice() {
-    return _getPrice() * _getNightCount();
-  }
+  int _getTotalPrice() => _getPrice() * _getNightCount();
 
   List<String> _getImages() {
     final gambar = _detail?.daftarGambar ?? [];
@@ -73,50 +85,39 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
 
   List<String> _getFacilities() {
     final fasilitas = _detail?.daftarFasilitas ?? [];
-
     final fromDetail = fasilitas
         .map((item) => item.toString().trim())
         .where(
           (name) =>
               name.isNotEmpty &&
-              name != 'Instance of \'Fasilitas\'' &&
+              name != "Instance of 'Fasilitas'" &&
               name != 'Fasilitas',
         )
         .toList();
-
     if (fromDetail.isNotEmpty) return fromDetail;
 
     final desc = (_detail?.deskripsi ?? '').toLowerCase();
     final fallback = <String>[];
-
     if (desc.contains('wifi')) fallback.add('WiFi');
-    if (desc.contains('ac') || desc.contains('air conditioning')) {
+    if (desc.contains('ac') || desc.contains('air conditioning'))
       fallback.add('Air Conditioning');
-    }
     if (desc.contains('breakfast')) fallback.add('Breakfast');
     if (desc.contains('bathroom')) fallback.add('Private Bathroom');
     if (desc.contains('tv')) fallback.add('TV');
     if (desc.contains('shower')) fallback.add('Shower');
     if (desc.contains('balcony')) fallback.add('Balcony');
     if (desc.contains('minibar')) fallback.add('Minibar');
-
     return fallback;
   }
 
-  List<RoomInfoItem> _getOffers() {
-    return _detail?.offer ?? [];
-  }
-
-  List<RoomInfoItem> _getOccupancy() {
-    return _detail?.occupancy ?? [];
-  }
+  List<RoomInfoItem> _getOffers() => _detail?.offer ?? [];
+  List<RoomInfoItem> _getOccupancy() => _detail?.occupancy ?? [];
 
   String _getDescription() {
     final desc = _detail?.deskripsi ?? '';
-    if (desc.trim().isEmpty) {
-      return 'Comfortable room with complete facilities for your stay.';
-    }
-    return desc;
+    return desc.trim().isEmpty
+        ? 'Comfortable room with complete facilities for your stay.'
+        : desc;
   }
 
   String _getRoomName() {
@@ -144,43 +145,149 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     return size > 0 ? size : 0;
   }
 
-  double _getRating() {
-    final rating = _detail?.ratingKamar ?? 0;
-    return rating > 0 ? rating : 0;
-  }
-
   void _handleSelectRoom() {
     if (!widget.room.statusAvailable) return;
     navigateToBooking(widget.room);
   }
 
   void navigateToBooking(KamarAvailability room) {
-    final jumlahMalam = _getNightCount();
-    final roomPrice = _getPrice();
-    final totalHarga = roomPrice * jumlahMalam;
-    final roomName = _getRoomName();
-    final roomCapacity = _getCapacity();
     final listGambar = _getImages();
-    final gambarPertama = listGambar.isNotEmpty ? listGambar.first : null;
-
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => PemesananPage(
           idKamar: room.idKamar,
-          namaKamar: roomName,
-          hargaTotal: totalHarga.toDouble(),
+          namaKamar: _getRoomName(),
+          hargaTotal: (_getTotalPrice()).toDouble(),
           idUser: 1,
           selectedDateRange: DateTimeRange(
             start: widget.checkInDate,
             end: widget.checkOutDate,
           ),
-          jumlahPengunjung: roomCapacity,
-          imageUrl: gambarPertama,
+          jumlahPengunjung: _getCapacity(),
+          imageUrl: listGambar.isNotEmpty ? listGambar.first : null,
         ),
       ),
     );
   }
+
+  // ── Review helpers — persis sama pola HotelDetailPage ────────────────────
+
+  String _formatReviewDate(String? rawDate) {
+    if (rawDate == null || rawDate.trim().isEmpty) return '-';
+    final date = DateTime.tryParse(rawDate);
+    if (date == null) return rawDate;
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  List<ReviewItemData> _mapToPreviewReviews(List<ReviewModel> reviews) {
+    return reviews
+        .map(
+          (item) => ReviewItemData(
+            reviewerName: item.reviewerName,
+            comment: item.komentar,
+            rating: item.rating,
+          ),
+        )
+        .toList();
+  }
+
+  List<ReviewListItemData> _mapToReviewListItems(List<ReviewModel> reviews) {
+    return reviews
+        .map(
+          (item) => ReviewListItemData(
+            reviewerName: item.reviewerName,
+            reviewDate: _formatReviewDate(item.tanggalReview),
+            subLabel: null,
+            rating: item.rating,
+            reviewText: item.komentar,
+            reviewImages:
+                item.photoReview != null && item.photoReview!.isNotEmpty
+                ? [item.photoReview!]
+                : [],
+          ),
+        )
+        .toList();
+  }
+
+  /// Buka halaman semua review kamar ini.
+  /// ReviewHeaderData.isRoomMode = true karena ada guestInfo/roomSize/tags
+  /// → ReviewHeaderCard akan render info kamar, bukan lokasi hotel
+  void _openAllReviews(HotelReviewResponse reviewData) {
+    final images = _getImages();
+    final roomSize = _getRoomSize();
+    final capacity = _getCapacity();
+    final facilities = _getFacilities();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReviewListPage(
+          title: 'Room Reviews',
+          headerData: ReviewHeaderData(
+            title: _getRoomName(),
+            imagePath: images.isNotEmpty ? images.first : '',
+            rating: reviewData.averageRating,
+            // isRoomMode aktif karena ada guestInfo → lokasi hotel tidak tampil
+            // ReviewHeaderCard akan tampilkan guestInfo, roomSize, dan tags (fasilitas)
+            guestInfo: '$capacity guest${capacity > 1 ? 's' : ''}',
+            roomSize: roomSize > 0 ? '$roomSize m²' : null,
+            tags: facilities.take(4).toList(),
+          ),
+          reviews: _mapToReviewListItems(reviewData.reviews),
+        ),
+      ),
+    );
+  }
+
+  // ── Review section widget ─────────────────────────────────────────────────
+
+  Widget _buildReviewsSection() {
+    return FutureBuilder<HotelReviewResponse>(
+      future: _reviewsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: LoadingAnimation(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const HotelReviewsSection(rating: 0, reviews: []);
+        }
+
+        final reviewData = snapshot.data;
+        if (reviewData == null) {
+          return const HotelReviewsSection(rating: 0, reviews: []);
+        }
+
+        return HotelReviewsSection(
+          rating: reviewData.averageRating,
+          reviews: _mapToPreviewReviews(reviewData.reviews),
+          onViewAllTap: () => _openAllReviews(reviewData),
+        );
+      },
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -188,163 +295,21 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     final facilities = _getFacilities();
     final offers = _getOffers();
     final occupancy = _getOccupancy();
-    final description = _getDescription();
     final roomName = _getRoomName();
     final hotelName = _getHotelName();
     final roomPrice = _getPrice();
     final roomCapacity = _getCapacity();
     final roomSize = _getRoomSize();
-    final roomRating = _getRating();
     final totalPrice = _getTotalPrice();
     final nightCount = _getNightCount();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F5),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 12,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.room.statusAvailable
-                          ? 'Price summary'
-                          : 'Availability status',
-                      style: GoogleFonts.roboto(
-                        fontSize: 11,
-                        color: const Color(0xFF96A3A5),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    if (widget.room.statusAvailable) ...[
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: _formatPrice(roomPrice),
-                              style: GoogleFonts.montserrat(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.primary,
-                              ),
-                            ),
-                            TextSpan(
-                              text: ' / Night',
-                              style: GoogleFonts.roboto(
-                                fontSize: 13,
-                                color: const Color(0xFFB6BFC1),
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Total ${_formatPrice(totalPrice)} for $nightCount night${nightCount > 1 ? 's' : ''}',
-                        style: GoogleFonts.roboto(
-                          fontSize: 12.5,
-                          color: AppTheme.textTealGrey,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ] else
-                      Text(
-                        widget.room.availabilityLabel.trim().isNotEmpty
-                            ? widget.room.availabilityLabel
-                            : 'Unavailable',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF8A7575),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              SizedBox(
-                height: 44,
-                child: ElevatedButton(
-                  onPressed: widget.room.statusAvailable
-                      ? _handleSelectRoom
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    backgroundColor: widget.room.statusAvailable
-                        ? const Color(0xFFDDE8E6)
-                        : Colors.grey.shade200,
-                    foregroundColor: widget.room.statusAvailable
-                        ? AppTheme.primary
-                        : Colors.grey.shade500,
-                    disabledBackgroundColor: Colors.grey.shade200,
-                    disabledForegroundColor: Colors.grey.shade500,
-                    padding: const EdgeInsets.symmetric(horizontal: 26),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    widget.room.statusAvailable ? 'Select Room' : 'Unavailable',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      bottomNavigationBar: _buildBottomBar(roomPrice, totalPrice, nightCount),
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              color: Colors.white,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back_rounded,
-                        color: AppTheme.primary,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    'Offer details',
-                    style: GoogleFonts.montserrat(
-                      color: AppTheme.primary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildTopBar(),
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
@@ -356,6 +321,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Room name
                         Text(
                           roomName,
                           style: GoogleFonts.montserrat(
@@ -373,6 +339,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                             color: AppTheme.textTealGrey,
                           ),
                         ),
+                        const SizedBox(height: 10),
                         Wrap(
                           spacing: 18,
                           runSpacing: 10,
@@ -386,20 +353,17 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                                 icon: Icons.square_foot_rounded,
                                 text: '$roomSize m²',
                               ),
-                            if (roomRating > 0)
-                              _buildMiniInfo(
-                                icon: Icons.star_rounded,
-                                text: roomRating.toStringAsFixed(1),
-                              ),
                           ],
                         ),
                         const SizedBox(height: 14),
-                        Container(height: 1, color: const Color(0xFFD9DFE0)),
+                        _buildDivider(),
                         const SizedBox(height: 14),
+
+                        // Description
                         _buildSectionTitle('Description'),
                         const SizedBox(height: 8),
                         Text(
-                          description,
+                          _getDescription(),
                           style: GoogleFonts.roboto(
                             fontSize: 14,
                             height: 1.5,
@@ -407,8 +371,10 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                           ),
                         ),
                         const SizedBox(height: 14),
-                        Container(height: 1, color: const Color(0xFFD9DFE0)),
+                        _buildDivider(),
                         const SizedBox(height: 14),
+
+                        // Facilities
                         _buildSectionTitle('Room Facilities'),
                         const SizedBox(height: 10),
                         if (facilities.isEmpty)
@@ -450,8 +416,10 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                             ),
                           ),
                         const SizedBox(height: 14),
-                        Container(height: 1, color: const Color(0xFFD9DFE0)),
+                        _buildDivider(),
                         const SizedBox(height: 14),
+
+                        // Offer includes
                         _buildSectionTitle('Offer includes'),
                         const SizedBox(height: 8),
                         if (offers.isEmpty)
@@ -463,10 +431,12 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                             ),
                           )
                         else
-                          ...offers.map((item) => _buildInfoBulletItem(item)),
+                          ...offers.map(_buildInfoBulletItem),
                         const SizedBox(height: 14),
-                        Container(height: 1, color: const Color(0xFFD9DFE0)),
+                        _buildDivider(),
                         const SizedBox(height: 14),
+
+                        // Occupancy
                         _buildSectionTitle('Occupancy'),
                         const SizedBox(height: 8),
                         _buildBullet('Selected guests'),
@@ -496,17 +466,14 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                             ),
                           )
                         else
-                          ...occupancy.map(
-                            (item) => _buildInfoBulletItem(item),
-                          ),
+                          ...occupancy.map(_buildInfoBulletItem),
                         const SizedBox(height: 16),
-                        Container(height: 1, color: const Color(0xFFD9DFE0)),
+                        _buildDivider(),
                         const SizedBox(height: 16),
-                        _buildReviewHeader(),
-                        const SizedBox(height: 12),
-                        _buildReviewSummary(roomRating),
-                        const SizedBox(height: 12),
-                        _buildReviewPlaceholder(roomRating),
+
+                        // ── Reviews section ──────────────────────────────
+                        _buildReviewsSection(),
+
                         const SizedBox(height: 90),
                       ],
                     ),
@@ -520,6 +487,237 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     );
   }
 
+  // ── Sub-widgets ───────────────────────────────────────────────────────────
+
+  Widget _buildTopBar() {
+    return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      color: Colors.white,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppTheme.primary,
+                size: 28,
+              ),
+            ),
+          ),
+          Text(
+            'Offer details',
+            style: GoogleFonts.montserrat(
+              color: AppTheme.primary,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(int roomPrice, int totalPrice, int nightCount) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.room.statusAvailable
+                        ? 'Price summary'
+                        : 'Availability status',
+                    style: GoogleFonts.roboto(
+                      fontSize: 11,
+                      color: const Color(0xFF96A3A5),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  if (widget.room.statusAvailable) ...[
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: _formatPrice(roomPrice),
+                            style: GoogleFonts.montserrat(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' / Night',
+                            style: GoogleFonts.roboto(
+                              fontSize: 13,
+                              color: const Color(0xFFB6BFC1),
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Total ${_formatPrice(totalPrice)} for $nightCount night${nightCount > 1 ? 's' : ''}',
+                      style: GoogleFonts.roboto(
+                        fontSize: 12.5,
+                        color: AppTheme.textTealGrey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ] else
+                    Text(
+                      widget.room.availabilityLabel.trim().isNotEmpty
+                          ? widget.room.availabilityLabel
+                          : 'Unavailable',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF8A7575),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                onPressed: widget.room.statusAvailable
+                    ? _handleSelectRoom
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  elevation: 0,
+                  backgroundColor: widget.room.statusAvailable
+                      ? const Color(0xFFDDE8E6)
+                      : Colors.grey.shade200,
+                  foregroundColor: widget.room.statusAvailable
+                      ? AppTheme.primary
+                      : Colors.grey.shade500,
+                  disabledBackgroundColor: Colors.grey.shade200,
+                  disabledForegroundColor: Colors.grey.shade500,
+                  padding: const EdgeInsets.symmetric(horizontal: 26),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  widget.room.statusAvailable ? 'Select Room' : 'Unavailable',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() =>
+      Container(height: 1, color: const Color(0xFFD9DFE0));
+
+  Widget _buildSectionTitle(String title) => Text(
+    title,
+    style: GoogleFonts.montserrat(
+      fontSize: 16,
+      fontWeight: FontWeight.w800,
+      color: AppTheme.primary,
+    ),
+  );
+
+  Widget _buildMiniInfo({required IconData icon, required String text}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 17, color: AppTheme.textTealGrey),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: GoogleFonts.roboto(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.textTealGrey,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBullet(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '•',
+            style: GoogleFonts.roboto(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF344B4E),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.roboto(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF344B4E),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoBulletItem(RoomInfoItem item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildBullet(item.title),
+        if ((item.description ?? '').trim().isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 14, top: 2, bottom: 8),
+            child: Text(
+              item.description!,
+              style: GoogleFonts.roboto(
+                fontSize: 12.5,
+                height: 1.35,
+                color: const Color(0xFF56686B),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildImageSection(List<String> images) {
     return SizedBox(
       height: 230,
@@ -528,9 +726,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
           PageView.builder(
             controller: _pageController,
             itemCount: images.isEmpty ? 1 : images.length,
-            onPageChanged: (index) {
-              setState(() => _currentImage = index);
-            },
+            onPageChanged: (index) => setState(() => _currentImage = index),
             itemBuilder: (context, index) {
               if (images.isEmpty) {
                 return Container(
@@ -544,7 +740,6 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                   ),
                 );
               }
-
               return Image.network(
                 images[index],
                 fit: BoxFit.cover,
@@ -558,18 +753,16 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                     ),
                   );
                 },
-                errorBuilder: (_, __, ___) {
-                  return Container(
-                    color: const Color(0xFFE7E7E7),
-                    child: const Center(
-                      child: Icon(
-                        Icons.broken_image_outlined,
-                        size: 34,
-                        color: Color(0xFF888888),
-                      ),
+                errorBuilder: (_, __, ___) => Container(
+                  color: const Color(0xFFE7E7E7),
+                  child: const Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      size: 34,
+                      color: Color(0xFF888888),
                     ),
-                  );
-                },
+                  ),
+                ),
               );
             },
           ),
@@ -625,199 +818,6 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                 ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.montserrat(
-        fontSize: 16,
-        fontWeight: FontWeight.w800,
-        color: AppTheme.primary,
-      ),
-    );
-  }
-
-  Widget _buildBullet(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '•',
-            style: GoogleFonts.roboto(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF344B4E),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.roboto(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF344B4E),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoBulletItem(RoomInfoItem item) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildBullet(item.title),
-        if ((item.description ?? '').trim().isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 14, top: 2, bottom: 8),
-            child: Text(
-              item.description!,
-              style: GoogleFonts.roboto(
-                fontSize: 12.5,
-                height: 1.35,
-                color: const Color(0xFF56686B),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildMiniInfo({required IconData icon, required String text}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 17, color: AppTheme.textTealGrey),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: GoogleFonts.roboto(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w500,
-            color: AppTheme.textTealGrey,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReviewHeader() {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            'Reviews',
-            style: GoogleFonts.montserrat(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.primary,
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () {},
-          child: Text(
-            'View All',
-            style: GoogleFonts.roboto(
-              color: const Color(0xFF4A67B2),
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReviewSummary(double rating) {
-    final normalizedRating = rating > 0 ? rating : 0.0;
-    final ratingLabel = normalizedRating >= 4.5
-        ? 'Excellent'
-        : normalizedRating >= 4.0
-        ? 'Very Good'
-        : normalizedRating >= 3.0
-        ? 'Good'
-        : 'No reviews yet';
-
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0C6A6C),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            normalizedRating > 0 ? normalizedRating.toStringAsFixed(1) : '-',
-            style: GoogleFonts.montserrat(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 22,
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              ratingLabel,
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.primary,
-              ),
-            ),
-            Text(
-              normalizedRating > 0
-                  ? 'Room rating information'
-                  : 'No review data available',
-              style: GoogleFonts.roboto(
-                fontSize: 13,
-                color: const Color(0xFF6B7B7E),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReviewPlaceholder(double rating) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFD6DEDF)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.rate_review_outlined, color: AppTheme.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              rating > 0
-                  ? 'Detailed review list belum dihubungkan ke endpoint review kamar.'
-                  : 'Belum ada data review kamar yang tersedia untuk ditampilkan.',
-              style: GoogleFonts.roboto(
-                fontSize: 13.5,
-                height: 1.4,
-                color: const Color(0xFF2F4346),
-              ),
-            ),
-          ),
         ],
       ),
     );
