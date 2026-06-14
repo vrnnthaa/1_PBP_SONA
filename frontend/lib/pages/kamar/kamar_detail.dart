@@ -160,11 +160,6 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
         behavior: SnackBarBehavior.floating,
       ),
     );
-
-    // TODO:
-    // Navigator.push(context, MaterialPageRoute(
-    //   builder: (_) => BookingPage(...),
-    // ));
   }
 
   @override
@@ -358,9 +353,6 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                             color: AppTheme.textTealGrey,
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        _buildBookingSummaryCard(),
-                        const SizedBox(height: 14),
                         Wrap(
                           spacing: 18,
                           runSpacing: 10,
@@ -504,118 +496,6 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBookingSummaryCard() {
-    final nightCount = _getNightCount();
-    final totalPrice = _getTotalPrice();
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFD8DFE0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Booking summary',
-            style: GoogleFonts.montserrat(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.primary,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(
-                Icons.date_range_rounded,
-                size: 18,
-                color: AppTheme.textTealGrey,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _formatBookingDateRange(),
-                  style: GoogleFonts.roboto(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF44585B),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.nights_stay_outlined,
-                size: 18,
-                color: AppTheme.textTealGrey,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '$nightCount night${nightCount > 1 ? 's' : ''}',
-                  style: GoogleFonts.roboto(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF44585B),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.people_alt_outlined,
-                size: 18,
-                color: AppTheme.textTealGrey,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${widget.guests} guest${widget.guests > 1 ? 's' : ''}',
-                  style: GoogleFonts.roboto(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF44585B),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.payments_outlined,
-                size: 18,
-                color: AppTheme.textTealGrey,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Total stay: ${_formatPrice(totalPrice)}',
-                  style: GoogleFonts.roboto(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
