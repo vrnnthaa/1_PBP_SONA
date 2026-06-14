@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 // Sesuaikan import ini dengan struktur folder project-mu
 import 'package:sona/utils/app_theme.dart';
-import 'package:sona/entity/pemesanan/pemesanan.dart'; 
 
 
 class RingkasanPembayaranPage extends StatefulWidget {

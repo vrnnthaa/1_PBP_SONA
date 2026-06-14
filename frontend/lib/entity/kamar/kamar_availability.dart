@@ -5,7 +5,7 @@ import 'package:sona/entity/kamar/kamar.dart';
 class KamarAvailability {
   final int idKamar;
   final String namaKamar;
-  final int harga;
+  final double harga;
   final int kapasitas;
   final bool statusAvailable;
   final String availabilityLabel;
@@ -33,7 +33,7 @@ class KamarAvailability {
           (json['nama_kamar'] ?? json['namaKamar'] ?? json['room_name'] ?? '')
               .toString()
               .trim(),
-      harga: _toInt(json['harga'] ?? json['price']),
+      harga: _parseDouble(json['harga'] ?? json['price']),
       kapasitas: _toInt(json['kapasitas'] ?? json['capacity']),
       statusAvailable: _toBool(rawStatus),
       availabilityLabel:

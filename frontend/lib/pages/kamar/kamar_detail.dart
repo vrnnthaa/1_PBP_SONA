@@ -38,7 +38,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     super.dispose();
   }
 
-  String _formatPrice(int price) {
+  String _formatPrice(double price) {
     final formatted = price.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',
@@ -59,7 +59,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     return nights > 0 ? nights : 1;
   }
 
-  int _getTotalPrice() {
+  double _getTotalPrice() {
     return _getPrice() * _getNightCount();
   }
 
@@ -129,9 +129,9 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     return name.isEmpty ? 'Hotel' : name;
   }
 
-  int _getPrice() {
+  double _getPrice() {
     final price = _detail?.harga ?? widget.room.harga;
-    return price > 0 ? price : 0;
+    return (price > 0 ? price : 0).toDouble();
   }
 
   int _getCapacity() {

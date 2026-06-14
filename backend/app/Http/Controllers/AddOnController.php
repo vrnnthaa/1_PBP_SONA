@@ -26,7 +26,7 @@ class AddOnController{
     public function store(Request $request){
         
         $validated = $request->validate([
-            'id_pemesanan'              => 'required|integer|exists:pemesanan, id_pemesanan',
+            'id_pemesanan'              => 'required|integer|exists:pemesanan,id_pemesanan',
             'nama_addon'            => 'required|string|max:100',
             'harga_addon'           => 'required|float|min:100',
             'keterangan_addon'      => 'required|string|max:500',
@@ -45,7 +45,7 @@ class AddOnController{
         }
 
         $validated = $request->validate([
-            'id_pemesanan'              => 'sometimes|integer|exists:pemesanan, id_pemesanan',
+            'id_pemesanan'              => 'sometimes|integer|exists:pemesanan,id_pemesanan',
             'nama_addon'            => 'sometimes|string|max:100',
             'harga_addon'           => 'sometimes|float|min:100',
             'keterangan_addon'      => 'sometimes|string|max:500',

@@ -49,6 +49,12 @@ class PemesananController extends Controller
             'check_out' => 'required|date|after:check_in',
             'jumlah_pengunjung' => 'required|integer|min:1',
             'total_biaya' => 'required|numeric|min:0',
+            
+            //Validasi untuk addons
+            'addons' => 'array|nullable',
+            'addons.*.nama' => 'required_with:addons|string',
+            'addons.*.harga' => 'required_with:addons|numeric',
+            'addons.*.keterangan' => 'required_with:addons|string',
         ]);
 
         $isOverlapping = Pemesanan::where('id_kamar', $validated['id_kamar'])
@@ -104,6 +110,8 @@ class PemesananController extends Controller
             
             DB::rollBack();
 
+            \Illuminate\Support\Facades\Log::error('Pemesanan Error Asli: ' . $e->getMessage());
+            
             return response()->json([
                 'message' => 'Terjadi kesalahan saat membuat pemesanan',
                 'error' => $e->getMessage(),
@@ -222,16 +230,47 @@ class PemesananController extends Controller
         ], 200);
     }
 
-    public function getByUser($id_user)
-    {
-        $pemesanan = Pemesanan::with(['kamar', 'pembayaran', 'review'])
-            ->where('id_user', $id_user)
-            ->latest('id_pemesanan')
-            ->get();
+    // public function getByUser($id_user)
+    // {
+    //     $pemesanan = Pemesanan::with(['kamar', 'pembayaran', 'review'])
+    //         ->where('id_user', $id_user)
+    //         ->latest('id_pemesanan')
+    //         ->get();
 
-        return response()->json([
-            'message' => 'Data pemesanan user berhasil diambil',
-            'data' => $pemesanan,
-        ], 200);
-    }
+    //     return response()->json([
+    //         'message' => 'Data pemesanan user berhasil diambil',
+    //         'data' => $pemesanan,
+    //     ], 200);
+    // }
+
+    public function getByUser($id_user)
+{
+    // Kita gunakan model Pemesanan, pastikan relasi di Model sudah didefinisikan dengan benar
+    $pemesanan = Pemesanan::with(['kamar.hotel', 'pembayaran', 'review']) // Tambahkan kamar.hotel agar bisa menampilkan nama hotel
+        ->where('id_user', $id_user)
+        ->latest('id_pemesanan')
+        ->get()
+        ->filter(function ($item) {
+            // Filter manual jika ada relasi yang null untuk mencegah error aplikasi
+            return $item->kamar !== null; 
+        })
+        ->values(); // Reset index array
+
+    return response()->json([
+        'message' => 'Data pemesanan user berhasil diambil',
+        'data' => $pemesanan,
+    ], 200);
+}
+
+    // public function getByUser($id_user)
+    // {
+    //     $pemesanan = Pemesanan::where('id_user', $id_user)
+    //         ->latest('id_pemesanan')
+    //         ->get();
+
+    //     return response()->json([
+    //         'message' => 'Data pemesanan user berhasil diambil',
+    //         'data' => $pemesanan,
+    //     ], 200);
+    // }
 }

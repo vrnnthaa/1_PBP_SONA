@@ -52,6 +52,7 @@ class _PemesananPageState extends State<PemesananPage> {
   late List<bool> _selectedAddons;
   bool _isLoading = false;
 
+
   final List<AddonItem> _addons = [
     AddonItem(
       nama: 'Breakfast Included',
@@ -119,79 +120,6 @@ class _PemesananPageState extends State<PemesananPage> {
   String get _checkOutStr =>
       DateFormat('yyyy-MM-dd').format(widget.selectedDateRange.end);
 
-  // // aksi saat "Continue to Summary" ditekan
-  // Future<void> _navigateToSummaryPaymentPage() async {
-  //   setState(() => _isLoading = true);
-
-  //   try {
-  //     final pemesanan = await _apiPemesanan.storePemesanan(
-  //       idUser: widget.idUser,
-  //       idKamar: widget.idKamar,
-  //       checkIn: _checkInStr,
-  //       checkOut: _checkOutStr,
-  //       jumlahPengunjung: widget.jumlahPengunjung,
-  //       totalBiaya: _totalBiaya,
-  //     );
-
-  //     final int idPemesananBaru = pemesanan.idPemesanan;
-
-  //     if(_selectedAddons[0]) {
-  //       double hargaFinal = _addons[0].harga * _jumlahMalam;
-
-  //       await _apiAddOn.storeAddOn(
-  //         idPemesananBaru,
-  //         _addons[0].nama,
-  //         hargaFinal,
-  //         _addons[0].keterangan
-  //       );
-  //     }
-
-  //     if(_selectedAddons[1]) {
-  //       await _apiAddOn.storeAddOn(
-  //         idPemesananBaru,
-  //         _addons[1].nama,
-  //         _addons[1].harga,
-  //         _addons[1].keterangan
-  //       );
-  //     }
-
-  //     if(_selectedAddons[2]) {
-  //       await _apiAddOn.storeAddOn(
-  //         idPemesananBaru,
-  //         _addons[2].nama,
-  //         _addons[2].harga,
-  //         _addons[2].keterangan
-  //       );
-  //     }
-
-  //     if (!mounted) return;
-
-  //     // Navigasi ke halaman summary, kirim hasil pemesanan
-  //     Navigator.push(
-  //       context,
-  //       MaterialPageRoute(
-  //         builder: (_) => RingkasanPembayaranPage(
-  //           idPemesanan: idPemesananBaru,
-  //           totalBiaya: _totalBiaya,
-  //           namaKamar: widget.namaKamar,
-  //           checkIn: _checkInStr,
-  //           checkOut: _checkOutStr,
-  //           jumlahPengunjung: widget.jumlahPengunjung,
-  //           imageUrl: widget.imageUrl,
-  //         ),
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     if (!mounted) return;
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text(e.toString())),
-  //     );
-  //   } finally {
-  //     if (mounted) setState(() => _isLoading = false);
-  //   }
-  // }
-
-  //Versi 2
   // aksi saat "Continue to Summary" ditekan
   Future<void> _navigateToSummaryPaymentPage() async {
     setState(() => _isLoading = true);

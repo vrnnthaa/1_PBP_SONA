@@ -10,13 +10,26 @@ class ApiBooking {
         headers: ApiConfig.getHeaders(token: token),
       );
 
+      print("DEBUG: API Response Code: ${response.statusCode}");
+      print("DEBUG: API Raw Response: ${response.body}"); // Kita lihat di sini
+
       if (response.statusCode == 200) {
-        final List<dynamic> rawList = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(rawList);
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+        
+        // Pastikan key yang dipanggil tepat
+        if (jsonResponse.containsKey('data')) {
+          final List<dynamic> rawList = jsonResponse['data'];
+          print("DEBUG: Jumlah data yang diproses: ${rawList.length}");
+          return List<Map<String, dynamic>>.from(rawList);
+        }
+        return [];
       }
-      throw Exception('Gagal memuat riwayat booking');
+      return [];
     } catch (e) {
+      print("DEBUG: Error di ApiBooking: $e");
       return [];
     }
   }
+
+  
 }

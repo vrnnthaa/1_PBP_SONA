@@ -83,9 +83,9 @@ class KamarCard extends StatelessWidget {
     return 'Room';
   }
 
-  int _getPrice() {
+  double _getPrice() {
     final detailPrice = room.detailKamar?.harga ?? 0;
-    return detailPrice > 0 ? detailPrice : room.harga;
+    return (detailPrice > 0 ? detailPrice : room.harga).toDouble();
   }
 
   int _getCapacity() {

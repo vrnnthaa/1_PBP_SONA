@@ -86,6 +86,26 @@ class ApiPemesanan {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchUserHistory(int idUser, String token) async {
+    try {
+      final response = await get(
+        Uri.parse('${ApiConfig.baseUrl}/pemesanan/user/$idUser'),
+        headers: ApiConfig.getHeaders(token: token),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        final List<dynamic> data = jsonResponse['data'];
+
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Gagal memuat riwayat pemesanan');
+      }
+    } catch (e) {
+      throw Exception('Terjadi kesalahan jaringan: $e');
+    }
+  }
+
   // POST /pemesanan
   Future<Pemesanan> storePemesanan({
     required int idUser,
