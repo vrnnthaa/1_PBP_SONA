@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:sona/entity/kamar/kamar.dart';
 import 'package:sona/entity/kamar/kamar_availability.dart';
 import 'package:sona/utils/app_theme.dart';
+import 'package:sona/pages/pemesanan/pemesanan_page.dart';
 
 class RoomDetailPage extends StatefulWidget {
   final KamarAvailability room;
@@ -150,14 +151,33 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
 
   void _handleSelectRoom() {
     if (!widget.room.statusAvailable) return;
+    navigateToBooking(widget.room);
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Room selected: ${_getRoomName()}',
-          style: GoogleFonts.montserrat(fontSize: 12.5),
+  void navigateToBooking(KamarAvailability room) {
+    final jumlahMalam = _getNightCount();
+    final roomPrice = _getPrice();
+    final totalHarga = roomPrice * jumlahMalam;
+    final roomName = _getRoomName();
+    final roomCapacity = _getCapacity();
+    final listGambar = _getImages();
+    final gambarPertama = listGambar.isNotEmpty ? listGambar.first : null;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PemesananPage(
+          idKamar: room.idKamar,
+          namaKamar: roomName,
+          hargaTotal: totalHarga.toDouble(),
+          idUser: 1,
+          selectedDateRange: DateTimeRange(
+            start: widget.checkInDate,
+            end: widget.checkOutDate,
+          ),
+          jumlahPengunjung: roomCapacity,
+          imageUrl: gambarPertama,
         ),
-        behavior: SnackBarBehavior.floating,
       ),
     );
   }

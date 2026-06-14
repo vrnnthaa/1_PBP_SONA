@@ -9,7 +9,7 @@ class KamarCard extends StatelessWidget {
 
   const KamarCard({super.key, required this.room, required this.onSelectRoom});
 
-  String _formatPrice(int price) {
+  String _formatPrice(num price) {
     final formatted = price.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',

@@ -11,14 +11,20 @@ class AddOn extends Model {
     protected $primaryKey = 'id_addon';
 
     protected $fillable = [
-        'id_kamar',
+        'id_pemesanan',
         'nama_addon',
+        'harga_addon',
         'keterangan_addon',
     ];
 
+    protected $casts = [
+        'id_pemesanan' => 'integer',
+        'harga_addon' => 'float',
+    ];
+
     //Relation
-    public function kamar() {
-        return $this->belongsTo(Kamar::class, 'id_kamar', 'id_kamar');
+    public function pemesanan() {
+        return $this->belongsTo(Pemesanan::class, 'id_pemesanan', 'id_pemesanan');
     }
 
 }

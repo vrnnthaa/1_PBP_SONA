@@ -92,4 +92,11 @@ class KamarAvailability {
     final str = value?.toString().toLowerCase().trim();
     return str == 'true' || str == '1' || str == 'yes' || str == 'available';
   }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0;
+    if (value is double) return value;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0;
+  } //Izin nambah yaa verr
 }

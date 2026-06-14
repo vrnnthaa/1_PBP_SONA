@@ -304,18 +304,6 @@ class _KamarPageState extends State<KamarPage> {
   }
 
   void _onSelectRoom(KamarAvailability room) {
-    if (room.detailKamar == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Detail kamar belum tersedia.',
-            style: GoogleFonts.montserrat(fontSize: 12.5),
-          ),
-        ),
-      );
-      return;
-    }
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -329,6 +317,7 @@ class _KamarPageState extends State<KamarPage> {
       ),
     );
   }
+  //Izin verr
 
   Widget _buildHeader() {
     return Container(
@@ -566,8 +555,7 @@ class _KamarPageState extends State<KamarPage> {
                           final room = _rooms[index];
                           return KamarCard(
                             room: room,
-                            onSelectRoom:
-                                room.statusAvailable && room.detailKamar != null
+                            onSelectRoom: room.statusAvailable
                                 ? () => _onSelectRoom(room)
                                 : null,
                           );
