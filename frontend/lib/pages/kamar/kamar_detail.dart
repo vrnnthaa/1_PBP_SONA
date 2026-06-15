@@ -523,7 +523,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     );
   }
 
-  Widget _buildBottomBar(int roomPrice, int totalPrice, int nightCount) {
+  Widget _buildBottomBar(double roomPrice, double totalPrice, int nightCount) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
