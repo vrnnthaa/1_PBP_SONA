@@ -23,11 +23,17 @@ import 'package:sona/pages/kamar/kamar_page.dart';
 class HotelDetailPage extends StatefulWidget {
   final Hotel hotel;
   final bool initialBookmarked;
+  final DateTime? checkInDate;
+  final DateTime? checkOutDate;
+  final int guests;
 
   const HotelDetailPage({
     super.key,
     required this.hotel,
     this.initialBookmarked = false,
+    this.checkInDate,
+    this.checkOutDate,
+    this.guests = 1,
   });
 
   @override
@@ -61,13 +67,15 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
 
   String get _mainImage => _galleryImages[selectedImageIndex];
 
-  String _formatPrice(int hotelId) {
-    final int generatedPrice = 350 + (hotelId * 180) % 1200;
-    final formatted = generatedPrice.toString().replaceAllMapped(
+  String _formatPrice(int? price) {
+    if (price == null || price <= 0) return 'Price unavailable';
+
+    final formatted = price.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',
     );
-    return 'Rp $formatted.000';
+
+    return 'Rp $formatted';
   }
 
   String _formatReviewDate(String? rawDate) {
@@ -161,17 +169,23 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   @override
   Widget build(BuildContext context) {
     final hotel = widget.hotel;
+    final int? basePrice = hotel.hargaTerendah;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
       bottomNavigationBar: HotelPriceBottomBar(
-        price: _formatPrice(hotel.id),
+        price: basePrice,
         onSelectRoom: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  KamarPage(idHotel: hotel.id, hotelName: hotel.nama),
+              builder: (_) => KamarPage(
+                idHotel: hotel.id,
+                hotelName: hotel.nama,
+                checkInDate: widget.checkInDate,
+                checkOutDate: widget.checkOutDate,
+                guests: widget.guests,
+              ),
             ),
           );
         },
@@ -210,7 +224,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                             latitude: hotel.latitude,
                             longitude: hotel.longitude,
                             hotelName: hotel.nama,
-                            priceText: _formatPrice(hotel.id),
+                            priceText: _formatPrice(basePrice),
                             onSelectRoomTap: () {
                               Navigator.pop(context);
                             },
@@ -222,7 +236,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                   const SizedBox(height: 18),
                   const SectionDivider(),
                   const SizedBox(height: 16),
-                  const HotelPoliciesSection(),
+                  HotelPoliciesSection(policies: hotel.policies),
                   const SizedBox(height: 18),
                   const SectionDivider(),
                   const SizedBox(height: 16),
@@ -402,18 +416,31 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
         const SizedBox(height: 16),
         SizedBox(
           height: 86,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: hotel.daftarFasilitas.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              final fasilitas = hotel.daftarFasilitas[index];
-              return HotelAmenityItem(
-                label: fasilitas.nama,
-                icon: _resolveFacilityIcon(fasilitas.icon, fasilitas.nama),
-              );
-            },
-          ),
+          child: hotel.daftarFasilitas.isEmpty
+              ? Center(
+                  child: Text(
+                    'Amenities not available',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 12.5,
+                      color: AppTheme.textTealMedium,
+                    ),
+                  ),
+                )
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: hotel.daftarFasilitas.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 16),
+                  itemBuilder: (context, index) {
+                    final fasilitas = hotel.daftarFasilitas[index];
+                    return HotelAmenityItem(
+                      label: fasilitas.nama,
+                      icon: _resolveFacilityIcon(
+                        fasilitas.icon,
+                        fasilitas.nama,
+                      ),
+                    );
+                  },
+                ),
         ),
       ],
     );

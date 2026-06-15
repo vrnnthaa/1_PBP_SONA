@@ -12,25 +12,33 @@ class ApiKamar {
     required int guest,
   }) async {
     try {
-      final String checkInStr = DateFormat('yyyy-MM-dd').format(checkIn);
-      final String checkOutStr = DateFormat('yyyy-MM-dd').format(checkOut);
+      final checkInStr = DateFormat('yyyy-MM-dd').format(checkIn);
+      final checkOutStr = DateFormat('yyyy-MM-dd').format(checkOut);
 
-      final response = await get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}/hotel/$idHotel/available-rooms'
-          '?check_in=$checkInStr&check_out=$checkOutStr&guest=$guest',
-        ),
-        headers: ApiConfig.getHeaders(),
+      final uri = Uri.parse(
+        '${ApiConfig.baseUrl}/hotel/$idHotel/available-rooms'
+        '?check_in=$checkInStr&check_out=$checkOutStr&guest=$guest',
       );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        final List<dynamic> data = jsonResponse['data'];
+      final response = await get(uri, headers: ApiConfig.getHeaders());
 
-        return data.map((json) => KamarAvailability.fromJson(json)).toList();
-      } else {
-        throw Exception('Gagal memuat daftar kamar');
+      if (response.statusCode != 200) {
+        throw Exception('Gagal memuat daftar kamar (${response.statusCode})');
       }
+
+      final Map<String, dynamic> jsonResponse =
+          jsonDecode(response.body) as Map<String, dynamic>;
+
+      final rawData = jsonResponse['data'];
+      final List data = rawData is List ? rawData : [];
+
+      return data
+          .map(
+            (item) => KamarAvailability.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList();
     } catch (e) {
       throw Exception('Terjadi kesalahan jaringan: $e');
     }

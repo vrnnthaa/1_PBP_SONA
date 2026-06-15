@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Kamar;
 use App\Models\Pemesanan;
-use App\Models\Review;
 use Illuminate\Http\Request;
 
 class KamarController
@@ -25,10 +24,19 @@ class KamarController
     {
         $validated = $request->validate([
             'nama_kamar' => 'sometimes|string',
+            'tipe_kamar' => 'sometimes|string',
             'harga' => 'sometimes|numeric|min:0',
             'kapasitas' => 'sometimes|integer|min:1',
             'status_kamar' => 'sometimes|boolean',
             'deskripsi' => 'sometimes|nullable|string',
+            'rating_kamar' => 'sometimes|numeric|min:0|max:5',
+            'ukuran_kamar' => 'sometimes|integer|min:1',
+            'offer' => 'sometimes|array',
+            'offer.*.title' => 'required_with:offer|string',
+            'offer.*.description' => 'nullable|string',
+            'occupancy' => 'sometimes|array',
+            'occupancy.*.title' => 'required_with:occupancy|string',
+            'occupancy.*.description' => 'nullable|string',
         ]);
 
         $kamar = Kamar::where('id_kamar', $id_kamar)
@@ -42,6 +50,7 @@ class KamarController
         }
 
         $kamar->update($validated);
+        $kamar->load(['fasilitasKamar', 'gambarKamar', 'hotel']);
 
         return response()->json([
             'message' => 'Data kamar berhasil diupdate',
@@ -60,6 +69,7 @@ class KamarController
         $rooms = Kamar::with(['fasilitasKamar', 'gambarKamar'])
             ->where('id_hotel', $id_hotel)
             ->where('is_delete', false)
+            ->orderBy('harga', 'asc')
             ->get();
 
         $data = $rooms->map(function ($room) use ($validated) {
@@ -70,28 +80,49 @@ class KamarController
                 ->where('check_out', '>', $validated['check_in'])
                 ->exists();
 
-            $guestAllowed = $room->kapasitas >= $validated['guest'];
+            $guestAllowed = (int) $room->kapasitas >= (int) $validated['guest'];
             $roomEnabled = (bool) $room->status_kamar;
             $isAvailable = !$isBooked && $guestAllowed && $roomEnabled;
 
             return [
                 'id_kamar' => $room->id_kamar,
+                'id_hotel' => $room->id_hotel,
                 'nama_kamar' => $room->nama_kamar,
                 'tipe_kamar' => $room->tipe_kamar,
-                'kapasitas' => $room->kapasitas,
-                'harga' => $room->harga,
-                'status_kamar' => $room->status_kamar,
+                'kapasitas' => (int) $room->kapasitas,
+                'harga' => (int) $room->harga,
+                'rating_kamar' => (float) ($room->rating_kamar ?? 0),
+                'ukuran_kamar' => (int) ($room->ukuran_kamar ?? 0),
+                'deskripsi' => $room->deskripsi,
+                'status_kamar' => $roomEnabled,
                 'status_available' => $isAvailable,
                 'availability_label' => !$roomEnabled
                     ? 'Room inactive'
                     : (!$guestAllowed
                         ? 'Guest limit exceeded'
-                        : ($isAvailable ? 'Available' : 'Unavailable')),
+                        : ($isBooked ? 'Already booked' : 'Available')),
+                'offer' => $room->offer ?? [],
+                'occupancy' => $room->occupancy ?? [],
                 'fasilitas' => $room->fasilitasKamar,
                 'gambar_kamar' => $room->gambarKamar,
-                'data' => $room,
+                'detail_kamar' => [
+                    'id_kamar' => $room->id_kamar,
+                    'id_hotel' => $room->id_hotel,
+                    'nama_kamar' => $room->nama_kamar,
+                    'tipe_kamar' => $room->tipe_kamar,
+                    'harga' => (int) $room->harga,
+                    'kapasitas' => (int) $room->kapasitas,
+                    'deskripsi' => $room->deskripsi,
+                    'rating_kamar' => (float) ($room->rating_kamar ?? 0),
+                    'ukuran_kamar' => (int) ($room->ukuran_kamar ?? 0),
+                    'status_kamar' => $roomEnabled,
+                    'offer' => $room->offer ?? [],
+                    'occupancy' => $room->occupancy ?? [],
+                    'fasilitas' => $room->fasilitasKamar,
+                    'gambar_kamar' => $room->gambarKamar,
+                ],
             ];
-        });
+        })->values();
 
         return response()->json([
             'message' => 'Availability kamar berhasil diambil',

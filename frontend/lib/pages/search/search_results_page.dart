@@ -30,7 +30,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   List<Hotel> hotels = [];
   bool isLoading = true;
   Set<int> bookmarkedHotels = {};
+
   final ApiHotel apiHotel = ApiHotel();
+  final Map<int, int> lowestPriceByHotel = {};
 
   static const Color bgColor = Color(0xFFF3F4F4);
   static const Color primaryColor = Color(0xFF003A3F);
@@ -45,10 +47,31 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   Future<void> _loadHotels() async {
     setState(() => isLoading = true);
+
     try {
       final loadedHotels = await apiHotel.searchHotelsByLocation(
         widget.location,
       );
+
+      lowestPriceByHotel.clear();
+
+      for (final hotel in loadedHotels) {
+        if (hotel.hargaTerendah != null && hotel.hargaTerendah! > 0) {
+          lowestPriceByHotel[hotel.id] = hotel.hargaTerendah!;
+        }
+      }
+
+      loadedHotels.sort((a, b) {
+        final aPrice = lowestPriceByHotel[a.id] ?? 999999999;
+        final bPrice = lowestPriceByHotel[b.id] ?? 999999999;
+
+        if (aPrice != bPrice) {
+          return aPrice.compareTo(bPrice);
+        }
+
+        return b.rating.compareTo(a.rating);
+      });
+
       if (!mounted) return;
       setState(() {
         hotels = loadedHotels;
@@ -111,6 +134,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         builder: (context) => HotelDetailPage(
           hotel: hotel,
           initialBookmarked: bookmarkedHotels.contains(hotel.id),
+          checkInDate: widget.checkInDate,
+          checkOutDate: widget.checkOutDate,
+          guests: widget.guests,
         ),
       ),
     );
@@ -220,7 +246,6 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     widget.location,
@@ -268,9 +293,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             _buildHeader(),
             Expanded(
               child: isLoading
-                  ? const Center(
-                      child: LoadingAnimation(),
-                    )
+                  ? const Center(child: LoadingAnimation())
                   : hotels.isEmpty
                   ? Center(
                       child: Column(
@@ -314,12 +337,17 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                           hotel.latitude,
                           hotel.longitude,
                         );
+
                         return VerticalHotelCard(
                           hotel: hotel,
                           distance: distance,
                           onBookmarkTap: () => _toggleBookmark(hotel.id),
                           onTap: () => _navigateToDetail(hotel),
                           isBookmarked: bookmarkedHotels.contains(hotel.id),
+                          displayPrice:
+                              lowestPriceByHotel[hotel.id] ??
+                              hotel.hargaTerendah,
+                          isUnavailable: false,
                         );
                       },
                     ),

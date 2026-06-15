@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/widgets/loading_animation.dart';
+import 'package:intl/intl.dart';
+import 'package:sona/widgets/home/smart_image.dart';
+import 'package:sona/entity/hotel/hotel.dart';
 
 class HistoryTab extends ConsumerWidget {
   final String? token;
@@ -17,8 +20,6 @@ class HistoryTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isGuest = token == null || token!.isEmpty;
-
-    // Watch bookingsProvider
     final bookingsAsync = ref.watch(bookingsProvider);
 
     return Scaffold(
@@ -72,120 +73,120 @@ class HistoryTab extends ConsumerWidget {
   }
 
   Widget _buildBookingCard(Map<String, dynamic> booking) {
-    final String checkInStr = booking['check_in'] != null 
-        ? booking['check_in'].toString().split('T')[0] 
-        : '-';
-    final String checkOutStr = booking['check_out'] != null 
-        ? booking['check_out'].toString().split('T')[0] 
-        : '-';
-    
-    final int visitors = booking['jumlah_pengunjung'] ?? 1;
     final double cost = double.tryParse(booking['total_biaya'].toString()) ?? 0.0;
-    final String status = booking['status_pemesanan'] ?? 'pending';
+    final String status = (booking['status_pemesanan'] ?? 'pending').toString().toLowerCase();
+    final hotelJson = booking['kamar']?['hotel'];
+    final Hotel? hotel = hotelJson != null ? Hotel.fromJson(hotelJson) : null;
+    final String namaHotel = hotel?.nama ?? 'Unknown Hotel';
+    
+    final String imageUrl = hotel?.imagePath ?? 'images/hotel_paradise_resort.jpg';
 
-    Color badgeColor = Colors.orange;
-    if (status == 'confirmed') {
-      badgeColor = Colors.green;
-    } else if (status == 'canceled') {
-      badgeColor = AppTheme.errorRed;
+    final DateTime checkInDate = DateTime.tryParse(booking['check_in'] ?? '') ?? DateTime.now();
+    final DateTime checkOutDate = DateTime.tryParse(booking['check_out'] ?? '') ?? DateTime.now();
+
+    final String formattedCheckIn = DateFormat('MMM dd', 'en_US').format(checkInDate);
+    final String formattedCheckOut = DateFormat('MMM dd', 'en_US').format(checkOutDate);
+
+    final int days = checkOutDate.difference(checkInDate).inDays;
+    final String dateRange = '$formattedCheckIn - $formattedCheckOut, ${checkOutDate.year} • $days ${days > 1 ? 'Days' : 'day'}';
+
+    final NumberFormat currencyFormat = NumberFormat.currency(
+      locale: 'id_ID', 
+      symbol: 'Rp. ', 
+      decimalDigits: 0
+    );
+
+    final String formattedCost = currencyFormat.format(cost);
+
+    // Mapping menggunakan AppTheme
+    Color statusColor = const Color(0xFF00BD25); // Warna sukses dari Figma
+    String statusText = "Completed";
+    
+    if (status == 'canceled') {
+      statusColor = AppTheme.errorRed; 
+      statusText = "Cancel";
+    } else if (status == 'menunggu_review') {
+      statusColor = AppTheme.starYellow;
+      statusText = "Wait Review";
+    } else if (status == 'aktif') {
+      statusColor = AppTheme.tealLight;
+      statusText = "Active";
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.borderGrey, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
+      width: 330,
+      padding: const EdgeInsets.all(15),
+      decoration: ShapeDecoration(
+        color: AppTheme.background, // Menggunakan warna background dari AppTheme
+        shape: RoundedRectangleBorder(
+          side: BorderSide(width: 0.20, color: Colors.black.withOpacity(0.20)),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        shadows: const [
+          BoxShadow(color: Color(0x3F000000), blurRadius: 2, offset: Offset(0, 2))
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Booking #${booking['id_pemesanan']}',
-                style: AppTheme.titleStyle.copyWith(
-                  color: AppTheme.textDark,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: badgeColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  status.toUpperCase(),
-                  style: AppTheme.bodyStyle.copyWith(
-                    color: badgeColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(statusText, 
+                        style: TextStyle(color: statusColor, fontSize: 13, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 3),
+                      Text(namaHotel, 
+                        style: AppTheme.titleStyle.copyWith(fontSize: 16, color: AppTheme.primary)),
+                      Text(dateRange, 
+                        style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 12)),
+                      const SizedBox(height: 3),
+                      Text(formattedCost, 
+                        style: AppTheme.titleStyle.copyWith(fontSize: 16, color: AppTheme.primary)),
+                    ],
                   ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 68,
+                  height: 68,
+                  child: SmartImage(
+                    path: imageUrl,
+                    fit: BoxFit.cover,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),              
             ],
           ),
-          const SizedBox(height: 12),
-          const Divider(color: AppTheme.borderGrey, height: 1),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(Icons.date_range_rounded, color: AppTheme.textGrey, size: 16),
-              const SizedBox(width: 6),
-              Text(
-                '$checkInStr  to  $checkOutStr',
-                style: AppTheme.bodyStyle.copyWith(
-                  color: AppTheme.textGrey,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1, thickness: 1, color: AppTheme.borderLight),
           ),
-          const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.people_alt_rounded, color: AppTheme.textGrey, size: 16),
-              const SizedBox(width: 6),
-              Text(
-                '$visitors Visitor(s)',
-                style: AppTheme.bodyStyle.copyWith(
-                  color: AppTheme.textGrey,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: Container(
+                  height: 33,
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text('Write a Review', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total Cost',
-                style: AppTheme.bodyStyle.copyWith(
-                  color: AppTheme.textGrey,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+              const SizedBox(width: 11),
+              Container(
+                width: 33, height: 33,
+                decoration: BoxDecoration(
+                  color: AppTheme.background,
+                  border: Border.all(width: 0.6, color: AppTheme.borderTealLight),
+                  borderRadius: BorderRadius.circular(17),
                 ),
-              ),
-              Text(
-                'Rp ${cost.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
-                style: AppTheme.titleStyle.copyWith(
-                  color: AppTheme.deepTeal,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                ),
+                child: const Icon(Icons.receipt_long, size: 18, color: AppTheme.primary),
               ),
             ],
           ),

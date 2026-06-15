@@ -1,10 +1,19 @@
-// lib/widgets/hotel/hotel_policies_section.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/utils/app_theme.dart';
 
 class HotelPoliciesSection extends StatelessWidget {
-  const HotelPoliciesSection({super.key});
+  final List<HotelPolicy> policies;
+
+  const HotelPoliciesSection({super.key, required this.policies});
+
+  List<HotelPolicy> get _visiblePolicies {
+    if (policies.length <= 2) return policies;
+    return policies.take(2).toList();
+  }
+
+  bool get _hasPolicies => policies.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -20,62 +29,64 @@ class HotelPoliciesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        // Hanya menampilkan Check-in & Check-out
-        _buildPolicySection(
-          title: 'Check-in & Check-out',
-          policies: const [
-            PolicyItem(text: 'Check-in time from 14:00', isBold: false),
-            PolicyItem(text: 'Check-out time from 12:00', isBold: false),
-            PolicyItem(
-              text:
-                  'Early check-in and late check-out are subject to availability and may incur additional charges.',
-              isBold: false,
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Hanya menampilkan Cancellation & Refund
-        _buildPolicySection(
-          title: 'Cancellation & Refund',
-          policies: const [
-            PolicyItem(
-              text:
-                  'Free cancellation is available up to 48 hours before the check-in date.',
-              isBold: false,
-            ),
-            PolicyItem(
-              text:
-                  'Cancellations made within 48 hours of check-in will be subject to a one-night cancellation fee.',
-              isBold: false,
-            ),
-            PolicyItem(
-              text:
-                  'No-show reservations will be charged the full booking amount.',
-              isBold: false,
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        Center(
-          child: GestureDetector(
-            onTap: () => _showFullPoliciesBottomSheet(context),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.buttonLightTeal,
-                borderRadius: BorderRadius.circular(20),
+        if (_hasPolicies) ...[
+          ..._visiblePolicies.asMap().entries.map((entry) {
+            final index = entry.key;
+            final section = entry.value;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == _visiblePolicies.length - 1 ? 0 : 16,
               ),
-              child: Text(
-                'READ ALL',
-                style: GoogleFonts.montserrat(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.primary,
+              child: _buildPolicySection(
+                title: section.kategori,
+                policies: section.items
+                    .map((item) => PolicyItem(text: item))
+                    .toList(),
+              ),
+            );
+          }),
+          const SizedBox(height: 14),
+          Center(
+            child: GestureDetector(
+              onTap: () => _showFullPoliciesBottomSheet(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.buttonLightTeal,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'READ ALL',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ] else
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppTheme.backgroundLight,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Policies are not available yet.',
+              style: GoogleFonts.montserrat(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textTealGrey,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -150,7 +161,6 @@ class HotelPoliciesSection extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle bar
             Container(
               margin: const EdgeInsets.only(top: 12),
               width: 40,
@@ -161,18 +171,18 @@ class HotelPoliciesSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Accommodation Policies',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.primary,
+                  Expanded(
+                    child: Text(
+                      'Accommodation Policies',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primary,
+                      ),
                     ),
                   ),
                   GestureDetector(
@@ -194,7 +204,6 @@ class HotelPoliciesSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            // Content
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -204,40 +213,25 @@ class HotelPoliciesSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildFullPolicySection(
-                      title: 'Check-in & Check-out',
-                      policies: const [
-                        'Check-in time from 14:00',
-                        'Check-out time from 12:00',
-                        'Early check-in and late check-out are subject to availability and may incur additional charges.',
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _buildFullPolicySection(
-                      title: 'Cancellation & Refund',
-                      policies: const [
-                        'Free cancellation is available up to 48 hours before the check-in date.',
-                        'Cancellations made within 48 hours of check-in will be subject to a one-night cancellation fee.',
-                        'No-show reservations will be charged the full booking amount.',
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _buildFullPolicySection(
-                      title: 'Room & Stay',
-                      policies: const [
-                        'A valid ID or passport is required upon check-in.',
-                        'A security deposit may be required at check-in and will be refunded upon check-out, subject to room inspection.',
-                        'The maximum number of guests per room must not exceed the room\'s stated capacity.',
-                        'Extra beds or baby cots are available upon request and subject to availability.',
-                      ],
-                    ),
+                    ...policies.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final section = entry.value;
+
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index == policies.length - 1 ? 0 : 24,
+                        ),
+                        child: _buildFullPolicySection(
+                          title: section.kategori,
+                          policies: section.items,
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            // Bottom button
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: SizedBox(
@@ -262,7 +256,6 @@ class HotelPoliciesSection extends StatelessWidget {
                 ),
               ),
             ),
-            // Safe area untuk menghindari notched display
             const SizedBox(height: 8),
           ],
         ),

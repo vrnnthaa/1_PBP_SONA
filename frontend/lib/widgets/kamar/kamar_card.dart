@@ -9,7 +9,7 @@ class KamarCard extends StatelessWidget {
 
   const KamarCard({super.key, required this.room, required this.onSelectRoom});
 
-  String _formatPrice(int price) {
+  String _formatPrice(num price) {
     final formatted = price.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',
@@ -17,8 +17,46 @@ class KamarCard extends StatelessWidget {
     return 'Rp $formatted';
   }
 
+  String? _resolveFacilityName(dynamic item) {
+    try {
+      final dynamic value =
+          item.namaFasilitas ?? item.nama ?? item.fasilitas ?? item.label;
+      if (value == null) return null;
+
+      final text = value.toString().trim();
+      if (text.isEmpty) return null;
+      return text;
+    } catch (_) {
+      final text = item.toString().trim();
+      if (text.isEmpty || text == 'Instance of \'Fasilitas\'') return null;
+      return text;
+    }
+  }
+
   List<String> _getFacilities() {
-    return room.detailKamar?.fasilitas ?? [];
+    final fasilitasList = room.detailKamar?.daftarFasilitas ?? [];
+
+    final facilities = fasilitasList
+        .map(_resolveFacilityName)
+        .whereType<String>()
+        .where((e) => e.isNotEmpty)
+        .take(6)
+        .toList();
+
+    if (facilities.isNotEmpty) return facilities;
+
+    final desc = (room.detailKamar?.deskripsi ?? '').toLowerCase();
+    final fallback = <String>[];
+
+    if (desc.contains('wifi')) fallback.add('WiFi');
+    if (desc.contains('ac') || desc.contains('air conditioning')) {
+      fallback.add('Air Conditioning');
+    }
+    if (desc.contains('breakfast')) fallback.add('Breakfast');
+    if (desc.contains('bathroom')) fallback.add('Private Bathroom');
+    if (desc.contains('tv')) fallback.add('TV');
+
+    return fallback;
   }
 
   List<String> _getImages() {
@@ -37,19 +75,46 @@ class KamarCard extends StatelessWidget {
     return desc;
   }
 
+  String _getRoomName() {
+    final detailName = room.detailKamar?.namaKamar.trim() ?? '';
+    final fallbackName = room.namaKamar.trim();
+    if (detailName.isNotEmpty) return detailName;
+    if (fallbackName.isNotEmpty) return fallbackName;
+    return 'Room';
+  }
+
+  double _getPrice() {
+    final detailPrice = room.detailKamar?.harga ?? 0;
+    return (detailPrice > 0 ? detailPrice : room.harga).toDouble();
+  }
+
+  int _getCapacity() {
+    final detailCapacity = room.detailKamar?.kapasitas ?? 0;
+    return detailCapacity > 0 ? detailCapacity : room.kapasitas;
+  }
+
+  int _getRoomSize() {
+    return room.detailKamar?.ukuranKamar ?? 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isAvailable = room.statusAvailable;
     final facilities = _getFacilities();
     final images = _getImages();
     final description = _getDescription();
+    final roomName = _getRoomName();
+    final roomPrice = _getPrice();
+    final roomCapacity = _getCapacity();
+    final roomSize = _getRoomSize();
 
-    debugPrint('ROOM: ${room.namaKamar}');
+    debugPrint('ROOM: $roomName');
     debugPrint('DETAIL ADA: ${room.detailKamar != null}');
     debugPrint(
-      'JUMLAH FASILITAS RAW: ${room.detailKamar?.daftarFasilitas.length}',
+      'JUMLAH FASILITAS: ${room.detailKamar?.daftarFasilitas.length ?? 0}',
     );
-    debugPrint('FASILITAS GETTER: ${room.detailKamar?.fasilitas}');
+    debugPrint('FASILITAS GETTER: $facilities');
+
     return Opacity(
       opacity: isAvailable ? 1 : 0.6,
       child: Container(
@@ -73,27 +138,23 @@ class KamarCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Image carousel ──────────────────────────
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(18),
               ),
               child: _RoomImageCarousel(images: images),
             ),
-
-            // ── Content ─────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name + badge
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         child: Text(
-                          room.namaKamar,
+                          roomName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.montserrat(
@@ -129,10 +190,7 @@ class KamarCard extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 5),
-
-                  // Description
                   Text(
                     description,
                     maxLines: 2,
@@ -144,10 +202,7 @@ class KamarCard extends StatelessWidget {
                       height: 1.45,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
-                  // Guests + area
                   Row(
                     children: [
                       const Icon(
@@ -157,32 +212,32 @@ class KamarCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 3),
                       Text(
-                        '${room.kapasitas} guests',
+                        '$roomCapacity guests',
                         style: GoogleFonts.roboto(
                           color: AppTheme.textTealGrey,
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      const Icon(
-                        Icons.square_foot_rounded,
-                        size: 14,
-                        color: AppTheme.textTealGrey,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        '35 m²',
-                        style: GoogleFonts.roboto(
+                      if (roomSize > 0) ...[
+                        const SizedBox(width: 14),
+                        const Icon(
+                          Icons.square_foot_rounded,
+                          size: 14,
                           color: AppTheme.textTealGrey,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
                         ),
-                      ),
+                        const SizedBox(width: 3),
+                        Text(
+                          '$roomSize m²',
+                          style: GoogleFonts.roboto(
+                            color: AppTheme.textTealGrey,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
-
-                  // Facilities chips
                   if (facilities.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     SizedBox(
@@ -221,15 +276,9 @@ class KamarCard extends StatelessWidget {
                       ),
                     ),
                   ],
-
                   const SizedBox(height: 12),
-
-                  // Divider tipis
                   Container(height: 1, color: const Color(0xFFF0F2F2)),
-
                   const SizedBox(height: 12),
-
-                  // Price + button
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -251,7 +300,7 @@ class KamarCard extends StatelessWidget {
                               text: TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: _formatPrice(room.harga),
+                                    text: _formatPrice(roomPrice),
                                     style: GoogleFonts.montserrat(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w800,
@@ -352,12 +401,17 @@ class _RoomImageCarouselState extends State<_RoomImageCarousel> {
             itemBuilder: (context, index) {
               final bool hasRealImage =
                   hasImages && index < widget.images.length;
+
               return Padding(
                 padding: EdgeInsets.only(right: index == itemCount - 1 ? 0 : 6),
                 child: hasRealImage
                     ? Image.network(
                         widget.images[index],
                         fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return _buildFallback(isLoading: true);
+                        },
                         errorBuilder: (_, __, ___) => _buildFallback(),
                       )
                     : _buildFallback(),
@@ -393,11 +447,21 @@ class _RoomImageCarouselState extends State<_RoomImageCarousel> {
     );
   }
 
-  Widget _buildFallback() {
+  Widget _buildFallback({bool isLoading = false}) {
     return Container(
       color: const Color(0xFFE7E7E7),
-      child: const Center(
-        child: Icon(Icons.image_outlined, size: 28, color: Color(0xFF888888)),
+      child: Center(
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(
+                Icons.image_outlined,
+                size: 28,
+                color: Color(0xFF888888),
+              ),
       ),
     );
   }

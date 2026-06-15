@@ -53,11 +53,12 @@ Route::get('/hotel/{id_hotel}/available-rooms', [KamarController::class, 'getAva
 
 // Hotel
 Route::get('/hotels', [HotelController::class, 'index']);
+Route::get('/hotels/search', [HotelController::class, 'search']);
 Route::get('/hotels/{id_hotel}', [HotelController::class, 'show']);
 Route::post('/hotels', [HotelController::class, 'store']);
 Route::put('/hotels/{id_hotel}', [HotelController::class, 'update']);
 Route::delete('/hotels/{id_hotel}', [HotelController::class, 'destroy']);
-Route::get('/hotels/search', [HotelController::class, 'search']);
+Route::post('/hotels/{id_hotel}/refresh-aggregate', [HotelController::class, 'refreshAggregate']);
 
 // Fasilitas Hotel
 Route::get('/fasilitas-hotel', [FasilitasHotelController::class, 'index']);
@@ -112,7 +113,7 @@ Route::delete('/pembayaran/{id}', [PembayaranController::class, 'destroy']);
 // ^-^
 // Add-On
 // T-T
-Route::get('/addon/kamar/{id_kamar}', [AddOnController::class, 'getByKamar']);
+Route::get('/addon/pemesanan/{id_pemesanan}', [AddOnController::class, 'getByPemesanan']);
 Route::get('/addon', [AddOnController::class, 'index']);
 Route::get('/addon/{id}', [AddOnController::class, 'show']);
 Route::post('/addon', [AddOnController::class, 'store']);

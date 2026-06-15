@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pemesanan;
+use App\Models\AddOn;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
-class PemesananController
+class PemesananController extends Controller
 {
     public function index()
     {
@@ -47,6 +49,12 @@ class PemesananController
             'check_out' => 'required|date|after:check_in',
             'jumlah_pengunjung' => 'required|integer|min:1',
             'total_biaya' => 'required|numeric|min:0',
+            
+            //Validasi untuk addons
+            'addons' => 'array|nullable',
+            'addons.*.nama' => 'required_with:addons|string',
+            'addons.*.harga' => 'required_with:addons|numeric',
+            'addons.*.keterangan' => 'required_with:addons|string',
         ]);
 
         $isOverlapping = Pemesanan::where('id_kamar', $validated['id_kamar'])
@@ -64,14 +72,52 @@ class PemesananController
             ], 422);
         }
 
-        $validated['status_pemesanan'] = Pemesanan::STATUS_AKTIF;
+        DB::beginTransaction();
 
-        $pemesanan = Pemesanan::create($validated);
+        try {
+            $pemesananData = [
+                'id_user' => $validated['id_user'],
+                'id_kamar' => $validated['id_kamar'],
+                'check_in' => $validated['check_in'],
+                'check_out' => $validated['check_out'],
+                'jumlah_pengunjung' => $validated['jumlah_pengunjung'],
+                'total_biaya' => $validated['total_biaya'],
+                'status_pemesanan' => Pemesanan::STATUS_AKTIF,
+            ];
+    
+            $pemesanan = Pemesanan::create($pemesananData);
 
-        return response()->json([
-            'message' => 'Pemesanan berhasil dibuat',
-            'data' => $pemesanan->load(['user', 'kamar', 'pembayaran', 'review']),
-        ], 201);
+            if (!empty($validated['addons'])) {
+                foreach ($validated['addons'] as $addon) {
+                    $addonData = [
+                        'id_pemesanan' => $pemesanan->id_pemesanan,
+                        'nama_addon' => $addon['nama'],
+                        'harga_addon' => $addon['harga'],
+                        'keterangan_addon' => $addon['keterangan'],
+                    ];
+                    AddOn::create($addonData);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Pemesanan berhasil dibuat',
+                'data' => $pemesanan->load(['user', 'kamar', 'pembayaran', 'review']),
+            ], 201);
+            
+        }catch (\Exception $e) {
+            
+            DB::rollBack();
+
+            \Illuminate\Support\Facades\Log::error('Pemesanan Error Asli: ' . $e->getMessage());
+            
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat membuat pemesanan',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
     }
 
     public function update(Request $request, $id)
@@ -184,16 +230,47 @@ class PemesananController
         ], 200);
     }
 
-    public function getByUser($id_user)
-    {
-        $pemesanan = Pemesanan::with(['kamar', 'pembayaran', 'review'])
-            ->where('id_user', $id_user)
-            ->latest('id_pemesanan')
-            ->get();
+    // public function getByUser($id_user)
+    // {
+    //     $pemesanan = Pemesanan::with(['kamar', 'pembayaran', 'review'])
+    //         ->where('id_user', $id_user)
+    //         ->latest('id_pemesanan')
+    //         ->get();
 
-        return response()->json([
-            'message' => 'Data pemesanan user berhasil diambil',
-            'data' => $pemesanan,
-        ], 200);
-    }
+    //     return response()->json([
+    //         'message' => 'Data pemesanan user berhasil diambil',
+    //         'data' => $pemesanan,
+    //     ], 200);
+    // }
+
+    public function getByUser($id_user)
+{
+    // Kita gunakan model Pemesanan, pastikan relasi di Model sudah didefinisikan dengan benar
+    $pemesanan = Pemesanan::with(['kamar.hotel', 'pembayaran', 'review']) // Tambahkan kamar.hotel agar bisa menampilkan nama hotel
+        ->where('id_user', $id_user)
+        ->latest('id_pemesanan')
+        ->get()
+        ->filter(function ($item) {
+            // Filter manual jika ada relasi yang null untuk mencegah error aplikasi
+            return $item->kamar !== null; 
+        })
+        ->values(); // Reset index array
+
+    return response()->json([
+        'message' => 'Data pemesanan user berhasil diambil',
+        'data' => $pemesanan,
+    ], 200);
+}
+
+    // public function getByUser($id_user)
+    // {
+    //     $pemesanan = Pemesanan::where('id_user', $id_user)
+    //         ->latest('id_pemesanan')
+    //         ->get();
+
+    //     return response()->json([
+    //         'message' => 'Data pemesanan user berhasil diambil',
+    //         'data' => $pemesanan,
+    //     ], 200);
+    // }
 }

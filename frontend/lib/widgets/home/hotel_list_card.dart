@@ -18,12 +18,20 @@ class HotelListCard extends StatelessWidget {
     this.isBookmarked = false,
   });
 
+  String _formatPrice(int? price) {
+    if (price == null || price <= 0) return 'Price unavailable';
+
+    final formatted = price.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
+
+    return 'Rp $formatted';
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Generate a beautiful, realistic dynamic price based on the hotel's ID so it feels alive
-    final int generatedPrice = 350 + (hotel.id * 180) % 1200;
-    final String priceStr = 'Rp ${generatedPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}.000/Night';
-
+    final String priceStr = _formatPrice(hotel.hargaTerendah);
     final String imagePath = hotel.imagePath ?? '';
 
     return GestureDetector(

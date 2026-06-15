@@ -18,8 +18,18 @@ const Color pillInnerColor = Color(0xFFDDE3E3);
 class KamarPage extends StatefulWidget {
   final int idHotel;
   final String hotelName;
+  final DateTime? checkInDate;
+  final DateTime? checkOutDate;
+  final int guests;
 
-  const KamarPage({super.key, required this.idHotel, required this.hotelName});
+  const KamarPage({
+    super.key,
+    required this.idHotel,
+    required this.hotelName,
+    this.checkInDate,
+    this.checkOutDate,
+    this.guests = 1,
+  });
 
   @override
   State<KamarPage> createState() => _KamarPageState();
@@ -29,29 +39,52 @@ class _KamarPageState extends State<KamarPage> {
   final ApiKamar _apiKamar = ApiKamar();
 
   late DateTimeRange _selectedDateRange;
-  int _guestCount = 2;
+  late int _guestCount;
 
   bool _isLoading = true;
+  String? _errorMessage;
   List<KamarAvailability> _rooms = [];
 
   @override
   void initState() {
     super.initState();
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    _selectedDateRange = DateTimeRange(
-      start: today.add(const Duration(days: 1)),
-      end: today.add(const Duration(days: 3)),
-    );
+    final incomingCheckIn = widget.checkInDate;
+    final incomingCheckOut = widget.checkOutDate;
+
+    final DateTime initialStart = incomingCheckIn != null
+        ? DateTime(
+            incomingCheckIn.year,
+            incomingCheckIn.month,
+            incomingCheckIn.day,
+          )
+        : today.add(const Duration(days: 1));
+
+    final DateTime initialEnd =
+        incomingCheckOut != null && incomingCheckOut.isAfter(initialStart)
+        ? DateTime(
+            incomingCheckOut.year,
+            incomingCheckOut.month,
+            incomingCheckOut.day,
+          )
+        : initialStart.add(const Duration(days: 1));
+
+    _selectedDateRange = DateTimeRange(start: initialStart, end: initialEnd);
+    _guestCount = widget.guests > 0 ? widget.guests : 1;
 
     _fetchRooms();
   }
 
   Future<void> _fetchRooms() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       final result = await _apiKamar.fetchAvailableRooms(
@@ -61,14 +94,13 @@ class _KamarPageState extends State<KamarPage> {
         guest: _guestCount,
       );
 
-      final sortedRooms = List<KamarAvailability>.from(result);
-
-      sortedRooms.sort((a, b) {
-        if (a.statusAvailable != b.statusAvailable) {
-          return a.statusAvailable ? -1 : 1;
-        }
-        return a.harga.compareTo(b.harga);
-      });
+      final sortedRooms = List<KamarAvailability>.from(result)
+        ..sort((a, b) {
+          if (a.statusAvailable != b.statusAvailable) {
+            return a.statusAvailable ? -1 : 1;
+          }
+          return a.harga.compareTo(b.harga);
+        });
 
       if (!mounted) return;
 
@@ -78,9 +110,19 @@ class _KamarPageState extends State<KamarPage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      setState(() {
+        _rooms = [];
+        _errorMessage = 'Gagal memuat kamar. Coba lagi.';
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString(),
+            style: GoogleFonts.montserrat(fontSize: 12.5),
+          ),
+        ),
+      );
     } finally {
       if (!mounted) return;
 
@@ -264,9 +306,18 @@ class _KamarPageState extends State<KamarPage> {
   void _onSelectRoom(KamarAvailability room) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => RoomDetailPage(room: room)),
+      MaterialPageRoute(
+        builder: (_) => RoomDetailPage(
+          room: room,
+          checkInDate: _selectedDateRange.start,
+          checkOutDate: _selectedDateRange.end,
+          guests: _guestCount,
+          hotelName: widget.hotelName,
+        ),
+      ),
     );
   }
+  //Izin verr
 
   Widget _buildHeader() {
     return Container(
@@ -435,6 +486,43 @@ class _KamarPageState extends State<KamarPage> {
     );
   }
 
+  Widget _buildErrorState() {
+    return RefreshIndicator(
+      onRefresh: _fetchRooms,
+      child: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          const SizedBox(height: 120),
+          const Icon(
+            Icons.cloud_off_rounded,
+            size: 58,
+            color: Color(0xFF8CA0A3),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            _errorMessage ?? 'Terjadi kesalahan',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: primaryColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tarik ke bawah untuk mencoba lagi',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w500,
+              color: secondaryText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -453,9 +541,9 @@ class _KamarPageState extends State<KamarPage> {
             _buildHeader(),
             Expanded(
               child: _isLoading
-                  ? const Center(
-                      child: LoadingAnimation(),
-                    )
+                  ? const Center(child: LoadingAnimation())
+                  : _errorMessage != null
+                  ? _buildErrorState()
                   : _rooms.isEmpty
                   ? _buildEmptyState()
                   : RefreshIndicator(
