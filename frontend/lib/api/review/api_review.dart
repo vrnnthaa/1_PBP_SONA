@@ -21,4 +21,22 @@ class ApiReview {
       throw Exception('Terjadi kesalahan jaringan: $e');
     }
   }
+
+  Future<HotelReviewResponse> fetchRoomReviews(int idKamar) async {
+    try {
+      final response = await get(
+        Uri.parse('${ApiConfig.baseUrl}/reviews/room/$idKamar'),
+        headers: ApiConfig.getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        return HotelReviewResponse.fromJson(jsonResponse);
+      } else {
+        throw Exception('Gagal memuat review kamar');
+      }
+    } catch (e) {
+      throw Exception('Terjadi kesalahan jaringan: $e');
+    }
+  }
 }
