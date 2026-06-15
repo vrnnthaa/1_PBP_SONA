@@ -13,7 +13,11 @@ import 'package:sona/widgets/hotel/hotel_review_section.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/review/review_models.dart';
 
-class RoomDetailPage extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sona/providers/auth/profile_provider.dart';
+
+
+class RoomDetailPage extends ConsumerStatefulWidget {
   final KamarAvailability room;
   final DateTime checkInDate;
   final DateTime checkOutDate;
@@ -30,10 +34,10 @@ class RoomDetailPage extends StatefulWidget {
   });
 
   @override
-  State<RoomDetailPage> createState() => _RoomDetailPageState();
+  ConsumerState<RoomDetailPage> createState() => _RoomDetailPageState();
 }
 
-class _RoomDetailPageState extends State<RoomDetailPage> {
+class _RoomDetailPageState extends ConsumerState<RoomDetailPage> {
   final PageController _pageController = PageController();
   int _currentImage = 0;
 
@@ -154,6 +158,13 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
 
   void navigateToBooking(KamarAvailability room) {
     final listGambar = _getImages();
+
+    final profileAsync = ref.read(profileProvider);
+    final profile = profileAsync.valueOrNull;
+
+    final int currentUserId = (profile != null && profile['id_user'] != null)
+      ? int.tryParse(profile['id_user'].toString()) ?? 0 : 0; 
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -161,7 +172,8 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
           idKamar: room.idKamar,
           namaKamar: _getRoomName(),
           hargaTotal: (_getTotalPrice()).toDouble(),
-          idUser: 1,
+          hargaKamar: widget.room.harga,
+          idUser: currentUserId,
           selectedDateRange: DateTimeRange(
             start: widget.checkInDate,
             end: widget.checkOutDate,
