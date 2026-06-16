@@ -83,7 +83,7 @@ class PembayaranController
 
             if ($pemesanan) {
                 if ($validated['status_pembayaran'] === Pembayaran::STATUS_PAID) {
-                    $pemesanan->update(['status_pemesanan' => Pemesanan::STATUS_CONFIRMED]);
+                    $pemesanan->update(['status_pemesanan' => Pemesanan::STATUS_AKTIF]);
                 } elseif (in_array($validated['status_pembayaran'], [
                     Pembayaran::STATUS_FAILED,
                     Pembayaran::STATUS_EXPIRED,

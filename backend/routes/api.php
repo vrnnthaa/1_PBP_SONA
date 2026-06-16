@@ -48,7 +48,8 @@ Route::delete('/fasilitas-kamar/{id_fasilitaskamar}', [FasilitasKamarController:
 Route::get('/reviews/room/{id_kamar}', [ReviewController::class, 'getRoomReviews']);
 
 Route::get('/reviews/hotel/{idHotel}', [ReviewController::class, 'byHotel']);
-Route::get('/reviews', [ReviewController::class, 'all']);
+Route::get('/reviews', [ReviewController::class, 'index']);
+Route::post('/reviews', [ReviewController::class, 'store']);
 Route::get('/hotel/{id_hotel}/available-rooms', [KamarController::class, 'getAvailableRooms']);
 
 // Hotel

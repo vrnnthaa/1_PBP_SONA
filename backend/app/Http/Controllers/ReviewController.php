@@ -83,6 +83,10 @@ class ReviewController
             'is_delete' => false,
         ]);
 
+        $pemesanan->update([
+            'status_pemesanan' => Pemesanan::STATUS_SUDAH_REVIEW,
+        ]);
+
         $idHotel = $review->id_hotel;
         $averageRating = Review::where('id_hotel', $idHotel)
             ->where('is_delete', false)

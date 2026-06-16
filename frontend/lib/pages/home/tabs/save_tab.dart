@@ -121,6 +121,7 @@ class _SaveTabState extends ConsumerState<SaveTab> {
       return Scaffold(
         backgroundColor: AppTheme.background,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
@@ -140,7 +141,17 @@ class _SaveTabState extends ConsumerState<SaveTab> {
             ),
           ),
         ),
-        body: _buildEmptyState(),
+        body: RefreshIndicator(
+          onRefresh: () => ref.read(savedHotelsProvider.notifier).loadSavedHotels(),
+          color: AppTheme.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height - 180,
+              child: _buildEmptyState(),
+            ),
+          ),
+        ),
       );
     }
 
@@ -149,6 +160,7 @@ class _SaveTabState extends ConsumerState<SaveTab> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -190,13 +202,20 @@ class _SaveTabState extends ConsumerState<SaveTab> {
         onRefresh: () => ref.read(savedHotelsProvider.notifier).loadSavedHotels(),
         color: AppTheme.primary,
         child: filteredHotels.isEmpty
-            ? Center(
-                child: Text(
-                  'No stays match this filter',
-                  style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 14),
+            ? SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height - 250,
+                  child: Center(
+                    child: Text(
+                      'No stays match this filter',
+                      style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 14),
+                    ),
+                  ),
                 ),
               )
             : ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
                 itemCount: filteredHotels.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),

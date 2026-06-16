@@ -5,6 +5,7 @@ import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/widgets/input_box.dart';
 import 'package:sona/widgets/confirmation_pop_up.dart';
 import 'package:sona/widgets/loading_animation.dart';
+import 'package:sona/widgets/utils/alert_success.dart';
 
 class ChangePasswordPage extends ConsumerStatefulWidget {
   final String token;
@@ -103,10 +104,12 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
           _isLoading = false;
         });
 
-        // Show bouncy success alert pop-up (Password Changes.svg)
-        await CustomPopUp.showSuccess(
+        // Show bouncy success alert pop-up (AlertSuccess template)
+        await AlertSuccess.show(
           context: context,
-          assetPath: 'assets/alert/Password Changes.svg',
+          title: 'Password Changed!',
+          subtitle: 'your security settings have been updated',
+          duration: const Duration(seconds: 3),
         );
 
         if (mounted) {

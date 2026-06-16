@@ -70,6 +70,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: GuestBottomNav(
               currentIndex: _currentTabIndex,
               onTap: (index) {
+                if (index == 3) {
+                  ref.invalidate(bookingsProvider);
+                }
                 setState(() {
                   _currentTabIndex = index;
                 });

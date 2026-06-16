@@ -6,6 +6,7 @@ import 'package:sona/widgets/loading_animation.dart';
 import 'package:intl/intl.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 import 'package:sona/entity/hotel/hotel.dart';
+import 'package:sona/pages/review/make_review_page.dart';
 
 class HistoryTab extends ConsumerWidget {
   final String? token;
@@ -25,6 +26,7 @@ class HistoryTab extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -52,27 +54,38 @@ class HistoryTab extends ConsumerWidget {
                 child: Text('Error loading booking history: $err'),
               ),
               data: (bookings) {
-                return bookings.isEmpty
-                    ? _buildUserEmptyState(context)
-                    : RefreshIndicator(
-                        onRefresh: () => ref.refresh(bookingsProvider.future),
-                        color: AppTheme.primary,
-                        child: ListView.separated(
+                return RefreshIndicator(
+                  onRefresh: () => ref.refresh(bookingsProvider.future),
+                  color: AppTheme.primary,
+                  child: bookings.isEmpty
+                      ? SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height - 180,
+                            child: _buildUserEmptyState(context),
+                          ),
+                        )
+                      : ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
                           itemCount: bookings.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final booking = bookings[index];
-                            return _buildBookingCard(booking);
+                            return _buildBookingCard(context, booking);
                           },
                         ),
-                      );
+                );
               },
             ),
     );
   }
 
-  Widget _buildBookingCard(Map<String, dynamic> booking) {
+  Widget _buildBookingCard(BuildContext context, Map<String, dynamic> booking) {
     final double cost = double.tryParse(booking['total_biaya'].toString()) ?? 0.0;
     final String status = (booking['status_pemesanan'] ?? 'pending').toString().toLowerCase();
     final hotelJson = booking['kamar']?['hotel'];
@@ -102,15 +115,18 @@ class HistoryTab extends ConsumerWidget {
     Color statusColor = const Color(0xFF00BD25); // Warna sukses dari Figma
     String statusText = "Completed";
     
-    if (status == 'canceled') {
+    if (status == 'canceled' || status == 'cancelled') {
       statusColor = AppTheme.errorRed; 
       statusText = "Cancel";
-    } else if (status == 'menunggu_review') {
+    } else if (status == 'menunggu_review' || status == 'menunggu review') {
       statusColor = AppTheme.starYellow;
       statusText = "Wait Review";
     } else if (status == 'aktif') {
       statusColor = AppTheme.tealLight;
       statusText = "Active";
+    } else if (status == 'sudah_review' || status == 'sudah review') {
+      statusColor = const Color(0xFF00BD25);
+      statusText = "Completed";
     }
 
     return Container(
@@ -168,14 +184,42 @@ class HistoryTab extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: Container(
-                  height: 33,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.primaryGradient,
-                    borderRadius: BorderRadius.circular(10),
+                child: GestureDetector(
+                  onTap: (status == 'menunggu_review' || status == 'menunggu review')
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MakeReviewPage(booking: booking),
+                            ),
+                          );
+                        }
+                      : null,
+                  child: Container(
+                    height: 33,
+                    decoration: BoxDecoration(
+                      gradient: (status == 'menunggu_review' || status == 'menunggu review')
+                          ? AppTheme.primaryGradient
+                          : null,
+                      color: (status == 'menunggu_review' || status == 'menunggu review')
+                          ? null
+                          : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      (status == 'sudah_review' || status == 'sudah review')
+                          ? 'Reviewed'
+                          : 'Write a Review',
+                      style: TextStyle(
+                        color: (status == 'menunggu_review' || status == 'menunggu review')
+                            ? Colors.white
+                            : Colors.grey.shade600,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                  alignment: Alignment.center,
-                  child: const Text('Write a Review', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
                 ),
               ),
               const SizedBox(width: 11),

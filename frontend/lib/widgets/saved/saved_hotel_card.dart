@@ -19,6 +19,17 @@ class SavedHotelCard extends StatelessWidget {
     required this.onBookmarkTap,
   });
 
+  String _formatPrice(int? price) {
+    if (price == null || price <= 0) return 'Price unavailable';
+
+    final formatted = price.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
+
+    return 'Rp $formatted';
+  }
+
   @override
   Widget build(BuildContext context) {
     // Use real distance if provided, otherwise fallback to realistic mock distance
@@ -73,7 +84,9 @@ class SavedHotelCard extends StatelessWidget {
                 left: 16,
                 top: 16,
                 child: Text(
-                  'Rp 1.500.000 / Night', // Matches mockup text
+                  hotel.hargaTerendah != null && hotel.hargaTerendah! > 0
+                      ? '${_formatPrice(hotel.hargaTerendah)} / Night'
+                      : 'Price unavailable',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,

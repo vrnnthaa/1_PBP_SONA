@@ -53,11 +53,22 @@ class _MapTabState extends ConsumerState<MapTab> {
     );
   }
 
+  String _formatPrice(int? price) {
+    if (price == null || price <= 0) return 'Price unavailable';
+
+    final formatted = price.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
+
+    return 'Rp $formatted';
+  }
+
   // Build the premium floating hotel pop-up card overlay (Matches screenshot)
   Widget _buildHotelPopupCard(Hotel hotel) {
-    // Generate price in "jt/night" format, e.g. Rp 1,2jt/night matching screenshot
-    final int generatedPrice = 350 + (hotel.id * 180) % 1200;
-    final String priceStr = 'Rp ${(generatedPrice / 1000).toStringAsFixed(1).replaceAll('.', ',')}jt/night';
+    final String priceStr = hotel.hargaTerendah != null && hotel.hargaTerendah! > 0
+        ? '${_formatPrice(hotel.hargaTerendah)}/night'
+        : 'Price unavailable';
 
     final String fallbackImagePath = 'assets/images/stay_wandala.jpg';
     final String imagePath = hotel.imagePath ?? fallbackImagePath;
@@ -233,8 +244,9 @@ class _MapTabState extends ConsumerState<MapTab> {
 
             // Recommendation Items
             ...recommendationHotels.map((hotel) {
-              final int generatedPrice = 350 + (hotel.id * 180) % 1200;
-              final String priceStr = 'Rp ${generatedPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}.000/Night';
+              final String priceStr = hotel.hargaTerendah != null && hotel.hargaTerendah! > 0
+                  ? '${_formatPrice(hotel.hargaTerendah)}/Night'
+                  : 'Price unavailable';
 
               return GestureDetector(
                 onTap: () {
