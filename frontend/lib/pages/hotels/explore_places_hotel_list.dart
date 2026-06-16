@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sona/api/hotel/api_hotel.dart';
 import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/pages/hotels/hotel_detail.dart';
 import 'package:sona/utils/app_theme.dart';
@@ -14,6 +15,9 @@ const _placeImageMap = {
   'labuan bajo': 'assets/images/place_labuan_bajo.jpg',
   'lombok': 'assets/images/place_lombok.jpg',
   'yogyakarta': 'assets/images/place_yogyakarta.jpg',
+  'anyer': 'assets/images/place_anyer.jpg',
+  'bogor': 'assets/images/place_bogor.jpg',
+  'bandung': 'assets/images/place_bandung.jpg',
 };
 
 class ExplorePlacesHotelListPage extends StatefulWidget {
@@ -44,6 +48,31 @@ class _ExplorePlacesHotelListPageState
   void initState() {
     super.initState();
     _prepareHotels();
+  }
+
+  Future<void> _handleRefresh() async {
+    try {
+      final fetched = await ApiHotel().fetchHotels();
+      final filteredHotels = fetched
+          .where((hotel) => _matchesPlace(hotel, widget.placeName))
+          .toList()
+        ..sort((a, b) => a.id.compareTo(b.id));
+
+      lowestPriceByHotel.clear();
+      for (final hotel in filteredHotels) {
+        if (hotel.hargaTerendah != null && hotel.hargaTerendah! > 0) {
+          lowestPriceByHotel[hotel.id] = hotel.hargaTerendah!;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        hotels = filteredHotels;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Error refreshing places: $e', false);
+    }
   }
 
   Future<void> _prepareHotels() async {
@@ -169,7 +198,11 @@ class _ExplorePlacesHotelListPageState
       backgroundColor: const Color(0xFFF3F4F4),
       body: isLoading
           ? const Center(child: LoadingAnimation())
-          : _buildScrollBody(),
+          : RefreshIndicator(
+              onRefresh: _handleRefresh,
+              color: AppTheme.primary,
+              child: _buildScrollBody(),
+            ),
     );
   }
 
@@ -179,7 +212,7 @@ class _ExplorePlacesHotelListPageState
     const double overlapOffset = 24.0;
 
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

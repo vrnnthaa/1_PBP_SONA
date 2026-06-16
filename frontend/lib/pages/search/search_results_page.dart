@@ -84,6 +84,41 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     }
   }
 
+  Future<void> _handleRefresh() async {
+    try {
+      final loadedHotels = await apiHotel.searchHotelsByLocation(
+        widget.location,
+      );
+
+      lowestPriceByHotel.clear();
+
+      for (final hotel in loadedHotels) {
+        if (hotel.hargaTerendah != null && hotel.hargaTerendah! > 0) {
+          lowestPriceByHotel[hotel.id] = hotel.hargaTerendah!;
+        }
+      }
+
+      loadedHotels.sort((a, b) {
+        final aPrice = lowestPriceByHotel[a.id] ?? 999999999;
+        final bPrice = lowestPriceByHotel[b.id] ?? 999999999;
+
+        if (aPrice != bPrice) {
+          return aPrice.compareTo(bPrice);
+        }
+
+        return b.rating.compareTo(a.rating);
+      });
+
+      if (!mounted) return;
+      setState(() {
+        hotels = loadedHotels;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Error refreshing hotels: $e', false);
+    }
+  }
+
   double _calculateDistance(
     double lat1,
     double lon1,
@@ -294,62 +329,77 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             Expanded(
               child: isLoading
                   ? const Center(child: LoadingAnimation())
-                  : hotels.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.search_off_rounded,
-                            size: 64,
-                            color: Color(0xFF6B8A8D),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Tidak ada hotel di\n"${widget.location}"',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: primaryColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Coba cari lokasi lain',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF6B8A8D),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                      itemCount: hotels.length,
-                      itemBuilder: (context, index) {
-                        final hotel = hotels[index];
-                        final distance = _calculateDistance(
-                          -8.3405,
-                          115.0920,
-                          hotel.latitude,
-                          hotel.longitude,
-                        );
+                  : RefreshIndicator(
+                      onRefresh: _handleRefresh,
+                      color: const Color(0xFF0B9AA4),
+                      child: hotels.isEmpty
+                          ? SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(
+                                parent: BouncingScrollPhysics(),
+                              ),
+                              child: SizedBox(
+                                height: MediaQuery.of(context).size.height - 250,
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.search_off_rounded,
+                                        size: 64,
+                                        color: Color(0xFF6B8A8D),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Tidak ada hotel di\n"${widget.location}"',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          color: primaryColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Coba cari lokasi lain',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w400,
+                                          color: const Color(0xFF6B8A8D),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(
+                                parent: BouncingScrollPhysics(),
+                              ),
+                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                              itemCount: hotels.length,
+                              itemBuilder: (context, index) {
+                                final hotel = hotels[index];
+                                final distance = _calculateDistance(
+                                  -8.3405,
+                                  115.0920,
+                                  hotel.latitude,
+                                  hotel.longitude,
+                                );
 
-                        return VerticalHotelCard(
-                          hotel: hotel,
-                          distance: distance,
-                          onBookmarkTap: () => _toggleBookmark(hotel.id),
-                          onTap: () => _navigateToDetail(hotel),
-                          isBookmarked: bookmarkedHotels.contains(hotel.id),
-                          displayPrice:
-                              lowestPriceByHotel[hotel.id] ??
-                              hotel.hargaTerendah,
-                          isUnavailable: false,
-                        );
-                      },
+                                return VerticalHotelCard(
+                                  hotel: hotel,
+                                  distance: distance,
+                                  onBookmarkTap: () => _toggleBookmark(hotel.id),
+                                  onTap: () => _navigateToDetail(hotel),
+                                  isBookmarked: bookmarkedHotels.contains(hotel.id),
+                                  displayPrice:
+                                      lowestPriceByHotel[hotel.id] ??
+                                      hotel.hargaTerendah,
+                                  isUnavailable: false,
+                                );
+                              },
+                            ),
                     ),
             ),
           ],

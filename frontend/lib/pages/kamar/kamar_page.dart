@@ -453,6 +453,7 @@ class _KamarPageState extends State<KamarPage> {
     return RefreshIndicator(
       onRefresh: _fetchRooms,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         padding: const EdgeInsets.all(24),
         children: [
           const SizedBox(height: 120),
@@ -490,6 +491,7 @@ class _KamarPageState extends State<KamarPage> {
     return RefreshIndicator(
       onRefresh: _fetchRooms,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         padding: const EdgeInsets.all(24),
         children: [
           const SizedBox(height: 120),
@@ -549,6 +551,7 @@ class _KamarPageState extends State<KamarPage> {
                   : RefreshIndicator(
                       onRefresh: _fetchRooms,
                       child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                         padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
                         itemCount: _rooms.length,
                         itemBuilder: (context, index) {

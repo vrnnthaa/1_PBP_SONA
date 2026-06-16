@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pemesanan;
 use App\Models\AddOn;
+use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -243,24 +244,42 @@ class PemesananController extends Controller
     //     ], 200);
     // }
 
-    public function getByUser($id_user)
-{
-    // Kita gunakan model Pemesanan, pastikan relasi di Model sudah didefinisikan dengan benar
-    $pemesanan = Pemesanan::with(['kamar.hotel', 'pembayaran', 'review']) // Tambahkan kamar.hotel agar bisa menampilkan nama hotel
-        ->where('id_user', $id_user)
-        ->latest('id_pemesanan')
-        ->get()
-        ->filter(function ($item) {
-            // Filter manual jika ada relasi yang null untuk mencegah error aplikasi
-            return $item->kamar !== null; 
-        })
-        ->values(); // Reset index array
+    public function updateStatusReview($id_user)
+    {
+        $today = date('Y-m-d');
 
-    return response()->json([
-        'message' => 'Data pemesanan user berhasil diambil',
-        'data' => $pemesanan,
-    ], 200);
-}
+        Pemesanan::where('id_user', $id_user)
+            ->where('status_pemesanan', Pemesanan::STATUS_AKTIF)
+            ->where('check_out', '<=', $today)
+            ->whereHas('pembayaran', function ($query) {
+                $query->where('status_pembayaran', Pembayaran::STATUS_PAID);
+            })
+            ->update(['status_pemesanan' => Pemesanan::STATUS_MENUNGGU_REVIEW]);
+    }
+
+    public function getByUser($id_user)
+    {
+        // Jalankan update status review otomatis
+        $this->updateStatusReview($id_user);
+
+        // Kita gunakan model Pemesanan, pastikan relasi di Model sudah didefinisikan dengan benar
+        $pemesanan = Pemesanan::with(['kamar.hotel', 'pembayaran', 'review']) // Tambahkan kamar.hotel agar bisa menampilkan nama hotel
+            ->where('id_user', $id_user)
+            ->latest('id_pemesanan')
+            ->get()
+            ->filter(function ($item) {
+                // Filter manual jika ada relasi yang null untuk mencegah error aplikasi
+                return $item->kamar !== null; 
+            })
+            ->values(); // Reset index array
+
+        return response()->json([
+            'message' => 'Data pemesanan user berhasil diambil',
+            'data' => $pemesanan,
+        ], 200);
+    }
+
+    
 
     // public function getByUser($id_user)
     // {

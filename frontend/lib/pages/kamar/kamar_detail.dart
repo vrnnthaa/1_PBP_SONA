@@ -49,6 +49,21 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     _reviewsFuture = ApiReview().fetchRoomReviews(widget.room.idKamar);
   }
 
+  Future<void> _handleRefresh() async {
+    try {
+      final updatedReviews = ApiReview().fetchRoomReviews(widget.room.idKamar);
+      if (!mounted) return;
+      setState(() {
+        _reviewsFuture = updatedReviews;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error refreshing: $e')),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -250,7 +265,14 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
             roomSize: roomSize > 0 ? '$roomSize m²' : null,
             tags: facilities.take(4).toList(),
           ),
-          reviews: _mapToReviewListItems(reviewData.reviews),
+          initialReviews: _mapToReviewListItems(reviewData.reviews),
+          onRefresh: () async {
+            final freshData = await ApiReview().fetchRoomReviews(widget.room.idKamar);
+            return ReviewRefreshResult(
+              averageRating: freshData.averageRating,
+              reviews: _mapToReviewListItems(freshData.reviews),
+            );
+          },
         ),
       ),
     );
@@ -313,9 +335,13 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
           children: [
             _buildTopBar(),
             Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
+              child: RefreshIndicator(
+                onRefresh: _handleRefresh,
+                color: AppTheme.primary,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                  padding: EdgeInsets.zero,
+                  children: [
                   _buildImageSection(images),
                   Container(
                     color: const Color(0xFFF4F5F5),
@@ -483,6 +509,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                 ],
               ),
             ),
+          ),
           ],
         ),
       ),

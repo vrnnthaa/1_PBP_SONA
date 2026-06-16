@@ -18,6 +18,7 @@ import 'package:sona/widgets/search/date_range_popup.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/pages/hotels/recommended_hotels_page.dart';
 import 'package:sona/pages/hotels/explore_places_hotel_list.dart';
+import 'package:sona/pages/home/viewall_explore_place.dart';
 
 class HomeTab extends ConsumerStatefulWidget {
   final String? token;
@@ -202,12 +203,23 @@ class _HomeTabState extends ConsumerState<HomeTab> {
 
           // Get logged in user details
           final profile = profileAsync.valueOrNull;
-          final userName = profile?['nama'] ?? 'Olivia';
+          final userName = profile?['nama'] ?? '';
           final idUser = profile?['id_user'] ?? 1;
 
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
+          return RefreshIndicator(
+            onRefresh: () async {
+              await Future.wait([
+                ref.refresh(hotelsProvider.future),
+                ref.read(savedHotelsProvider.notifier).loadSavedHotels(),
+                ref.refresh(profileProvider.future),
+              ]);
+            },
+            color: AppTheme.primary,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              slivers: [
               SliverToBoxAdapter(
                 child: isGuest
                     ? _buildIntroHeroHeader()
@@ -258,7 +270,16 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                     _buildSectionHeader(
                       'Explore Place',
                       isGuest,
-                      onViewAllTap: () {},
+                      onViewAllTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewAllExplorePlacePage(
+                              hotels: hotelsList,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
@@ -322,7 +343,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 ),
               ),
             ],
-          );
+          ));
         },
       ),
     );

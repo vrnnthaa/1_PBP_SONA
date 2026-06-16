@@ -6,6 +6,7 @@ import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/pages/hotels/hotel_detail.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/search/vertical_hotel_card.dart';
+import 'package:sona/api/hotel/api_hotel.dart';
 
 class RecommendedHotelsPage extends StatefulWidget {
   final List<Hotel> hotels;
@@ -220,6 +221,9 @@ class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
 
   Widget _buildHotelList() {
     return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       itemCount: hotels.length,
       itemBuilder: (context, index) {
@@ -262,11 +266,42 @@ class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
           children: [
             _buildHeader(),
             Expanded(
-              child: isLoading
-                  ? const Center(child: LoadingAnimation())
-                  : hotels.isEmpty
-                  ? _buildEmptyState()
-                  : _buildHotelList(),
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  try {
+                    final newHotels = await ApiHotel().fetchHotels();
+                    final sortedHotels = List<Hotel>.from(newHotels)
+                      ..sort((a, b) => a.id.compareTo(b.id));
+
+                    lowestPriceByHotel.clear();
+                    for (final hotel in sortedHotels) {
+                      if (hotel.hargaTerendah != null && hotel.hargaTerendah! > 0) {
+                        lowestPriceByHotel[hotel.id] = hotel.hargaTerendah!;
+                      }
+                    }
+
+                    if (mounted) {
+                      setState(() {
+                        hotels = sortedHotels;
+                      });
+                    }
+                  } catch (e) {
+                    _showSnackBar('Error refreshing hotels: $e', false);
+                  }
+                },
+                color: primaryColor,
+                child: isLoading
+                    ? const Center(child: LoadingAnimation())
+                    : hotels.isEmpty
+                        ? SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height - 180,
+                              child: _buildEmptyState(),
+                            ),
+                          )
+                        : _buildHotelList(),
+              ),
             ),
           ],
         ),

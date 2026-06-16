@@ -47,10 +47,10 @@ class Pembayaran extends Model {
         'jumlah_bayar'          => 'decimal:2',
     ];
 
-    const STATUS_PENDING = 'pending';
-    const STATUS_PAID = 'paid';
-    const STATUS_EXPIRED = 'expired';
-    const STATUS_FAILED = 'failed';
+    const STATUS_PENDING = 'menunggu pembayaran';
+    const STATUS_PAID = 'pembayaran terverifikasi';
+    const STATUS_EXPIRED = 'pembayaran gagal';
+    const STATUS_FAILED = 'pembayaran gagal';
 
     //Relation
     public function pemesanan() {

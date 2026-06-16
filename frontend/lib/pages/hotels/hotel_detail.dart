@@ -4,6 +4,7 @@ import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/entity/review/hotel_review_response.dart';
 import 'package:sona/entity/review/review_model.dart';
 import 'package:sona/api/review/api_review.dart';
+import 'package:sona/api/hotel/api_hotel.dart';
 import 'package:sona/pages/review/review_list_page.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/hotel/hotel_amenity_item.dart';
@@ -41,6 +42,7 @@ class HotelDetailPage extends StatefulWidget {
 }
 
 class _HotelDetailPageState extends State<HotelDetailPage> {
+  late Hotel hotel;
   late bool isBookmarked;
   int selectedImageIndex = 0;
   late Future<HotelReviewResponse> _reviewsFuture;
@@ -48,12 +50,30 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   @override
   void initState() {
     super.initState();
+    hotel = widget.hotel;
     isBookmarked = widget.initialBookmarked;
-    _reviewsFuture = ApiReview().fetchHotelReviews(widget.hotel.id);
+    _reviewsFuture = ApiReview().fetchHotelReviews(hotel.id);
+  }
+
+  Future<void> _handleRefresh() async {
+    try {
+      final updatedHotel = await ApiHotel().fetchHotelById(hotel.id);
+      final updatedReviews = ApiReview().fetchHotelReviews(hotel.id);
+      if (!mounted) return;
+      setState(() {
+        hotel = updatedHotel;
+        _reviewsFuture = updatedReviews;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error refreshing hotel details: $e')),
+      );
+    }
   }
 
   List<String> get _galleryImages {
-    final images = widget.hotel.daftarGambar
+    final images = hotel.daftarGambar
         .map((gambar) => gambar.urlGambar)
         .where((url) => url.isNotEmpty)
         .toList();
@@ -155,12 +175,19 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
         builder: (_) => ReviewListPage(
           title: 'Reviews',
           headerData: ReviewHeaderData(
-            title: widget.hotel.nama,
+            title: hotel.nama,
             imagePath: _galleryImages.first,
             rating: reviewData.averageRating,
-            location: widget.hotel.alamat,
+            location: hotel.alamat,
           ),
-          reviews: _mapToReviewListItems(reviewData.reviews),
+          initialReviews: _mapToReviewListItems(reviewData.reviews),
+          onRefresh: () async {
+            final freshData = await ApiReview().fetchHotelReviews(hotel.id);
+            return ReviewRefreshResult(
+              averageRating: freshData.averageRating,
+              reviews: _mapToReviewListItems(freshData.reviews),
+            );
+          },
         ),
       ),
     );
@@ -168,7 +195,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final hotel = widget.hotel;
+    final hotel = this.hotel;
     final int? basePrice = hotel.hargaTerendah;
 
     return Scaffold(
@@ -190,8 +217,12 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
           );
         },
       ),
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: AppTheme.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          slivers: [
           SliverToBoxAdapter(
             child: Column(children: [_buildHeader(), _buildImageGallery()]),
           ),
@@ -245,6 +276,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -302,7 +334,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   }
 
   Widget _buildImageGallery() {
-    final hotel = widget.hotel;
+    final hotel = this.hotel;
 
     return Stack(
       children: [

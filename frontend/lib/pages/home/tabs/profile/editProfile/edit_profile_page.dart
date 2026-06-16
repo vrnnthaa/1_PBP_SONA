@@ -235,8 +235,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
 
     // 2. Validation: Email must end in @gmail.com or @email.com
-    if (email.isNotEmpty && !email.endsWith('@email.com') && !email.endsWith('@email.com')) {
-      _emailError = 'The email address must end in @email.com';
+    if (email.isNotEmpty && !email.endsWith('@gmail.com') && !email.endsWith('@gmail.com')) {
+      _emailError = 'The email address must end in @gmail.com';
       isValid = false;
     }
 
