@@ -16,7 +16,7 @@ class Pemesanan {
     required this.checkOut,
     required this.jumlahPengunjung,
     required this.totalBiaya,
-    this.statusPemesanan = 'pending', // Default status
+    this.statusPemesanan = 'PENDING', // Default status
   });
 
   factory Pemesanan.fromJson(Map<String, dynamic> json) {
@@ -28,7 +28,7 @@ class Pemesanan {
       checkOut: DateTime.parse(json['check_out']),
       jumlahPengunjung: json['jumlah_pengunjung'],
       totalBiaya: (json['total_biaya'] as num).toDouble(),
-      statusPemesanan: json['status_pemesanan'] ?? 'pending',
+      statusPemesanan: json['status_pemesanan'] ?? 'PENDING',
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:sona/api/pemesanan/api_pemesanan.dart';
 import 'package:sona/pages/pembayaran/ringkasan_pembayaran_page.dart';
 
+
 class AddonItem {
   final String nama;
   final double harga;
@@ -27,7 +28,9 @@ class PemesananPage extends StatefulWidget {
   final int idKamar;
   final int idUser;
   final String namaKamar;
+  final String namaHotel;
   final double hargaTotal;
+  final double hargaKamar;
   final DateTimeRange selectedDateRange;
   final int jumlahPengunjung;
   final String? imageUrl;
@@ -37,7 +40,9 @@ class PemesananPage extends StatefulWidget {
     required this.idKamar,
     required this.idUser,
     required this.namaKamar,
+    required this.namaHotel,
     required this.hargaTotal,
+    required this.hargaKamar,
     required this.selectedDateRange,
     required this.jumlahPengunjung,
     this.imageUrl,
@@ -168,12 +173,15 @@ class _PemesananPageState extends State<PemesananPage> {
         MaterialPageRoute(
           builder: (_) => RingkasanPembayaranPage(
             idPemesanan: pemesanan.idPemesanan,
-            totalBiaya: _totalBiaya,
+            biayaPemesanan: _totalBiaya,
+            hargaKamar: widget.hargaKamar,
             namaKamar: widget.namaKamar,
+            namaHotel: widget.namaHotel,
             checkIn: _checkInStr,
             checkOut: _checkOutStr,
             jumlahPengunjung: widget.jumlahPengunjung,
             imageUrl: widget.imageUrl,
+            selectedAddons: addonData,
           ),
         ),
       );
