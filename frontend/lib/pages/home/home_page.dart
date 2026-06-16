@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/pages/auth/login_page.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/navigation/guest_bottom_nav.dart';
-import 'package:sona/widgets/navigation/guest_bottom_sheet.dart';
 import 'package:sona/providers/app_providers.dart';
 
 // New tabs:
@@ -32,12 +31,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _showGuestPromoBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => GuestBottomSheet(onLoginTap: _openLogin),
-    );
+    _openLogin();
   }
 
   Future<void> _logout() async {

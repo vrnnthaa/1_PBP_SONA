@@ -19,9 +19,17 @@ class UserController
             ], 404);
         }
 
+        $ordersCount = \App\Models\Pembayaran::where('status_pembayaran', \App\Models\Pembayaran::STATUS_PAID)
+            ->whereHas('pemesanan', function ($query) use ($user) {
+                $query->where('id_user', $user->id_user);
+            })->count();
+
+        $userData = $user->toArray();
+        $userData['orders_count'] = $ordersCount;
+
         return response()->json([
             'message' => 'Data user berhasil diambil',
-            'data' => $user,
+            'data' => $userData,
         ], 200);
     }
 
@@ -66,7 +74,7 @@ class UserController
             ], 400);
         }
 
-        $user->password = $request->password_baru;
+        $user->password = Hash::make($request->password_baru);
         $user->save();
 
         return response()->json([
@@ -91,7 +99,7 @@ class UserController
             ], 400);
         }
 
-        $user->pin = $request->pin_baru;
+        $user->pin = Hash::make($request->pin_baru);
         $user->save();
 
         return response()->json([
@@ -136,7 +144,7 @@ class UserController
             ], 404);
         }
 
-        $user->sidik_jari = $request->sidik_jari;
+        $user->sidik_jari = Hash::make($request->sidik_jari);
         $user->save();
 
         return response()->json([

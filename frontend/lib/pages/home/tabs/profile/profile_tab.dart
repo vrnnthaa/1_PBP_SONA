@@ -473,9 +473,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
-                              '100',
-                              style: TextStyle(
+                            Text(
+                              (rawProfileData?['orders_count'] ?? 0).toString(),
+                              style: const TextStyle(
                                 color: Color(0xFF0C3D3E),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,

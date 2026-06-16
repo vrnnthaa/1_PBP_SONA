@@ -6,6 +6,7 @@ import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/widgets/confirmation_pop_up.dart';
 import 'package:sona/widgets/loading_animation.dart';
+import 'package:sona/widgets/utils/alert_success.dart';
 
 enum PinState {
   enterCurrent,
@@ -153,11 +154,12 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
 
       if (response['success'] == true) {
         if (mounted) {
-          // Show bouncy success alert pop-up (Secret PIN Changes.svg)
-          await CustomPopUp.showSuccess(
-            context: context,
-            assetPath: 'assets/alert/Secret PIN Changes.svg',
-          );
+          await AlertSuccess.show(
+          context: context,
+          title: 'Secret PIN Changed!',
+          subtitle: 'your security settings have been updated',
+          duration: const Duration(seconds: 3),
+        );
 
           if (mounted) {
             Navigator.pop(context);

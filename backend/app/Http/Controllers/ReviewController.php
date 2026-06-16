@@ -33,7 +33,7 @@ class ReviewController
             'id_pemesanan' => 'required|integer|exists:pemesanan,id_pemesanan',
             'komentar' => 'required|string',
             'rating' => 'required|numeric|min:1|max:5',
-            'photo_review' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'photo_review' => 'nullable',
         ]);
 
         $pemesanan = Pemesanan::with(['kamar'])
@@ -52,7 +52,7 @@ class ReviewController
                 'message' => 'Anda baru bisa memberikan review setelah melewati tanggal checkout.',
             ], 400);
         }
-
+    
         $existingReview = Review::where('id_pemesanan', $validated['id_pemesanan'])->first();
 
         if ($existingReview) {
@@ -67,18 +67,13 @@ class ReviewController
             ], 404);
         }
 
-        $photoPath = null;
-        if ($request->hasFile('photo_review')) {
-            $photoPath = $request->file('photo_review')->store('reviews', 'public');
-        }
-
         $review = Review::create([
             'id_user' => $validated['id_user'],
             'id_pemesanan' => $pemesanan->id_pemesanan,
             'id_hotel' => $pemesanan->kamar->id_hotel,
             'komentar' => $validated['komentar'],
             'rating' => $validated['rating'],
-            'photo_review' => $photoPath,
+            'photo_review' => $request->photo_review,
             'tanggal_review' => now()->format('Y-m-d H:i:s'),
             'is_delete' => false,
         ]);

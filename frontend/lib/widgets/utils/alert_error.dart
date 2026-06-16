@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:sona/utils/app_theme.dart';
 
-class AlertSuccess extends StatelessWidget {
+class AlertError extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const AlertSuccess({
+  const AlertError({
     super.key,
     required this.title,
     required this.subtitle,
@@ -46,7 +46,7 @@ class AlertSuccess extends StatelessWidget {
                   Navigator.of(dialogContext).pop();
                 }
               },
-              child: AlertSuccess(
+              child: AlertError(
                 title: title,
                 subtitle: subtitle,
               ),
@@ -108,7 +108,7 @@ class AlertSuccess extends StatelessWidget {
             width: 100,
             height: 100,
             child: Lottie.asset(
-              'assets/Lottie/SPARKLE.json',
+              'assets/Lottie/SHRUG.json',
               key: UniqueKey(),
               repeat: false,
               fit: BoxFit.contain,

@@ -205,7 +205,7 @@ class _MapTabState extends ConsumerState<MapTab> {
   }
 
   // Build the Search Recommendations Overlay Card (No History, ultra-compact, DB-driven facilities)
-  Widget _buildSearchOverlayCard(List<Hotel> hotelsList) {
+  Widget _buildSearchOverlayCard(List<Hotel> hotelsList, bool isGuest) {
     // Filter hotels for the recommendation section (take top 2)
     final recommendationHotels = hotelsList.take(2).toList();
 
@@ -249,19 +249,21 @@ class _MapTabState extends ConsumerState<MapTab> {
                   : 'Price unavailable';
 
               return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedHotel = hotel;
-                    _searchController.text = hotel.nama;
-                    _searchQuery = hotel.nama;
-                    _showSearchOverlay = false; // Hide dropdown
-                  });
-                  // Move map camera directly to selected hotel location
-                  _mapController.move(
-                    LatLng(hotel.latitude, hotel.longitude),
-                    15.0
-                  );
-                },
+                onTap: isGuest
+                    ? _openLogin
+                    : () {
+                        setState(() {
+                          _selectedHotel = hotel;
+                          _searchController.text = hotel.nama;
+                          _searchQuery = hotel.nama;
+                          _showSearchOverlay = false; // Hide dropdown
+                        });
+                        // Move map camera directly to selected hotel location
+                        _mapController.move(
+                          LatLng(hotel.latitude, hotel.longitude),
+                          15.0
+                        );
+                      },
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(6),
@@ -424,6 +426,8 @@ class _MapTabState extends ConsumerState<MapTab> {
   Widget build(BuildContext context) {
     // Watch hotels state dynamically
     final hotelsAsync = ref.watch(hotelsProvider);
+    final token = ref.watch(tokenProvider);
+    final isGuest = token == null || token.isEmpty;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -481,16 +485,18 @@ class _MapTabState extends ConsumerState<MapTab> {
                                   children: [
                                     // Clicking popup card/image redirects to HotelDetailPage
                                     GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => HotelDetailPage(
-                                              hotel: hotel,
-                                            ),
-                                          ),
-                                        );
-                                      },
+                                      onTap: isGuest
+                                          ? _openLogin
+                                          : () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => HotelDetailPage(
+                                                    hotel: hotel,
+                                                  ),
+                                                ),
+                                              );
+                                            },
                                       child: _buildHotelPopupCard(hotel),
                                     ),
                                     // Small pointing triangle/arrow connecting popup card to dot
@@ -503,7 +509,9 @@ class _MapTabState extends ConsumerState<MapTab> {
                                   ],
                                 )
                               : GestureDetector(
-                                  onTap: () => _showHotelDetails(hotel),
+                                  onTap: isGuest
+                                      ? _openLogin
+                                      : () => _showHotelDetails(hotel),
                                   child: _buildMarkerDot(isSelected),
                                 ),
                         );
@@ -558,7 +566,7 @@ class _MapTabState extends ConsumerState<MapTab> {
                     top: MediaQuery.of(context).padding.top + 16 + 54 + 8,
                     left: 16,
                     right: 16,
-                    child: _buildSearchOverlayCard(hotelsList),
+                    child: _buildSearchOverlayCard(hotelsList, isGuest),
                   ),
               ],
             ),
