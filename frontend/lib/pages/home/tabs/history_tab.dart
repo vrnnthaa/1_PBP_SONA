@@ -512,9 +512,21 @@ class HistoryTab extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
-            SizedBox(
+            Container(
               width: 170,
               height: 44,
+              decoration: BoxDecoration(
+                gradient: AppTheme.softTealGradient, 
+                borderRadius: BorderRadius.circular(20), 
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.deepTeal.withOpacity(0.24),
+                    blurRadius: 10,
+                    spreadRadius: 1, 
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              ),
               child: ElevatedButton.icon(
                 onPressed: onExploreTap,
                 icon: const Icon(
@@ -531,9 +543,8 @@ class HistoryTab extends ConsumerWidget {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.deepTeal,
-                  elevation: 3,
-                  shadowColor: AppTheme.deepTeal.withOpacity(0.24),
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),

@@ -12,6 +12,7 @@ import 'package:sona/widgets/input_box.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sona/widgets/confirmation_pop_up.dart';
+import 'package:sona/widgets/utils/alert_success.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   final Map<String, dynamic> profileData;
@@ -308,10 +309,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           _isLoading = false;
         });
 
-        // Show bouncy success alert pop-up (Profile-Success.svg)
-        await CustomPopUp.showSuccess(
+        await AlertSuccess.show(
           context: context,
-          assetPath: 'assets/alert/Profile-Success.svg',
+          title: 'Profile Updated Succesfully!',
+          subtitle: 'your changes have been saved',
+          duration: const Duration(seconds: 3),
         );
 
         if (mounted) {

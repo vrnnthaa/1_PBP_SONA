@@ -12,6 +12,8 @@ import 'package:sona/api/review/api_review.dart';
 import 'package:sona/providers/auth/token_provider.dart';
 import 'package:sona/providers/auth/profile_provider.dart';
 import 'package:sona/providers/booking/bookings_provider.dart';
+import 'package:sona/services/make_review.dart';
+import 'package:sona/widgets/utils/alert_love.dart';
 
 class MakeReviewPage extends ConsumerStatefulWidget {
   final Map<String, dynamic> booking;
@@ -143,13 +145,22 @@ class _MakeReviewPageState extends ConsumerState<MakeReviewPage> {
 
       final idUser = profile['id_user'] ?? 1;
       final idPemesanan = int.tryParse(widget.booking['id_pemesanan'].toString()) ?? 0;
+      final username = profile?['nama'] ?? ''; 
+
+      String? finalPhotoUrl;
+      if (_photoPath != null && _photoPath!.isNotEmpty) {
+        finalPhotoUrl = await UploadReviewFotoService().uploadFotoReview(File(_photoPath!));
+        if (finalPhotoUrl == null) {
+          throw Exception('Failed to upload review image to Supabase');
+        }
+      }
 
       await ApiReview().createReview(
         idUser: idUser,
         idPemesanan: idPemesanan,
         komentar: comment,
         rating: _rating,
-        photoPath: _photoPath,
+        photoUrl: finalPhotoUrl,
         token: token,
       );
 
@@ -162,10 +173,10 @@ class _MakeReviewPageState extends ConsumerState<MakeReviewPage> {
         });
 
         // Show success pop up
-        await AlertSuccess.show(
+        await AlertLove.show(
           context: context,
           title: 'Successfully Submitted!',
-          subtitle: 'Your review has been successfully submitted.',
+          subtitle: 'Thank you for sharing your experience,$username! Your feedback helps others make better travel choices',
         );
 
         if (mounted) {

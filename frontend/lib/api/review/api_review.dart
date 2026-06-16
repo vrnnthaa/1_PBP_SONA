@@ -45,50 +45,30 @@ class ApiReview {
     required int idPemesanan,
     required String komentar,
     required double rating,
-    required String? photoPath,
+    required String? photoUrl,
     required String token,
   }) async {
-    Response response;
     try {
-      final uri = Uri.parse('${ApiConfig.baseUrl}/reviews');
-      final request = MultipartRequest('POST', uri);
-      
-      final headers = ApiConfig.getHeaders(token: token);
-      request.headers.addAll(headers);
-      request.headers.remove('Content-Type');
+      final response = await post(
+        Uri.parse('${ApiConfig.baseUrl}/reviews'),
+        headers: ApiConfig.getHeaders(token: token),
+        body: jsonEncode({
+          'id_user': idUser,
+          'id_pemesanan': idPemesanan,
+          'komentar': komentar,
+          'rating': rating,
+          'photo_review': ?photoUrl,
+        }),
+      );
 
-      request.fields['id_user'] = idUser.toString();
-      request.fields['id_pemesanan'] = idPemesanan.toString();
-      request.fields['komentar'] = komentar;
-      request.fields['rating'] = rating.toString();
-
-      if (photoPath != null && photoPath.isNotEmpty) {
-        request.files.add(
-          await MultipartFile.fromPath(
-            'photo_review',
-            photoPath,
-          ),
-        );
-      }
-
-      final streamedResponse = await request.send();
-      response = await Response.fromStream(streamedResponse);
-    } catch (e) {
-      throw Exception('Terjadi kesalahan jaringan: $e');
-    }
-
-    if (response.statusCode == 201) {
-      return jsonDecode(response.body);
-    } else {
-      try {
+      if (response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
         final Map<String, dynamic> errorData = jsonDecode(response.body);
         throw Exception(errorData['message'] ?? 'Gagal membuat review');
-      } catch (e) {
-        if (e is Exception && !e.toString().contains('FormatException')) {
-          rethrow;
-        }
-        throw Exception('Gagal membuat review (Status Code: ${response.statusCode})');
       }
+    } catch (e) {
+      throw Exception('Terjadi kesalahan jaringan: $e');
     }
   }
 }
