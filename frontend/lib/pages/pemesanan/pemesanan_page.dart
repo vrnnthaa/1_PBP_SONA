@@ -28,6 +28,7 @@ class PemesananPage extends StatefulWidget {
   final int idKamar;
   final int idUser;
   final String namaKamar;
+  final String namaHotel;
   final double hargaTotal;
   final double hargaKamar;
   final DateTimeRange selectedDateRange;
@@ -39,6 +40,7 @@ class PemesananPage extends StatefulWidget {
     required this.idKamar,
     required this.idUser,
     required this.namaKamar,
+    required this.namaHotel,
     required this.hargaTotal,
     required this.hargaKamar,
     required this.selectedDateRange,
@@ -174,6 +176,7 @@ class _PemesananPageState extends State<PemesananPage> {
             biayaPemesanan: _totalBiaya,
             hargaKamar: widget.hargaKamar,
             namaKamar: widget.namaKamar,
+            namaHotel: widget.namaHotel,
             checkIn: _checkInStr,
             checkOut: _checkOutStr,
             jumlahPengunjung: widget.jumlahPengunjung,

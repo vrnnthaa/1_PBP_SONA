@@ -171,6 +171,7 @@ class _RoomDetailPageState extends ConsumerState<RoomDetailPage> {
         builder: (_) => PemesananPage(
           idKamar: room.idKamar,
           namaKamar: _getRoomName(),
+          namaHotel: widget.hotelName,
           hargaTotal: (_getTotalPrice()).toDouble(),
           hargaKamar: widget.room.harga,
           idUser: currentUserId,

@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Sesuaikan import ini dengan struktur folder project-mu
+import 'package:sona/entity/pembayaran/pembayaran.dart';
+import 'package:sona/pages/pembayaran/verifikasi_pembayaran_page.dart';
+import 'package:sona/api/pembayaran/api_pembayaran.dart';
+
+import 'package:sona/providers/auth/token_provider.dart';
+
 import 'package:sona/utils/app_theme.dart';
 
 
-class RingkasanPembayaranPage extends StatefulWidget {
+class RingkasanPembayaranPage extends ConsumerStatefulWidget {
   final int idPemesanan; 
   final double biayaPemesanan;
   final double hargaKamar;
   final String namaKamar;
+  final String namaHotel;
   final String checkIn;
   final String checkOut;
   final int jumlahPengunjung;
@@ -23,6 +30,7 @@ class RingkasanPembayaranPage extends StatefulWidget {
     required this.biayaPemesanan,
     required this.hargaKamar,
     required this.namaKamar,
+    required this.namaHotel,
     required this.checkIn,
     required this.checkOut,
     required this.jumlahPengunjung,
@@ -31,7 +39,7 @@ class RingkasanPembayaranPage extends StatefulWidget {
   });
 
   @override
-  State<RingkasanPembayaranPage> createState() => _RingkasanPembayaranPageState();
+  ConsumerState<RingkasanPembayaranPage> createState() => _RingkasanPembayaranPageState();
 }
 
 class DateUtils {
@@ -67,30 +75,70 @@ class DateUtils {
   }
 }
 
-class _RingkasanPembayaranPageState extends State<RingkasanPembayaranPage> {
+class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPage> {
+  int get _nightCount => DateUtils.calculateNights(widget.checkIn, widget.checkOut);
+  double get _hargaKamarTotal => _nightCount * widget.hargaKamar;
+  double get _feeAplikasi => 65000.0;
   bool _isLoading = false;
+
+  double get _totalHargaAddons {
+    double total = 0.0;
+    for (var addon in widget.selectedAddons) {
+      total += double.tryParse(addon['harga']?.toString() ?? '0') ?? 0.0;
+    }
+    return total;
+  }
+
+  double get _totalBiaya => widget.biayaPemesanan + _feeAplikasi;
 
   Future<void> _onPayNow() async {
     setState(() => _isLoading = true);
 
     try {
-      await Future.delayed(const Duration(seconds: 2)); // Simulasi loading
+      final String? token = ref.read(tokenProvider);
+
+      if(token == null) {
+        throw Exception('Sesi telah habis, silahkan login kembali');
+      }
+      
+      Pembayaran createdPembayaran = await ApiPembayaran().storePembayaran(
+        idPemesanan: widget.idPemesanan, 
+        tanggalPembayaran: DateTime.now(), 
+        jumlahBayar: _totalBiaya, 
+        statusPembayaran: 'PENDING',
+        metodePembayaran: 'Transfer Bank',
+        token : token,
+      );
 
       if (!mounted) return;
       
-      // Navigasi ke halaman sukses
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment Successful!')),
-      );
-      
+      navigateToVerifikasiPayment(createdPembayaran.idPembayaran!);
+
     } catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString())),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void navigateToVerifikasiPayment(int generatedIdPembayaran) {
+
+    Navigator.push(
+      context, 
+      MaterialPageRoute(
+        builder: (context) => VerifyPaymentPage(
+          idPembayaran: generatedIdPembayaran, 
+          namaKamar: widget.namaKamar, 
+          namaHotel: widget.namaHotel, 
+          totalHarga: _totalBiaya,
+
+          deadlineTime: DateTime.now().add(const Duration(hours: 24)), //ini untuk perhitungan 24 jam mundurnya gengs
+          imageUrl: widget.imageUrl ?? 'https://via.placeholder.com/150',
+        ),
+      ),
+    );
   }
 
   @override
@@ -117,14 +165,17 @@ class _RingkasanPembayaranPageState extends State<RingkasanPembayaranPage> {
                   _buildReservationDetail(),
 
                   const SizedBox(height: 24),
-                  _buildSectionTitle('Price Details'),
+                  _buildSectionTitle('Price Breakdown'),
                   const SizedBox(height: 11),
                   _buildPriceDetails(),
+
+                  const SizedBox(height: 11),
+                  _buildCancellationPolicy(),
                 ],
               ),
             ),
           ),
-          _buildBottomAction(),
+          _buildBottomAction(_nightCount, _totalBiaya),
         ],
       ),
     );
@@ -330,22 +381,11 @@ class _RingkasanPembayaranPageState extends State<RingkasanPembayaranPage> {
   }
 
   Widget _buildPriceDetails() {
-    final int nightCount = DateUtils.calculateNights(widget.checkIn, widget.checkOut);
-    final double hargaDisplay = nightCount* widget.hargaKamar; 
-
-    final double feeAplikasi = 65000.0;
-    final double totalBiaya = widget.biayaPemesanan + feeAplikasi;//total biaya + fee
-
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp',
       decimalDigits: 0,
     );
-
-    double totalHargaAddons = 0.0;
-    for (var addon in widget.selectedAddons) {
-      totalHargaAddons += double.tryParse(addon['harga']?.toString() ?? '0') ?? 0.0;
-    }
     
     return Container(
       padding: const EdgeInsets.all(16),
@@ -360,22 +400,22 @@ class _RingkasanPembayaranPageState extends State<RingkasanPembayaranPage> {
       child: Column(
         children: [
           _buildPriceRow(
-            'Room (${nightCount} Nights)', 
-            'Rp ${hargaDisplay}'
+            'Room (${_nightCount} Nights)', 
+            currencyFormatter.format(_hargaKamarTotal)
           ),
           const SizedBox(height: 8),
 
           if (widget.selectedAddons.isNotEmpty) ...[
             _buildPriceRow(
               'Add-ons', 
-              currencyFormatter.format(totalHargaAddons)
+              currencyFormatter.format(_totalHargaAddons)
             ),
           const SizedBox(height: 8),
           ],
 
             _buildPriceRow(
               'Service Fees', 
-            currencyFormatter.format(feeAplikasi)
+            currencyFormatter.format(_feeAplikasi)
           ),
 
           const Padding(
@@ -395,7 +435,7 @@ class _RingkasanPembayaranPageState extends State<RingkasanPembayaranPage> {
                 ),
               ),
               Text(
-                currencyFormatter.format(totalBiaya), //Biaya total yang sudah ditambahkan fee
+                currencyFormatter.format(_totalBiaya), //Biaya total yang sudah ditambahkan fee
                 style: AppTheme.titleStyle.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -433,46 +473,140 @@ class _RingkasanPembayaranPageState extends State<RingkasanPembayaranPage> {
     );
   }
 
-  Widget _buildBottomAction() {
+  Widget _buildCancellationPolicy() {
+    // Menghitung tanggal H-2 dari checkIn
+    String cancelDateStr = "";
+    try {
+      final DateTime inDate = DateTime.parse(widget.checkIn);
+      final DateTime cancelDate = inDate.subtract(const Duration(days: 2));
+      cancelDateStr = DateFormat('dd MMM').format(cancelDate); // Contoh hasil: 10 Jan
+    } catch (e) {
+      cancelDateStr = "2 days before"; // Fallback jika format salah
+    }
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F7F9),
-        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.15))),
+        color: const Color(0xFFFDF7F0), // Warna background krem terang
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF9E491A),
+          width: 0.5,
+        ), // Warna border coklat muda
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: DecoratedBox(
+      child: RichText(
+        text: TextSpan(
+          style: GoogleFonts.montserrat(
+            fontSize: 12.5,
+            height: 1.5,
+            color: const Color(0xFF9E653F), // Warna teks coklat pudar
+          ),
+          children: [
+            TextSpan(
+              text: 'Free Cancellation ',
+              style: const TextStyle(
+                fontWeight: FontWeight.w700, 
+                color: Color(0xFF9E491A), // Warna teks tebal coklat tua
+              ),
+            ),
+            TextSpan(
+              text: 'until $cancelDateStr. After that, cancellation fees may apply. No payment is required today',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomAction(int nightCount, double totalBiaya) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppTheme.background, 
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, -4),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // --- Teks Atas ---
+            Text(
+              'SECURE BOOKING GUARANTEED', 
+              style: GoogleFonts.montserrat(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textTealGrey,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // --- Tombol Utama ---
+            Container(
+              width: double.infinity,
+              height: 54, 
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppTheme.primary, AppTheme.tealDark],
+                  begin: Alignment.centerLeft, 
+                  end: Alignment.centerRight,
+                  colors: [AppTheme.primary, AppTheme.tealLight], 
                 ),
-                borderRadius: BorderRadius.circular(11),
+                borderRadius: BorderRadius.circular(50), 
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.tealDark.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4), 
+                  ),
+                ],
               ),
-              child: TextButton(
+              child: ElevatedButton(
                 onPressed: _isLoading ? null : _onPayNow,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent, 
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                ),
                 child: _isLoading
                     ? const SizedBox(
-                        width: 24,
-                        height: 24,
+                        width: 14,
+                        height: 10,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                       )
                     : Text(
                         'Pay Now',
                         style: AppTheme.titleStyle.copyWith(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+
+            // --- Teks Bawah ---
+            Text(
+              'by clicking "Confirm & Book Now" you agree to the Terms of\nService and Privacy Policy.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textTealGrey,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
