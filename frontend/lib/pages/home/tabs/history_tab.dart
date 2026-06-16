@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sona/utils/app_theme.dart';
-import 'package:sona/providers/app_providers.dart';
-import 'package:sona/widgets/loading_animation.dart';
 import 'package:intl/intl.dart';
+import 'package:sona/utils/app_theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sona/providers/app_providers.dart';
+
+//Widgets
+import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/home/smart_image.dart';
-import 'package:sona/entity/hotel/hotel.dart';
+
+//Pages
 import 'package:sona/pages/review/make_review_page.dart';
+import 'package:sona/pages/pembayaran/ringkasan_pembayaran_page.dart'; 
+import 'package:sona/pages/pembayaran/verifikasi_pembayaran_page.dart'; 
+
 
 class HistoryTab extends ConsumerWidget {
   final String? token;
@@ -86,54 +92,169 @@ class HistoryTab extends ConsumerWidget {
   }
 
   Widget _buildBookingCard(BuildContext context, Map<String, dynamic> booking) {
-    final double cost = double.tryParse(booking['total_biaya'].toString()) ?? 0.0;
-    final String status = (booking['status_pemesanan'] ?? 'pending').toString().toLowerCase();
-    final hotelJson = booking['kamar']?['hotel'];
-    final Hotel? hotel = hotelJson != null ? Hotel.fromJson(hotelJson) : null;
-    final String namaHotel = hotel?.nama ?? 'Unknown Hotel';
     
-    final String imageUrl = hotel?.imagePath ?? 'images/hotel_paradise_resort.jpg';
+    //Data Pemesanan
+    final double cost = double.tryParse(booking['total_biaya'].toString()) ?? 0.0;
+    final String statusPemesanan = (booking['status_pemesanan'] ?? 'pending').toString().toLowerCase();
 
+    //Data Pembayaran
+    final dynamic paymentData = booking['pembayaran'];
+    final Map<String, dynamic>? pembayaran = paymentData is List
+        ? (paymentData.isNotEmpty ? paymentData.first : null)
+        : (paymentData as Map<String, dynamic>?);
+    
+    final String? statusPembayaran = pembayaran != null ? pembayaran['status_pembayaran']?.toString().toLowerCase() : null;
+
+    //Data Kamar dan Hotel
+    final kamarJson = booking['kamar'];
+    final String namaKamar = kamarJson?['nama_kamar'] ?? 'Kamar';    
+
+    final hotelJson = booking['kamar']?['hotel'];
+    final String namaHotel = hotelJson?['nama_hotel'] ?? "Unknown Hotel";
+
+    String imageUrl = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&q=80';
+
+    if (kamarJson != null) {
+      final listGambar = kamarJson['gambar_kamar'] as List;
+      
+      if (listGambar.isNotEmpty) {
+        final gambarPertama = listGambar[0];
+
+        final String? urlDariDb = gambarPertama['url_gambarkamar']?.toString();
+
+        if (urlDariDb != null && urlDariDb.isNotEmpty) {
+          imageUrl = urlDariDb;
+        }
+      }
+    }
+
+    //Untuk Tanggal
     final DateTime checkInDate = DateTime.tryParse(booking['check_in'] ?? '') ?? DateTime.now();
     final DateTime checkOutDate = DateTime.tryParse(booking['check_out'] ?? '') ?? DateTime.now();
+    final int days = checkOutDate.difference(checkInDate).inDays;
 
     final String formattedCheckIn = DateFormat('MMM dd', 'en_US').format(checkInDate);
     final String formattedCheckOut = DateFormat('MMM dd', 'en_US').format(checkOutDate);
-
-    final int days = checkOutDate.difference(checkInDate).inDays;
     final String dateRange = '$formattedCheckIn - $formattedCheckOut, ${checkOutDate.year} • $days ${days > 1 ? 'Days' : 'day'}';
 
+    //Untuk Penulisan Rupiah
     final NumberFormat currencyFormat = NumberFormat.currency(
       locale: 'id_ID', 
       symbol: 'Rp. ', 
       decimalDigits: 0
     );
-
     final String formattedCost = currencyFormat.format(cost);
 
-    // Mapping menggunakan AppTheme
-    Color statusColor = const Color(0xFF00BD25); // Warna sukses dari Figma
-    String statusText = "Completed";
-    
-    if (status == 'canceled' || status == 'cancelled') {
+    // Untuk Status
+    Color statusColor = AppTheme.primary; // Warna sukses dari Figma
+    String statusText = "Unknown";
+
+    if (statusPemesanan == 'cancelled' || statusPembayaran == 'pembayaran gagal') {
       statusColor = AppTheme.errorRed; 
-      statusText = "Cancel";
-    } else if (status == 'menunggu_review' || status == 'menunggu review') {
+      statusText = "Failed / Cancelled";
+    } else if (statusPembayaran == 'menunggu pembayaran') {
+      statusColor = AppTheme.starYellow; // Warna kuning/orange untuk pending
+      statusText = "Awaiting Payment";
+    } else if (statusPembayaran == null && statusPemesanan != 'aktif' && statusPemesanan != 'menunggu review' && statusPemesanan != 'sudah review') {
+      statusColor = AppTheme.starYellow;
+      statusText = "Payment Required";
+    } else if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review') {
       statusColor = AppTheme.starYellow;
       statusText = "Wait Review";
-    } else if (status == 'aktif') {
+    } else if (statusPemesanan == 'aktif' || statusPembayaran == 'pembayaran terverifikasi') {
       statusColor = AppTheme.tealLight;
-      statusText = "Active";
-    } else if (status == 'sudah_review' || status == 'sudah review') {
+      statusText = "Active Booking";
+    } else if (statusPemesanan == 'sudah review' || statusPemesanan == 'sudah_review') {
       statusColor = const Color(0xFF00BD25);
       statusText = "Completed";
+    }
+
+    //LOGIKA TOMBOL AKSI DI BAWAH KARTU ---
+    String buttonText = '';
+    Color? buttonBgColor;
+    Gradient? buttonGradient;
+    Color buttonTextColor = Colors.white;
+    VoidCallback? onActionTap;
+
+    //Belum pernah masuk halaman Verify (Belum ada data pembayaran di database)
+    if (statusPembayaran == null && (statusText == "Payment Required")) {
+      buttonText = 'Complete Payment';
+      buttonBgColor = AppTheme.primary; // Bisa diganti warna orange agar mencolok
+      onActionTap = () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RingkasanPembayaranPage(
+              idPemesanan: booking['id_pemesanan'],
+              biayaPemesanan: cost, // Sesuaikan ini dengan logic aslimu
+              hargaKamar: double.tryParse(booking['kamar']?['harga_kamar']?.toString() ?? '0') ?? 0.0,
+              namaKamar: namaKamar,
+              namaHotel: namaHotel,
+              checkIn: booking['check_in'],
+              checkOut: booking['check_out'],
+              jumlahPengunjung: booking['jumlah_tamu'] ?? 1,
+              imageUrl: imageUrl,
+              selectedAddons: [], // Asumsi addons kosong jika mengambil dari history, atau ekstrak dari JSON jika ada
+            ),
+          ),
+        );
+      };
+    } 
+    
+    //Pembayaran sudah dibuat, tapi belum scan sidik jari (menunggu pembayaran)
+    else if (statusPembayaran == 'menunggu pembayaran') {
+      buttonText = 'Verify Payment Now';
+      buttonBgColor = AppTheme.starYellow; 
+      buttonTextColor = Colors.black87; // Teks gelap untuk background kuning
+      
+      // Ambil waktu pembuatan pembayaran dan tambahkan 24 jam untuk deadline
+      DateTime tglBuat = DateTime.tryParse(pembayaran?['tanggal_pembayaran'] ?? '') ?? DateTime.now();
+      DateTime deadline = tglBuat.add(const Duration(hours: 24));
+
+      onActionTap = () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerifyPaymentPage(
+              idPembayaran: pembayaran!['id_pembayaran'],
+              namaKamar: namaKamar,
+              namaHotel: namaHotel,
+              totalHarga: cost,
+              deadlineTime: deadline,
+              imageUrl: imageUrl,
+            ),
+          ),
+        );
+      };
+    } 
+    //Status Menunggu Review
+    else if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review') {
+      buttonText = 'Write a Review';
+      buttonGradient = AppTheme.primaryGradient;
+      onActionTap = () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MakeReviewPage(booking: booking),
+          ),
+        );
+      };
+    } 
+    
+    //Status Aktif, Gagal, atau Selesai (Tombol mati/disabled)
+    else {
+      buttonText = statusPemesanan == 'sudah review' ? 'Reviewed' 
+                : (statusText == "Failed / Cancelled" ? 'Payment Failed' : 'Paid & Active');
+      buttonBgColor = Colors.grey.shade300;
+      buttonTextColor = Colors.grey.shade600;
+      onActionTap = null; // Tidak bisa diklik
     }
 
     return Container(
       width: 330,
       padding: const EdgeInsets.all(15),
       decoration: ShapeDecoration(
-        color: AppTheme.background, // Menggunakan warna background dari AppTheme
+        color: AppTheme.background,
         shape: RoundedRectangleBorder(
           side: BorderSide(width: 0.20, color: Colors.black.withOpacity(0.20)),
           borderRadius: BorderRadius.circular(16),
@@ -145,76 +266,62 @@ class HistoryTab extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(statusText, 
-                        style: TextStyle(color: statusColor, fontSize: 13, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 3),
-                      Text(namaHotel, 
-                        style: AppTheme.titleStyle.copyWith(fontSize: 16, color: AppTheme.primary)),
-                      Text(dateRange, 
-                        style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 12)),
-                      const SizedBox(height: 3),
-                      Text(formattedCost, 
-                        style: AppTheme.titleStyle.copyWith(fontSize: 16, color: AppTheme.primary)),
-                    ],
-                  ),
+          // Bagian Detail Informasi Hotel & Harga (Tetap sama)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(statusText, 
+                      style: TextStyle(color: statusColor, fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 3),
+                    Text(namaHotel, 
+                      style: AppTheme.titleStyle.copyWith(fontSize: 16, color: AppTheme.primary)),
+                    Text(dateRange, 
+                      style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 12)),
+                    const SizedBox(height: 3),
+                    Text(formattedCost, 
+                      style: AppTheme.titleStyle.copyWith(fontSize: 16, color: AppTheme.primary)),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 68,
-                  height: 68,
-                  child: SmartImage(
-                    path: imageUrl,
-                    fit: BoxFit.cover,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),              
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 68,
+                height: 68,
+                child: SmartImage(
+                  path: imageUrl,
+                  fit: BoxFit.cover,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),              
             ],
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(height: 1, thickness: 1, color: AppTheme.borderLight),
           ),
+          
+          // --- TOMBOL DINAMIS YANG SUDAH DIUBAH ---
           Row(
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: (status == 'menunggu_review' || status == 'menunggu review')
-                      ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MakeReviewPage(booking: booking),
-                            ),
-                          );
-                        }
-                      : null,
+                  onTap: onActionTap, // Memanggil fungsi dinamis di atas
                   child: Container(
                     height: 33,
                     decoration: BoxDecoration(
-                      gradient: (status == 'menunggu_review' || status == 'menunggu review')
-                          ? AppTheme.primaryGradient
-                          : null,
-                      color: (status == 'menunggu_review' || status == 'menunggu review')
-                          ? null
-                          : Colors.grey.shade300,
+                      gradient: buttonGradient,
+                      color: buttonBgColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      (status == 'sudah_review' || status == 'sudah review')
-                          ? 'Reviewed'
-                          : 'Write a Review',
+                      buttonText,
                       style: TextStyle(
-                        color: (status == 'menunggu_review' || status == 'menunggu review')
-                            ? Colors.white
-                            : Colors.grey.shade600,
+                        color: buttonTextColor,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
@@ -249,7 +356,7 @@ class HistoryTab extends ConsumerWidget {
           children: [
             const Spacer(flex: 2),
             Image.asset(
-              'assets/images/history_image.png',
+              'images/history_image.png',
               width: 200,
               height: 200,
               fit: BoxFit.contain,
