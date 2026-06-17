@@ -13,6 +13,8 @@ import 'package:sona/api/pembayaran/api_pembayaran.dart';
 import 'package:sona/widgets/loading_animation.dart';
 
 import 'package:sona/pages/pembayaran/pembayaran_sukses_page.dart';
+import 'package:sona/widgets/utils/alert_error.dart';
+import 'package:sona/widgets/utils/alert_success.dart';
 
 class VerifyPaymentPage extends ConsumerStatefulWidget {
   final int idPembayaran;
@@ -145,9 +147,18 @@ class _VerifyPaymentPageState extends ConsumerState<VerifyPaymentPage> {
       ref.invalidate(bookingsProvider);
 
       final profile = ref.read(profileProvider).value;
-      final userName = profile?['nama']?? 'Guest';
-      final userPhone = profile?['telp_no']?? 'Tidak ada Kontak';
-      final userEmail = profile?['email']?? 'Tidak ada Email';
+      final userName = profile?['nama'] ?? 'Guest';
+      final userPhone = profile?['telp_no'] ?? 'Tidak ada Kontak';
+      final userEmail = profile?['email'] ?? 'Tidak ada Email';
+
+      await AlertSuccess.show(
+        context: context,
+        title: 'Payment Successful!',
+        subtitle: 'Your payment has been verified.',
+        duration: const Duration(seconds: 2), // Tampil sebentar sebelum pindah
+      );
+
+      if (!mounted) return; // Pastikan widget masih ada setelah dialog tertutup
 
       Navigator.pushAndRemoveUntil(
         context,
@@ -165,18 +176,20 @@ class _VerifyPaymentPageState extends ConsumerState<VerifyPaymentPage> {
             transactionDate: DateTime.now(),
           ),
         ),
-        (route) => route.isFirst, // Ini akan menghapus semua stack halaman sebelumnya
+        (route) => route.isFirst,
       );  
     } catch (e) {
       setState(() => _isProcessing = false);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan: $e'), backgroundColor: AppTheme.errorRed),
+      
+      AlertError.show(
+        context: context, 
+        title: 'Payment Failed', 
+        subtitle: 'An error occurred: $e'
       );
     }
   }
 
-  // --- LOGIKA 1: FINGERPRINT DENGAN BATAS 3X ---
   Future<void> _handleScanFingerprint() async {
     if (_isExpired || _isProcessing || _isBlocked || _fingerprintAttempts >= 3) return;
 
@@ -219,7 +232,6 @@ class _VerifyPaymentPageState extends ConsumerState<VerifyPaymentPage> {
     }
   }
 
-  // --- LOGIKA 2: SECRET PIN DENGAN BATAS 3X ---
   void _showPinBottomSheet() {
     if (_isExpired || _isProcessing || _isBlocked) return;
 
@@ -230,7 +242,7 @@ class _VerifyPaymentPageState extends ConsumerState<VerifyPaymentPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      isDismissible: false, // Cegah user menutup sembarangan agar proses aman
+      isDismissible: false,
       builder: (context) {
         return _PinBottomSheet(
           token: token,
@@ -239,7 +251,6 @@ class _VerifyPaymentPageState extends ConsumerState<VerifyPaymentPage> {
             _processSuccessfulPayment(); // Lanjut bayar
           },
           onFailedAttempt: () {
-            // Callback ini dipanggil oleh Bottom Sheet setiap kali PIN salah
             setState(() {
               _pinAttempts++;
             });
@@ -254,15 +265,16 @@ class _VerifyPaymentPageState extends ConsumerState<VerifyPaymentPage> {
               });
               _startBlockTimer();
               
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('PIN salah 3 kali. Fitur terkunci selama 5 menit.'),
-                  backgroundColor: AppTheme.errorRed,
-                ),
+              // --- MUNCULKAN POP-UP ERROR KARENA TERKUNCI ---
+              AlertError.show(
+                context: context,
+                title: 'Account Locked',
+                subtitle: 'Too many incorrect attempts. Please try again in 5 minutes.',
+                duration: const Duration(seconds: 4),
               );
             }
           },
-          sisaPercobaan: 3 - _pinAttempts, // Lempar sisa percobaan ke UI Bottom Sheet
+          sisaPercobaan: 3 - _pinAttempts,
         );
       },
     );

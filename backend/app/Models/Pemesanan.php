@@ -86,11 +86,6 @@ class Pemesanan extends Model
         return $this->hasMany(AddOn::class, 'id_pemesanan', 'id_pemesanan');
     }
 
-    public function scopeTidakAktif($query)
-    {
-        return $query->where('status_pemesanan', self::STATUS_TIDAK_AKTIF);
-    }
-
     public function scopeAktif($query)
     {
         return $query->where('status_pemesanan', self::STATUS_AKTIF);
