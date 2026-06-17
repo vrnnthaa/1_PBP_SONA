@@ -168,7 +168,6 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       MaterialPageRoute(
         builder: (context) => HotelDetailPage(
           hotel: hotel,
-          initialBookmarked: bookmarkedHotels.contains(hotel.id),
           checkInDate: widget.checkInDate,
           checkOutDate: widget.checkOutDate,
           guests: widget.guests,
@@ -338,7 +337,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                                 parent: BouncingScrollPhysics(),
                               ),
                               child: SizedBox(
-                                height: MediaQuery.of(context).size.height - 250,
+                                height:
+                                    MediaQuery.of(context).size.height - 250,
                                 child: Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -376,7 +376,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                               physics: const AlwaysScrollableScrollPhysics(
                                 parent: BouncingScrollPhysics(),
                               ),
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                12,
+                                16,
+                                24,
+                              ),
                               itemCount: hotels.length,
                               itemBuilder: (context, index) {
                                 final hotel = hotels[index];
@@ -390,9 +395,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                                 return VerticalHotelCard(
                                   hotel: hotel,
                                   distance: distance,
-                                  onBookmarkTap: () => _toggleBookmark(hotel.id),
+                                  onBookmarkTap: () =>
+                                      _toggleBookmark(hotel.id),
                                   onTap: () => _navigateToDetail(hotel),
-                                  isBookmarked: bookmarkedHotels.contains(hotel.id),
+                                  isBookmarked: bookmarkedHotels.contains(
+                                    hotel.id,
+                                  ),
                                   displayPrice:
                                       lowestPriceByHotel[hotel.id] ??
                                       hotel.hargaTerendah,

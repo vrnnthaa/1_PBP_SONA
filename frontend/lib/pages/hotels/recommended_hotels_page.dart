@@ -1,14 +1,16 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/pages/hotels/hotel_detail.dart';
+import 'package:sona/providers/app_providers.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/search/vertical_hotel_card.dart';
 import 'package:sona/api/hotel/api_hotel.dart';
 
-class RecommendedHotelsPage extends StatefulWidget {
+class RecommendedHotelsPage extends ConsumerStatefulWidget {
   final List<Hotel> hotels;
   final DateTime? checkInDate;
   final DateTime? checkOutDate;
@@ -25,13 +27,13 @@ class RecommendedHotelsPage extends StatefulWidget {
   });
 
   @override
-  State<RecommendedHotelsPage> createState() => _RecommendedHotelsPageState();
+  ConsumerState<RecommendedHotelsPage> createState() =>
+      _RecommendedHotelsPageState();
 }
 
-class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
+class _RecommendedHotelsPageState extends ConsumerState<RecommendedHotelsPage> {
   List<Hotel> hotels = [];
   bool isLoading = true;
-  Set<int> bookmarkedHotels = {};
   final Map<int, int> lowestPriceByHotel = {};
 
   static const Color bgColor = Color(0xFFF3F4F4);
@@ -92,16 +94,27 @@ class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
     return r * c;
   }
 
-  void _toggleBookmark(int hotelId) {
-    setState(() {
-      if (bookmarkedHotels.contains(hotelId)) {
-        bookmarkedHotels.remove(hotelId);
-        _showSnackBar('Removed from bookmarks', false);
-      } else {
-        bookmarkedHotels.add(hotelId);
-        _showSnackBar('Added to bookmarks', true);
-      }
-    });
+  Future<void> _toggleBookmark(Hotel hotel) async {
+    final profileAsync = ref.read(profileProvider);
+    final idUser = profileAsync.valueOrNull?['id_user'] ?? 1;
+
+    final success = await ref
+        .read(savedHotelsProvider.notifier)
+        .toggleSave(hotel, idUser);
+
+    if (!mounted || !success) return;
+
+    final isSavedNow = ref
+        .read(savedHotelsProvider)
+        .relationMap
+        .containsKey(hotel.id);
+
+    _showSnackBar(
+      isSavedNow
+          ? '${hotel.nama} bookmarked successfully!'
+          : '${hotel.nama} removed from bookmarks',
+      isSavedNow,
+    );
   }
 
   void _showSnackBar(String message, bool isSuccess) {
@@ -122,7 +135,6 @@ class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
       MaterialPageRoute(
         builder: (context) => HotelDetailPage(
           hotel: hotel,
-          initialBookmarked: bookmarkedHotels.contains(hotel.id),
           checkInDate: widget.checkInDate,
           checkOutDate: widget.checkOutDate,
           guests: widget.guests,
@@ -220,6 +232,9 @@ class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
   }
 
   Widget _buildHotelList() {
+    // Baca savedState dari provider
+    final savedState = ref.watch(savedHotelsProvider);
+
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
@@ -236,12 +251,14 @@ class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
           hotel.longitude,
         );
 
+        final isBookmarked = savedState.relationMap.containsKey(hotel.id);
+
         return VerticalHotelCard(
           hotel: hotel,
           distance: distance,
-          onBookmarkTap: () => _toggleBookmark(hotel.id),
+          onBookmarkTap: () => _toggleBookmark(hotel),
           onTap: () => _navigateToDetail(hotel),
-          isBookmarked: bookmarkedHotels.contains(hotel.id),
+          isBookmarked: isBookmarked,
           displayPrice: lowestPriceByHotel[hotel.id] ?? hotel.hargaTerendah,
           isUnavailable: false,
         );
@@ -275,7 +292,8 @@ class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
 
                     lowestPriceByHotel.clear();
                     for (final hotel in sortedHotels) {
-                      if (hotel.hargaTerendah != null && hotel.hargaTerendah! > 0) {
+                      if (hotel.hargaTerendah != null &&
+                          hotel.hargaTerendah! > 0) {
                         lowestPriceByHotel[hotel.id] = hotel.hargaTerendah!;
                       }
                     }
@@ -285,6 +303,10 @@ class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
                         hotels = sortedHotels;
                       });
                     }
+
+                    await ref
+                        .read(savedHotelsProvider.notifier)
+                        .loadSavedHotels();
                   } catch (e) {
                     _showSnackBar('Error refreshing hotels: $e', false);
                   }
@@ -293,14 +315,14 @@ class _RecommendedHotelsPageState extends State<RecommendedHotelsPage> {
                 child: isLoading
                     ? const Center(child: LoadingAnimation())
                     : hotels.isEmpty
-                        ? SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            child: SizedBox(
-                              height: MediaQuery.of(context).size.height - 180,
-                              child: _buildEmptyState(),
-                            ),
-                          )
-                        : _buildHotelList(),
+                    ? SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height - 180,
+                          child: _buildEmptyState(),
+                        ),
+                      )
+                    : _buildHotelList(),
               ),
             ),
           ],
