@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/providers/app_providers.dart';
+import 'package:sona/providers/auth/profile_provider.dart';
 
 //Widgets
 import 'package:sona/widgets/loading_animation.dart';
@@ -32,20 +33,91 @@ class HistoryTab extends ConsumerWidget {
         ? (paymentData.isNotEmpty ? paymentData.first : null)
         : (paymentData as Map<String, dynamic>?);
     final statusPembayaran = pembayaran != null ? pembayaran['status_pembayaran']?.toString().toLowerCase() : null;
-
     //Tab Canceled: Jika batal atau pembayaran gagal
     if (statusPemesanan == 'cancelled' || statusPembayaran == 'pembayaran gagal') {
       return 'Canceled';
     }
-
     //Tab Completed: Pembayaran selesai, tinggal menunggu review atau sudah di-review
     if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review' || 
         statusPemesanan == 'sudah review' || statusPemesanan == 'sudah_review') {
       return 'Completed';
     }
-
     //Tab Ongoing: Sisanya masuk ke sini (Termasuk belum bayar, menunggu pembayaran, dan booking aktif)
     return 'Ongoing';
+  }
+
+
+  void _showBookingDetails(BuildContext context, WidgetRef ref, Map<String, dynamic> booking) {
+    final profile = ref.read(profileProvider).value;
+    final String userName = profile?['nama'] ?? 'Username'; 
+    final String userEmail = profile?['email'] ?? 'User@gmail.com';
+
+    final DateTime inDate = DateTime.tryParse(booking['check_in'] ?? '') ?? DateTime.now();
+    final DateTime outDate = DateTime.tryParse(booking['check_out'] ?? '') ?? DateTime.now();
+    final String formattedDate = '${DateFormat('dd').format(inDate)}-${DateFormat('dd MMM yyyy').format(outDate)}';
+    
+    final String namaHotel = booking['kamar']?['hotel']?['nama_hotel'] ?? 'Hotel';
+    final String totalBiaya = NumberFormat.currency(
+      locale: 'id_ID', symbol: 'Rp. ', decimalDigits: 0
+    ).format(double.tryParse(booking['total_biaya'].toString()) ?? 0);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.all(24),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('HOTEL NAME', 
+              style: AppTheme.bodyStyle.copyWith(fontSize: 10, color: AppTheme.textGrey, fontWeight: FontWeight.bold)),
+            Text(namaHotel, 
+              style: AppTheme.titleStyle.copyWith(fontSize: 18, color: AppTheme.primary)),
+            const Divider(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('BOOKING ID', style: AppTheme.bodyStyle.copyWith(fontSize: 10, color: AppTheme.textGrey)),
+                  Text('#SONA-${booking['id_pemesanan']}', style: AppTheme.titleStyle.copyWith(fontSize: 14)),
+                ]),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Text('NAME', style: AppTheme.bodyStyle.copyWith(fontSize: 10, color: AppTheme.textGrey)),
+                  Text(userName, style: AppTheme.titleStyle.copyWith(fontSize: 14)), // Nama dari profile
+                ]),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('EMAIL', style: AppTheme.bodyStyle.copyWith(fontSize: 10, color: AppTheme.textGrey)),
+                  Text(userEmail, style: AppTheme.titleStyle.copyWith(fontSize: 14)), // Email dari profile
+                ]),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Text('DATE', style: AppTheme.bodyStyle.copyWith(fontSize: 10, color: AppTheme.textGrey)),
+                  Text(formattedDate, style: AppTheme.titleStyle.copyWith(fontSize: 14)),
+                ]),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: AppTheme.background, borderRadius: BorderRadius.circular(12)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('AMOUNT PAID', style: AppTheme.bodyStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text(totalBiaya, style: AppTheme.titleStyle.copyWith(fontSize: 14, color: AppTheme.primary)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -115,10 +187,10 @@ class HistoryTab extends ConsumerWidget {
                     color: AppTheme.primary,
                     child: TabBarView(
                       children: [
-                        _buildBookingList(context, bookings, 'All'),
-                        _buildBookingList(context, bookings, 'Ongoing'),
-                        _buildBookingList(context, bookings, 'Completed'),
-                        _buildBookingList(context, bookings, 'Canceled'),
+                        _buildBookingList(context, ref, bookings, 'All'),
+                        _buildBookingList(context, ref, bookings, 'Ongoing'),
+                        _buildBookingList(context, ref, bookings, 'Completed'),
+                        _buildBookingList(context, ref, bookings, 'Canceled'),
                       ],
                     ),
                   );
@@ -128,7 +200,7 @@ class HistoryTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildBookingList(BuildContext context, List<dynamic> allBookings, String categoryFilter) {
+  Widget _buildBookingList(BuildContext context, WidgetRef ref, List<dynamic> allBookings, String categoryFilter) {
     final filteredBookings = allBookings.where((booking) {
       if (categoryFilter == 'All') return true;
       return _getBookingCategory(booking) == categoryFilter;
@@ -150,12 +222,12 @@ class HistoryTab extends ConsumerWidget {
       itemCount: filteredBookings.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        return _buildBookingCard(context, filteredBookings[index]);
+        return _buildBookingCard(context, ref, filteredBookings[index]);
       },
     );
   }
 
-  Widget _buildBookingCard(BuildContext context, Map<String, dynamic> booking) {
+  Widget _buildBookingCard(BuildContext context, WidgetRef ref, Map<String, dynamic> booking) {
     final double cost = double.tryParse(booking['total_biaya'].toString()) ?? 0.0;
     final String statusPemesanan = (booking['status_pemesanan'] ?? 'pending').toString().toLowerCase();
 
@@ -274,17 +346,17 @@ class HistoryTab extends ConsumerWidget {
       buttonText = 'Already Reviewed'; 
       buttonBgColor = Colors.grey.shade300;
       buttonTextColor = Colors.grey.shade600;
-      onActionTap = null;
+      onActionTap = (){print("Tombol ini tidak memiliki aksi khusus");};
     } else if (statusText == "Failed / Cancelled") {
       buttonText = 'View Cancellation Policy'; 
       buttonBgColor = Colors.grey.shade300;
       buttonTextColor = Colors.grey.shade600;
-      onActionTap = null;
+      onActionTap = (){print("Tombol ini tidak memiliki aksi khusus");};;
     } else {
       buttonText = 'Paid & Active';
       buttonBgColor = Colors.grey.shade300;
       buttonTextColor = Colors.grey.shade600;
-      onActionTap = null;
+      onActionTap = (){print("Tombol ini tidak memiliki aksi khusus");};;
     }
 
     return Container(
@@ -368,14 +440,18 @@ class HistoryTab extends ConsumerWidget {
               ),
               const SizedBox(width: 11),
               Container(
-                width: 33, height: 33,
-                decoration: BoxDecoration(
-                  color: AppTheme.background,
-                  border: Border.all(width: 0.6, color: AppTheme.borderTealLight),
-                  borderRadius: BorderRadius.circular(17),
+                  width: 33, height: 33,
+                  decoration: BoxDecoration(
+                    color: AppTheme.background,
+                    border: Border.all(width: 0.6, color: AppTheme.borderTealLight),
+                    borderRadius: BorderRadius.circular(17),
+                  ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.receipt_long, size: 18, color: AppTheme.primary),
+                    onPressed: () => _showBookingDetails(context, ref, booking), 
+                  ),
                 ),
-                child: const Icon(Icons.receipt_long, size: 18, color: AppTheme.primary),
-              ),
             ],
           ),
         ],

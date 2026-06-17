@@ -14,12 +14,14 @@ class AddonItem {
   final String hargaDisplay;
   final String keterangan;
   final bool isPerNight;
+  final IconData icon; // <--- Tambahkan ini
 
   const AddonItem({
     required this.nama,
     required this.hargaDisplay,
     required this.harga,
     required this.keterangan,
+    required this.icon, // <--- Tambahkan ini
     this.isPerNight = false,
   });
 }
@@ -65,6 +67,7 @@ class _PemesananPageState extends State<PemesananPage> {
       harga: 75000,
       keterangan: 'Breakfast included in your stay',
       isPerNight: true,
+      icon: Icons.restaurant, 
     ),
     AddonItem(
       nama: 'Massages',
@@ -72,6 +75,7 @@ class _PemesananPageState extends State<PemesananPage> {
       harga: 125000,
       keterangan: 'Relaxing massage session',
       isPerNight: false,
+      icon: Icons.spa, 
     ),
     AddonItem(
       nama: 'Late Check-out',
@@ -79,6 +83,7 @@ class _PemesananPageState extends State<PemesananPage> {
       harga: 100000,
       keterangan: 'Extend your checkout time',
       isPerNight: false,
+      icon: Icons.access_time_filled, 
     ),
   ];
 
@@ -416,21 +421,28 @@ class _PemesananPageState extends State<PemesananPage> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    // Definisi Gradient untuk saat terpilih
+    final Gradient activeGradient = const LinearGradient(
+      colors: [AppTheme.primary, AppTheme.tealLight],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 60,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          gradient: isSelected ? activeGradient : null,
+          color: isSelected ? null : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black.withOpacity(0.12)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x3F000000),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : Colors.black.withOpacity(0.12),
+            width: 1,
+          ),
+          boxShadow: isSelected ? [] : const [
+            BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 2)),
           ],
         ),
         child: Row(
@@ -438,7 +450,11 @@ class _PemesananPageState extends State<PemesananPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.circle_outlined, size: 24),
+                Icon(
+                  addon.icon,
+                  color: isSelected ? Colors.white : AppTheme.primary,
+                  size: 24,
+                ),
                 const SizedBox(width: 12),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -449,23 +465,35 @@ class _PemesananPageState extends State<PemesananPage> {
                       style: AppTheme.titleStyle.copyWith(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.primary,
+                        color: isSelected ? Colors.white : AppTheme.primary,
                       ),
                     ),
                     Text(
                       addon.hargaDisplay,
                       style: AppTheme.titleStyle.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isSelected ? Colors.white.withOpacity(0.9) : AppTheme.textGrey,
                       ),
                     ),
                   ],
                 ),
               ],
             ),
-            Icon(
-              isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? Colors.white : Colors.transparent,
+                border: Border.all(
+                  color: isSelected ? Colors.white : AppTheme.primary,
+                  width: 2,
+                ),
+              ),
+              child: isSelected 
+                  ? const Icon(Icons.check, size: 16, color: AppTheme.primary) 
+                  : null,
             ),
           ],
         ),
