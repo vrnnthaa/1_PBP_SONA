@@ -43,7 +43,7 @@ class Pembayaran extends Model {
     }
 
     protected $casts = [
-        'tanggal_pembayaran'    => 'date',
+        'tanggal_pembayaran'    => 'datetime',
         'jumlah_bayar'          => 'decimal:2',
     ];
 

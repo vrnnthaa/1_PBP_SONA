@@ -37,7 +37,6 @@ class Pemesanan extends Model
         'is_delete' => 'boolean',
     ];
 
-    public const STATUS_TIDAK_AKTIF = 'tidak aktif';
     public const STATUS_AKTIF = 'aktif';
     public const STATUS_CANCELLED = 'cancelled';
     public const STATUS_MENUNGGU_REVIEW = 'menunggu review';
