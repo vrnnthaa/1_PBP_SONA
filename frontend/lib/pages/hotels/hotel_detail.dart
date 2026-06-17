@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sona/entity/hotel/hotel.dart';
 import 'package:sona/entity/review/hotel_review_response.dart';
@@ -20,10 +21,10 @@ import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/review/review_models.dart';
 import 'package:sona/pages/hotels/hotel_location_map_page.dart';
 import 'package:sona/pages/kamar/kamar_page.dart';
+import 'package:sona/providers/app_providers.dart';
 
-class HotelDetailPage extends StatefulWidget {
+class HotelDetailPage extends ConsumerStatefulWidget {
   final Hotel hotel;
-  final bool initialBookmarked;
   final DateTime? checkInDate;
   final DateTime? checkOutDate;
   final int guests;
@@ -31,19 +32,17 @@ class HotelDetailPage extends StatefulWidget {
   const HotelDetailPage({
     super.key,
     required this.hotel,
-    this.initialBookmarked = false,
     this.checkInDate,
     this.checkOutDate,
     this.guests = 1,
   });
 
   @override
-  State<HotelDetailPage> createState() => _HotelDetailPageState();
+  ConsumerState<HotelDetailPage> createState() => _HotelDetailPageState();
 }
 
-class _HotelDetailPageState extends State<HotelDetailPage> {
+class _HotelDetailPageState extends ConsumerState<HotelDetailPage> {
   late Hotel hotel;
-  late bool isBookmarked;
   int selectedImageIndex = 0;
   late Future<HotelReviewResponse> _reviewsFuture;
 
@@ -51,7 +50,6 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   void initState() {
     super.initState();
     hotel = widget.hotel;
-    isBookmarked = widget.initialBookmarked;
     _reviewsFuture = ApiReview().fetchHotelReviews(hotel.id);
   }
 
@@ -59,17 +57,45 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
     try {
       final updatedHotel = await ApiHotel().fetchHotelById(hotel.id);
       final updatedReviews = ApiReview().fetchHotelReviews(hotel.id);
+
       if (!mounted) return;
+
       setState(() {
         hotel = updatedHotel;
         _reviewsFuture = updatedReviews;
       });
+
+      await ref.read(savedHotelsProvider.notifier).loadSavedHotels();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error refreshing hotel details: $e')),
       );
     }
+  }
+
+  Future<void> _toggleBookmark(Hotel hotel, int idUser) async {
+    final success = await ref
+        .read(savedHotelsProvider.notifier)
+        .toggleSave(hotel, idUser);
+
+    if (!mounted || !success) return;
+
+    final isSavedNow = ref
+        .read(savedHotelsProvider)
+        .relationMap
+        .containsKey(hotel.id);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isSavedNow
+              ? '${hotel.nama} bookmarked successfully!'
+              : '${hotel.nama} removed from bookmarks',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   List<String> get _galleryImages {
@@ -198,6 +224,11 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
     final hotel = this.hotel;
     final int? basePrice = hotel.hargaTerendah;
 
+    final savedState = ref.watch(savedHotelsProvider);
+    final profileAsync = ref.watch(profileProvider);
+    final idUser = profileAsync.valueOrNull?['id_user'] ?? 1;
+    final isBookmarked = savedState.relationMap.containsKey(hotel.id);
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       bottomNavigationBar: HotelPriceBottomBar(
@@ -221,89 +252,24 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
         onRefresh: _handleRefresh,
         color: AppTheme.primary,
         child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           slivers: [
-          SliverToBoxAdapter(
-            child: Column(children: [_buildHeader(), _buildImageGallery()]),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildAmenitiesSection(hotel),
-                  const SectionDivider(),
-                  const SizedBox(height: 16),
-                  _buildDescriptionSection(hotel),
-                  const SizedBox(height: 18),
-                  const SectionDivider(),
-                  const SizedBox(height: 16),
-                  _buildReviewsSection(),
-                  const SizedBox(height: 18),
-                  const SectionDivider(),
-                  const SizedBox(height: 16),
-                  HotelLocationSection(
-                    latitude: hotel.latitude,
-                    longitude: hotel.longitude,
-                    hotelName: hotel.nama,
-                    onViewOnMapTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => HotelLocationMapPage(
-                            latitude: hotel.latitude,
-                            longitude: hotel.longitude,
-                            hotelName: hotel.nama,
-                            priceText: _formatPrice(basePrice),
-                            onSelectRoomTap: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 18),
-                  const SectionDivider(),
-                  const SizedBox(height: 16),
-                  HotelPoliciesSection(policies: hotel.policies),
-                  const SizedBox(height: 18),
-                  const SectionDivider(),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      color: AppTheme.textWhite,
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 42,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: AppTheme.primary,
-                    size: 28,
-                  ),
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: AppTheme.textWhite,
+              elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              leading: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: AppTheme.primary,
+                  size: 28,
                 ),
               ),
-              Text(
+              title: Text(
                 'Booking Hotel',
                 style: GoogleFonts.montserrat(
                   color: AppTheme.primary,
@@ -311,23 +277,74 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: SizedBox(
-                  width: 34,
-                  height: 34,
-                  child: BookmarkButton(
-                    onTap: () {
-                      setState(() {
-                        isBookmarked = !isBookmarked;
-                      });
-                    },
-                    isBookmarked: isBookmarked,
+              centerTitle: true,
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: SizedBox(
+                    width: 34,
+                    height: 34,
+                    child: BookmarkButton(
+                      isBookmarked: isBookmarked,
+                      onTap: () async {
+                        await _toggleBookmark(hotel, idUser);
+                      },
+                    ),
                   ),
                 ),
+              ],
+            ),
+            SliverToBoxAdapter(child: _buildImageGallery()),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildAmenitiesSection(hotel),
+                    const SectionDivider(),
+                    const SizedBox(height: 16),
+                    _buildDescriptionSection(hotel),
+                    const SizedBox(height: 18),
+                    const SectionDivider(),
+                    const SizedBox(height: 16),
+                    _buildReviewsSection(),
+                    const SizedBox(height: 18),
+                    const SectionDivider(),
+                    const SizedBox(height: 16),
+                    HotelLocationSection(
+                      latitude: hotel.latitude,
+                      longitude: hotel.longitude,
+                      hotelName: hotel.nama,
+                      onViewOnMapTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => HotelLocationMapPage(
+                              latitude: hotel.latitude,
+                              longitude: hotel.longitude,
+                              hotelName: hotel.nama,
+                              priceText: _formatPrice(basePrice),
+                              onSelectRoomTap: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    const SectionDivider(),
+                    const SizedBox(height: 16),
+                    HotelPoliciesSection(policies: hotel.policies),
+                    const SizedBox(height: 18),
+                    const SectionDivider(),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
