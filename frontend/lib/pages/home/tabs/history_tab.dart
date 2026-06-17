@@ -146,27 +146,38 @@ class HistoryTab extends ConsumerWidget {
     final String formattedCost = currencyFormat.format(cost);
 
     // Untuk Status
-    Color statusColor = AppTheme.primary; // Warna sukses dari Figma
+    Color statusColor = AppTheme.primary; 
     String statusText = "Unknown";
 
+    // 1. Cek apakah dibatalkan atau gagal bayar
     if (statusPemesanan == 'cancelled' || statusPembayaran == 'pembayaran gagal') {
       statusColor = AppTheme.errorRed; 
       statusText = "Failed / Cancelled";
-    } else if (statusPembayaran == 'menunggu pembayaran') {
-      statusColor = AppTheme.starYellow; // Warna kuning/orange untuk pending
-      statusText = "Awaiting Payment";
-    } else if (statusPembayaran == null && statusPemesanan != 'aktif' && statusPemesanan != 'menunggu review' && statusPemesanan != 'sudah review') {
-      statusColor = AppTheme.starYellow;
+    } 
+    // 2. PRIORITAS PEMBAYARAN: Jika belum ada data pembayaran sama sekali
+    else if (statusPembayaran == null) {
+      statusColor = AppTheme.starYellow; 
       statusText = "Payment Required";
-    } else if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review') {
+    } 
+    // 3. Jika sudah buat pembayaran, tapi belum verifikasi
+    else if (statusPembayaran == 'menunggu pembayaran') {
+      statusColor = AppTheme.starYellow; 
+      statusText = "Awaiting Payment";
+    } 
+    // 4. Jika pesanan butuh direview (asumsi pembayaran sudah aman)
+    else if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review') {
       statusColor = AppTheme.starYellow;
       statusText = "Wait Review";
-    } else if (statusPemesanan == 'aktif' || statusPembayaran == 'pembayaran terverifikasi') {
-      statusColor = AppTheme.tealLight;
-      statusText = "Active Booking";
-    } else if (statusPemesanan == 'sudah review' || statusPemesanan == 'sudah_review') {
+    } 
+    // 5. Jika pesanan sudah selesai dan direview
+    else if (statusPemesanan == 'sudah review' || statusPemesanan == 'sudah_review') {
       statusColor = const Color(0xFF00BD25);
       statusText = "Completed";
+    } 
+    // 6. Jika semua urusan pembayaran beres dan pesanan berjalan
+    else if (statusPemesanan == 'aktif' || statusPembayaran == 'pembayaran terverifikasi') {
+      statusColor = AppTheme.tealLight;
+      statusText = "Active Booking";
     }
 
     //LOGIKA TOMBOL AKSI DI BAWAH KARTU ---
@@ -176,8 +187,8 @@ class HistoryTab extends ConsumerWidget {
     Color buttonTextColor = Colors.white;
     VoidCallback? onActionTap;
 
-    //Belum pernah masuk halaman Verify (Belum ada data pembayaran di database)
-    if (statusPembayaran == null && (statusText == "Payment Required")) {
+    // Menyesuaikan aksi langsung dari statusText yang sudah difilter di atas
+    if (statusText == "Payment Required") {
       buttonText = 'Complete Payment';
       buttonBgColor = AppTheme.primary; // Bisa diganti warna orange agar mencolok
       onActionTap = () {
@@ -186,7 +197,7 @@ class HistoryTab extends ConsumerWidget {
           MaterialPageRoute(
             builder: (context) => RingkasanPembayaranPage(
               idPemesanan: booking['id_pemesanan'],
-              biayaPemesanan: cost, // Sesuaikan ini dengan logic aslimu
+              biayaPemesanan: cost,
               hargaKamar: double.tryParse(booking['kamar']?['harga_kamar']?.toString() ?? '0') ?? 0.0,
               namaKamar: namaKamar,
               namaHotel: namaHotel,
@@ -194,20 +205,17 @@ class HistoryTab extends ConsumerWidget {
               checkOut: booking['check_out'],
               jumlahPengunjung: booking['jumlah_tamu'] ?? 1,
               imageUrl: imageUrl,
-              selectedAddons: [], // Asumsi addons kosong jika mengambil dari history, atau ekstrak dari JSON jika ada
+              selectedAddons: [], 
             ),
           ),
         );
       };
     } 
-    
-    //Pembayaran sudah dibuat, tapi belum scan sidik jari (menunggu pembayaran)
-    else if (statusPembayaran == 'menunggu pembayaran') {
+    else if (statusText == "Awaiting Payment") {
       buttonText = 'Verify Payment Now';
       buttonBgColor = AppTheme.starYellow; 
-      buttonTextColor = Colors.black87; // Teks gelap untuk background kuning
+      buttonTextColor = Colors.black87; 
       
-      // Ambil waktu pembuatan pembayaran dan tambahkan 24 jam untuk deadline
       DateTime tglBuat = DateTime.tryParse(pembayaran?['tanggal_pembayaran'] ?? '') ?? DateTime.now();
       DateTime deadline = tglBuat.add(const Duration(hours: 24));
 
@@ -227,8 +235,7 @@ class HistoryTab extends ConsumerWidget {
         );
       };
     } 
-    //Status Menunggu Review
-    else if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review') {
+    else if (statusText == "Wait Review") {
       buttonText = 'Write a Review';
       buttonGradient = AppTheme.primaryGradient;
       onActionTap = () {
@@ -240,14 +247,24 @@ class HistoryTab extends ConsumerWidget {
         );
       };
     } 
-    
-    //Status Aktif, Gagal, atau Selesai (Tombol mati/disabled)
-    else {
-      buttonText = statusPemesanan == 'sudah review' ? 'Reviewed' 
-                : (statusText == "Failed / Cancelled" ? 'Payment Failed' : 'Paid & Active');
+    else if (statusText == "Completed") {
+      buttonText = 'Reviewed';
       buttonBgColor = Colors.grey.shade300;
       buttonTextColor = Colors.grey.shade600;
-      onActionTap = null; // Tidak bisa diklik
+      onActionTap = null;
+    }
+    else if (statusText == "Failed / Cancelled") {
+      buttonText = 'Payment Failed';
+      buttonBgColor = Colors.grey.shade300;
+      buttonTextColor = Colors.grey.shade600;
+      onActionTap = null;
+    }
+    else {
+      // Untuk "Active Booking"
+      buttonText = 'Paid & Active';
+      buttonBgColor = Colors.grey.shade300;
+      buttonTextColor = Colors.grey.shade600;
+      onActionTap = null;
     }
 
     return Container(
