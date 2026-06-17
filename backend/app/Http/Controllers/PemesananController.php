@@ -61,7 +61,6 @@ class PemesananController extends Controller
         $isOverlapping = Pemesanan::where('id_kamar', $validated['id_kamar'])
             ->whereIn('status_pemesanan', [
                 Pemesanan::STATUS_AKTIF,
-                Pemesanan::STATUS_MENUNGGU_REVIEW,
             ])
             ->where('check_in', '<', $validated['check_out'])
             ->where('check_out', '>', $validated['check_in'])
@@ -141,7 +140,6 @@ class PemesananController extends Controller
             'status_pemesanan' => [
                 'sometimes',
                 Rule::in([
-                    Pemesanan::STATUS_TIDAK_AKTIF,
                     Pemesanan::STATUS_AKTIF,
                     Pemesanan::STATUS_CANCELLED,
                     Pemesanan::STATUS_MENUNGGU_REVIEW,
@@ -207,7 +205,6 @@ class PemesananController extends Controller
     public function getByStatus($status)
     {
         $allowedStatus = [
-            Pemesanan::STATUS_TIDAK_AKTIF,
             Pemesanan::STATUS_AKTIF,
             Pemesanan::STATUS_CANCELLED,
             Pemesanan::STATUS_MENUNGGU_REVIEW,
@@ -231,19 +228,6 @@ class PemesananController extends Controller
         ], 200);
     }
 
-    // public function getByUser($id_user)
-    // {
-    //     $pemesanan = Pemesanan::with(['kamar', 'pembayaran', 'review'])
-    //         ->where('id_user', $id_user)
-    //         ->latest('id_pemesanan')
-    //         ->get();
-
-    //     return response()->json([
-    //         'message' => 'Data pemesanan user berhasil diambil',
-    //         'data' => $pemesanan,
-    //     ], 200);
-    // }
-
     public function updateStatusReview($id_user)
     {
         $today = date('Y-m-d');
@@ -259,16 +243,14 @@ class PemesananController extends Controller
 
     public function getByUser($id_user)
     {
-        // Jalankan update status review otomatis
         $this->updateStatusReview($id_user);
 
-        // Kita gunakan model Pemesanan, pastikan relasi di Model sudah didefinisikan dengan benar
-        $pemesanan = Pemesanan::with(['kamar.hotel', 'pembayaran', 'review']) // Tambahkan kamar.hotel agar bisa menampilkan nama hotel
+        //pastikan relasi di Model sudah didefinisikan dengan benar
+        $pemesanan = Pemesanan::with(['kamar.hotel', 'kamar.gambarKamar', 'pembayaran', 'review']) 
             ->where('id_user', $id_user)
             ->latest('id_pemesanan')
             ->get()
             ->filter(function ($item) {
-                // Filter manual jika ada relasi yang null untuk mencegah error aplikasi
                 return $item->kamar !== null; 
             })
             ->values(); // Reset index array
@@ -278,18 +260,4 @@ class PemesananController extends Controller
             'data' => $pemesanan,
         ], 200);
     }
-
-    
-
-    // public function getByUser($id_user)
-    // {
-    //     $pemesanan = Pemesanan::where('id_user', $id_user)
-    //         ->latest('id_pemesanan')
-    //         ->get();
-
-    //     return response()->json([
-    //         'message' => 'Data pemesanan user berhasil diambil',
-    //         'data' => $pemesanan,
-    //     ], 200);
-    // }
 }

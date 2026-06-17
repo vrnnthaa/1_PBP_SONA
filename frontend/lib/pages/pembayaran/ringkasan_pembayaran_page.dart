@@ -105,7 +105,7 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
         idPemesanan: widget.idPemesanan, 
         tanggalPembayaran: DateTime.now(), 
         jumlahBayar: _totalBiaya, 
-        statusPembayaran: 'PENDING',
+        statusPembayaran: 'menunggu pembayaran',
         metodePembayaran: 'Transfer Bank',
         token : token,
       );

@@ -49,8 +49,7 @@ class ApiPembayaran {
         },
         body: jsonEncode({
           'id_pemesanan' : idPemesanan,
-          // PERBAIKAN: Ubah format ke String (YYYY-MM-DD) agar aman saat di-jsonEncode dan diterima Laravel
-          'tanggal_pembayaran' : "${tanggalPembayaran.year}-${tanggalPembayaran.month.toString().padLeft(2, '0')}-${tanggalPembayaran.day.toString().padLeft(2, '0')}",
+          'tanggal_pembayaran' : tanggalPembayaran.toIso8601String(),
           'jumlah_bayar' : jumlahBayar,
           'status_pembayaran' : statusPembayaran,
           'metode_pembayaran' : metodePembayaran,
