@@ -62,15 +62,14 @@ class AuthController extends Controller
         }
 
         //regex cek format email
-        if (!preg_match("/^[\w\.-]+@[\w\.-]+\.\w+$/", $request->email)) {
+        if (!filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
             return response()->json([
                 'message' => 'Email format is not valid',
                 'field' => 'email',
             ], 400);
         }
 
-        if(strlen($request->password) < 6)
-        {
+        if (!preg_match("/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{6,}$/", $request->password)) {
             return response()->json([
                 'message' => 'Password must be at least 6 characters',
                 'field' => 'password',
@@ -94,6 +93,7 @@ class AuthController extends Controller
             'message' => 'Register Successful',
             'token' => $token,
             'data' => $user,
+            'has_pin' => false,
         ], 201);
     }
 
@@ -123,10 +123,17 @@ class AuthController extends Controller
         $user->pin = Hash::make($request->pin);
         $user->save();
 
-        $request->user()->currentAccessToken()->delete();
+        if ($request->query('source') !== 'google') {
+            $request->user()->currentAccessToken()->delete();
+
+            return response()->json([
+                'message' => 'PIN successfully saved, please log in again',
+                'data' => $user
+            ], 200);
+        }
 
         return response()->json([
-            'message' => 'PIN Succesfully saved, please log in again',
+            'message' => 'PIN successfully saved',
             'data' => $user
         ], 200);
     }
@@ -149,8 +156,12 @@ class AuthController extends Controller
                 'telp_no' => $request->telp_no,
                 'tanggal_lahir' => $request->tanggal_lahir,
                 'sidik_jari' => null,
-                'photo_profile' => null,
+                'photo_profile' => $request->photo_profile,
                 'pin' => null,
+            ]);
+        } else {
+            $user->update([
+                'photo_profile' => $request->photo_profile ?? $user->photo_profile,
             ]);
         }
 
@@ -203,25 +214,23 @@ class AuthController extends Controller
             ], 400);
         }
 
-        if (!$user->pin) {
-            return response()->json([
-                'message' => 'Please set your PIN first'
-            ], 403);
-        }
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
             'token' => $token,
+            'has_pin'  => !is_null($user->pin),
             'data' => $user
         ], 200);
     }
 
     public function me(Request $request)
     {
+        $user = $request->user();
+
         return response()->json([
             'message' => 'Data user berhasil diambil',
+            'has_pin'  => !is_null($user->pin),
             'data' => $request->user(),
         ]);
     }

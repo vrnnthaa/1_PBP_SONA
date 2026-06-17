@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:sona/pages/auth/login_page.dart';
 import 'package:sona/utils/app_theme.dart';
-import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/pages/onboarding/onboarding_item.dart';
 import 'package:sona/widgets/onboarding/onboarding_button.dart';
 import 'package:sona/widgets/onboarding/onboarding_indicator.dart';
-
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -61,7 +60,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => const HomePage(),
+          builder: (_) => const LoginPage(),
         ),
       );
     }
