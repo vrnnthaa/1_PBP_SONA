@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:sona/api/config/api_config.dart';
 
 class ApiAuth {
-  // 1. Fungsi Login
+
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -39,7 +39,7 @@ class ApiAuth {
     }
   }
 
-  // 2. Fungsi Register
+
   Future<Map<String, dynamic>> register(String nama, String email, String tanggalLahir, String telpNo, String password) async {
     try {
       final response = await http.post(
@@ -56,15 +56,19 @@ class ApiAuth {
 
       return jsonDecode(response.body);
     } catch (e) {
-      throw Exception('Gagal register: $e');
+      throw Exception('Register failed: $e');
     }
   }
 
-  // 3. Fungsi Set PIN
-  Future<bool> setPin(String token, String pin) async {
+
+  Future<bool> setPin(String token, String pin, {bool isFromGoogle = false}) async {
     try {
+      final url = isFromGoogle
+          ? Uri.parse('${ApiConfig.baseUrl}/set-pin?source=google')
+          : Uri.parse('${ApiConfig.baseUrl}/set-pin');
+
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/set-pin'),
+        url,
         headers: ApiConfig.getHeaders(token: token),
         body: jsonEncode({
           'pin': pin,
@@ -73,11 +77,11 @@ class ApiAuth {
 
       return response.statusCode == 200;
     } catch (e) {
-      throw Exception('Gagal setpin: $e');
+      throw Exception('Set Pin Failed: $e');
     }
   }
 
-  Future<Map<String, dynamic>?> googleLogin({required String email, required String nama}) async {
+  Future<Map<String, dynamic>?> googleLogin({required String email, required String nama, String? photoProfile}) async {
     try {
       final response = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/google-auth'),
@@ -85,6 +89,7 @@ class ApiAuth {
         body: jsonEncode({
           'email': email,
           'nama': nama,
+          'photo_profile': photoProfile,
         }),
       );
 
@@ -92,11 +97,11 @@ class ApiAuth {
         return jsonDecode(response.body);
       }
     } catch(e) {
-      throw Exception('Gagal masuk google: $e');
+      throw Exception('Sign in with Google failed: $e');
     }
   }
 
-  // 4. Fungsi Logout
+
   Future<bool> logout(String token) async {
     try {
       final response = await http.post(
@@ -106,7 +111,7 @@ class ApiAuth {
 
       return response.statusCode == 200;
     } catch (e) {
-      throw Exception('Gagal logout: $e');
+      throw Exception('Logout failed: $e');
     }
   }
 }

@@ -40,6 +40,12 @@ class User extends Authenticatable
 
     public function setPasswordAttribute($value)
     {
+
+        if ($value === null) {
+            $this->attributes['password'] = null;
+            return;
+        }
+
         if ((str_starts_with($value, '$2y$') || str_starts_with($value, '$2a$') || str_starts_with($value, '$2b$')) && strlen($value) === 60) {
             $this->attributes['password'] = $value;
         } else {
@@ -49,6 +55,11 @@ class User extends Authenticatable
 
     public function setPinAttribute($value)
     {
+        if ($value === null) {
+            $this->attributes['pin'] = null;
+            return;
+        }
+
         if ((str_starts_with($value, '$2y$') || str_starts_with($value, '$2a$') || str_starts_with($value, '$2b$')) && strlen($value) === 60) {
             $this->attributes['pin'] = $value;
         } else {

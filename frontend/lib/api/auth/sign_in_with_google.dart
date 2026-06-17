@@ -38,6 +38,7 @@ class GoogleAuthService {
         return await ApiAuth().googleLogin(
           email: firebaseUser.email ?? googleUser.email,
           nama: firebaseUser.displayName ?? googleUser.displayName ?? 'Google User',
+          photoProfile: firebaseUser.photoURL ?? googleUser.photoUrl,
         );
 
       } catch (e) {

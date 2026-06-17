@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,7 +11,7 @@ import 'package:sona/pages/animation/splash_screen.dart';
 import 'package:sona/pages/onboarding/onboarding_page.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();  
 
   // Initialize Supabase
   await Supabase.initialize(
@@ -30,6 +29,9 @@ void main() async {
     AssetLottie('assets/Lottie/Splash_Sona.json').load(),
     AssetLottie('assets/Lottie/Loading.json').load(),
     AssetLottie('assets/Lottie/Onboarding_Splash.json').load(),
+    AssetLottie('assets/Lottie/SHRUG.json').load(),
+    AssetLottie('assets/Lottie/SPARKLE.json').load(),
+    AssetLottie('assets/Lottie/Luv_That.json').load(),
   ]);
 
   runApp(
