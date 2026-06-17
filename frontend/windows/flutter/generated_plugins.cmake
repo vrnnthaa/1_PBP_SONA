@@ -8,7 +8,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_auth
   firebase_core
   local_auth_windows
-  printing
   url_launcher_windows
 )
 
