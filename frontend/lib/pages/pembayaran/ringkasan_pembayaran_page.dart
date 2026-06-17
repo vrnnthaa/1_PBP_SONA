@@ -474,47 +474,81 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
   }
 
   Widget _buildCancellationPolicy() {
-    // Menghitung tanggal H-2 dari checkIn
-    String cancelDateStr = "";
+    final DateTime now = DateTime.now();
+    final DateTime nowDate = DateTime(now.year, now.month, now.day);
+    
+    DateTime inDateParsed = DateTime.now();
     try {
-      final DateTime inDate = DateTime.parse(widget.checkIn);
-      final DateTime cancelDate = inDate.subtract(const Duration(days: 2));
-      cancelDateStr = DateFormat('dd MMM').format(cancelDate); // Contoh hasil: 10 Jan
+      inDateParsed = DateTime.parse(widget.checkIn);
     } catch (e) {
-      cancelDateStr = "2 days before"; // Fallback jika format salah
+      debugPrint('Format checkIn salah: $e');
     }
+    final DateTime inDate = DateTime(inDateParsed.year, inDateParsed.month, inDateParsed.day);
+
+    final int daysToCheckIn = inDate.difference(nowDate).inDays;
+    
+    final bool isFreeCancel = daysToCheckIn >= 2;
+
+    String cancelDateStr = "";
+    if (isFreeCancel) {
+      final DateTime cancelDate = inDateParsed.subtract(const Duration(days: 2));
+      cancelDateStr = DateFormat('dd MMM').format(cancelDate);
+    }
+
+    final Color bgColor = isFreeCancel ? const Color(0xFFFDF7F0) : Colors.red.shade50;
+    final Color borderColor = isFreeCancel ? const Color(0xFF9E491A) : AppTheme.errorRed.withOpacity(0.5);
+    final Color highlightTextColor = isFreeCancel ? const Color(0xFF9E491A) : AppTheme.errorRed;
+    final Color normalTextColor = isFreeCancel ? const Color(0xFF9E653F) : AppTheme.errorRed.withOpacity(0.8);
+
+    final String highlightText = isFreeCancel ? 'Free Cancellation ' : 'Non-Refundable. ';
+    final String normalText = isFreeCancel 
+        ? 'until $cancelDateStr. After that, cancellation fees may apply.'
+        : 'Orders made close to the check-in date (H-1 or H-0) cannot be canceled or refunded.';
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDF7F0), // Warna background krem terang
+        color: bgColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF9E491A),
+          color: borderColor,
           width: 0.5,
-        ), // Warna border coklat muda
+        ),
       ),
-      child: RichText(
-        text: TextSpan(
-          style: GoogleFonts.montserrat(
-            fontSize: 12.5,
-            height: 1.5,
-            color: const Color(0xFF9E653F), // Warna teks coklat pudar
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            isFreeCancel ? Icons.check_circle_outline : Icons.info_outline,
+            color: highlightTextColor,
+            size: 18,
           ),
-          children: [
-            TextSpan(
-              text: 'Free Cancellation ',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700, 
-                color: Color(0xFF9E491A), // Warna teks tebal coklat tua
+          const SizedBox(width: 10),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: GoogleFonts.montserrat(
+                  fontSize: 12.5,
+                  height: 1.5,
+                  color: normalTextColor,
+                ),
+                children: [
+                  TextSpan(
+                    text: highlightText,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700, 
+                      color: highlightTextColor,
+                    ),
+                  ),
+                  TextSpan(
+                    text: normalText,
+                  ),
+                ],
               ),
             ),
-            TextSpan(
-              text: 'until $cancelDateStr. After that, cancellation fees may apply. No payment is required today',
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

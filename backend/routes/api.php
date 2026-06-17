@@ -95,6 +95,7 @@ Route::put('/save-hotels/{id}', [SaveHotelController::class, 'update']);
 // T-T
 Route::get('/pemesanan/user/{id_user}', [PemesananController::class, 'getByUser']);
 Route::get('/pemesanan/status/{status}', [PemesananController::class, 'getByStatus']);
+Route::put('/pemesanan/{id}/cancel', [PemesananController::class, 'cancel']);
 Route::get('/pemesanan', [PemesananController::class, 'index']);
 Route::get('/pemesanan/{id}', [PemesananController::class, 'show']);
 Route::post('/pemesanan', [PemesananController::class, 'store']);
