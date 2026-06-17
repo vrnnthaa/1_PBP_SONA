@@ -5,7 +5,6 @@ import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/green_button.dart';
 import 'package:sona/widgets/input_box.dart';
 import 'package:sona/api/auth/api_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/pages/auth/set_pin_page.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/top_bar.dart';
@@ -273,7 +272,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
                                       try {
                                         final result = await _authService.signInWithGoogle();
-                                        print(result);
                                         if (!mounted) return;
                         
                                         if (result != null) {
@@ -301,7 +299,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                             const SnackBar(content: Text("Google Sign In gagal")),
                                           );
                                         }
-                                      } catch (e, stack) {
+                                      } catch (e) {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(content: Text(e.toString())),
                                         );  

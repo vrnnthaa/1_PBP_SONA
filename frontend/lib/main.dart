@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';

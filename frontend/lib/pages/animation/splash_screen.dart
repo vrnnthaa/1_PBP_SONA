@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
 import 'package:sona/api/config/api_config.dart';
-import 'package:sona/pages/auth/set_pin_page.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/pages/home/home_page.dart';

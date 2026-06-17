@@ -203,7 +203,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                         try {
                           final result = await _authService.signInWithGoogle();
-                          print(result);
                           if (!mounted) return;
           
                           if (result != null) {
@@ -231,7 +230,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               const SnackBar(content: Text("Google Sign In gagal")),
                             );
                           }
-                        } catch (e, stack) {
+                        } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(e.toString())),
                           );  
