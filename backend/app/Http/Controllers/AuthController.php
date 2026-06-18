@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\PemesananController;
 
 class AuthController extends Controller
 {
@@ -213,6 +214,8 @@ class AuthController extends Controller
                 'field' => 'password',
             ], 400);
         }
+
+        (new PemesananController())->updateStatusReview($user->id_user);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

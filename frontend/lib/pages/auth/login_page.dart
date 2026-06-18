@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sona/api/notification/firebase_api.dart';
 import 'package:sona/pages/auth/register_page.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/green_button.dart';
@@ -10,6 +11,8 @@ import 'package:sona/pages/auth/set_pin_page.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/api/auth/sign_in_with_google.dart';
 import 'package:sona/widgets/loading_animation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:sona/api/auth/api_user.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -100,7 +103,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           
                           if(result['token'] != null)
                           {
-                            await ref.read(tokenProvider.notifier).setToken(result['token']);
+                            final jwtToken = result['token'];
+
+                            await ref.read(tokenProvider.notifier).setToken(jwtToken);
+
+                            final fcmToken = await FirebaseMessaging.instance.getToken();
+
+                            print('FCM TOKEN LOGIN: $fcmToken');
+
+                            if (fcmToken != null) {
+                              await FirebaseApi().sendTokenToBackend(
+                                fcmToken,
+                              );
+                            }
               
                             final hasPin = result['has_pin'] == true;
             

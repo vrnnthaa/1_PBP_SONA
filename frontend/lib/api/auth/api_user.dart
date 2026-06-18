@@ -125,4 +125,22 @@ class ApiUser {
       };
     }
   }
+
+Future<void> saveFcmToken(
+    String token,
+    String fcmToken,
+  ) async {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/save-fcm-token'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'fcm_token': fcmToken,
+      }),
+    );
+
+    print(response.body);
+  }
 }
