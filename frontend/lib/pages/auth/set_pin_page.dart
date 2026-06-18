@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sona/pages/auth/register_success_page.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/green_button.dart';
 import 'package:sona/widgets/top_bar.dart';
 import 'package:pinput/pinput.dart';
 import 'package:sona/api/auth/api_auth.dart';
-import 'package:sona/pages/auth/login_page.dart';
-import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/widgets/loading_animation.dart';
 
 class SetPinPage extends ConsumerStatefulWidget {
   final bool isFromGoogle;
+  final bool isFromLogin;
   
-  
-  const SetPinPage({super.key, this.isFromGoogle = false});
+  const SetPinPage({super.key, this.isFromGoogle = false, this.isFromLogin = false});
 
   @override
   ConsumerState<SetPinPage> createState() => _SetPinPageState();
@@ -32,12 +30,12 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
     textStyle: const TextStyle(
       fontSize: 23,
       fontWeight: FontWeight.bold,
-      color: Color(0xFF003A3F),
+      color: AppTheme.primary,
     ),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(10),
       border: Border.all(
-        color: const Color(0xFF003A3F),
+        color: AppTheme.primary,
         width: 2,
       ),
       boxShadow: [
@@ -89,7 +87,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                                           height: 75,
                                     
                                           decoration: BoxDecoration(
-                                            color: Color(0xFF003A3F),
+                                            color: AppTheme.primary,
                                     
                                             borderRadius: BorderRadius.circular(100),
                                           ),
@@ -114,7 +112,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                                         Text(
                                           'Create Secret PIN',
                                           style: const TextStyle(
-                                            color: Color(0xFF003A3F),
+                                            color: AppTheme.primary,
                                             fontSize: 24,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -125,7 +123,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                                         Text(
                                           'Enter a 4-digit PIN',
                                           style: const TextStyle(
-                                            color: Color(0xFF003A3F),
+                                            color: AppTheme.primary,
                                             fontSize: 14,
                                             fontWeight: FontWeight.normal,
                                           ),
@@ -188,31 +186,25 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                                                 pinController.text,
                                                 isFromGoogle: widget.isFromGoogle,
                                               );
+
+                                              if (!mounted) return;
                                       
                                               if (success) {
-                                                if(widget.isFromGoogle) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text("PIN saved successfully"),
-                                                    ),
-                                                  );
-                                      
+                                                final goToHome = widget.isFromGoogle || widget.isFromLogin;
+
+                                                if(goToHome) {
+                                                                                        
                                                   Navigator.pushAndRemoveUntil(
                                                     context,
-                                                    MaterialPageRoute(builder: (context) => const HomePage()),
+                                                    MaterialPageRoute(builder: (context) => const RegisterSuccessPage(isFromRegister: false)),
                                                     (route) => false,
                                                   );
                                                 } else {
                                                   await ref.read(tokenProvider.notifier).clearToken();
                                       
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text("PIN saved successfully, please login again"),
-                                                    ),
-                                                  );
                                                   Navigator.pushAndRemoveUntil(
                                                     context,
-                                                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                                                    MaterialPageRoute(builder: (context) => const RegisterSuccessPage(isFromRegister: true)),
                                                     (route) => false,
                                                   );
                                                 }

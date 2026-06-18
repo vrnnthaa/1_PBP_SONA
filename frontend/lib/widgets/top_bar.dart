@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class TopBar extends StatelessWidget {
   final String title;
@@ -18,7 +19,7 @@ class TopBar extends StatelessWidget {
       
           boxShadow: [
             BoxShadow(
-              color: Color(0xFF003A3F).withOpacity(0.1),
+              color: AppTheme.deepTeal.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -31,16 +32,13 @@ class TopBar extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context);
               },
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF0077A1)),
+              icon: const Icon(Icons.arrow_back, color: AppTheme.accentTeal),
             ),
       
             Text(
               title,
               
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTheme.titleStyle,
             ),
           ],
         ),

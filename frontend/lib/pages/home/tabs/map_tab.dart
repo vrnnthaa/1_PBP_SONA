@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
@@ -204,10 +203,22 @@ class _MapTabState extends ConsumerState<MapTab> {
     );
   }
 
-  // Build the Search Recommendations Overlay Card (No History, ultra-compact, DB-driven facilities)
+  // Build the Search Recommendations/Results Overlay Card
   Widget _buildSearchOverlayCard(List<Hotel> hotelsList, bool isGuest) {
-    // Filter hotels for the recommendation section (take top 2)
-    final recommendationHotels = hotelsList.take(2).toList();
+    // Filter hotels if there is a search query, otherwise show top 2 as recommendations
+    final List<Hotel> displayHotels;
+    final String headerText;
+
+    if (_searchQuery.isEmpty) {
+      displayHotels = hotelsList.take(2).toList();
+      headerText = 'RECOMMENDATION HOTELS';
+    } else {
+      displayHotels = hotelsList.where((hotel) =>
+        hotel.nama.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+        hotel.kota.toLowerCase().contains(_searchQuery.toLowerCase())
+      ).toList();
+      headerText = 'SEARCH RESULTS';
+    }
 
     return Container(
       width: double.infinity,
@@ -232,7 +243,7 @@ class _MapTabState extends ConsumerState<MapTab> {
           children: [
             // Header
             Text(
-              'RECOMMENDATION HOTELS',
+              headerText,
               style: AppTheme.titleStyle.copyWith(
                 color: AppTheme.deepTeal,
                 fontSize: 10,
@@ -242,155 +253,169 @@ class _MapTabState extends ConsumerState<MapTab> {
             ),
             const SizedBox(height: 8),
 
-            // Recommendation Items
-            ...recommendationHotels.map((hotel) {
-              final String priceStr = hotel.hargaTerendah != null && hotel.hargaTerendah! > 0
-                  ? '${_formatPrice(hotel.hargaTerendah)}/Night'
-                  : 'Price unavailable';
-
-              return GestureDetector(
-                onTap: isGuest
-                    ? _openLogin
-                    : () {
-                        setState(() {
-                          _selectedHotel = hotel;
-                          _searchController.text = hotel.nama;
-                          _searchQuery = hotel.nama;
-                          _showSearchOverlay = false; // Hide dropdown
-                        });
-                        // Move map camera directly to selected hotel location
-                        _mapController.move(
-                          LatLng(hotel.latitude, hotel.longitude),
-                          15.0
-                        );
-                      },
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.borderGrey, width: 0.8),
-                  ),
-                  child: Row(
-                    children: [
-                      // Left Image (More compact)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: SizedBox(
-                          width: 68,
-                          height: 52,
-                          child: SmartImage(
-                            path: hotel.imagePath ?? 'assets/images/stay_wandala.jpg',
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      // Right Content
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Row 1: Name and Rating
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    hotel.nama,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTheme.bodyStyle.copyWith(
-                                      color: AppTheme.deepTeal,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.star_rounded, color: Colors.amber, size: 12),
-                                    const SizedBox(width: 1),
-                                    Text(
-                                      hotel.rating.toStringAsFixed(1),
-                                      style: AppTheme.bodyStyle.copyWith(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.textGrey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 1),
-                            // Row 2: Location
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on_outlined, color: AppTheme.textGrey, size: 10),
-                                const SizedBox(width: 2),
-                                Expanded(
-                                  child: Text(
-                                    hotel.alamat,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppTheme.bodyStyle.copyWith(
-                                      color: AppTheme.textGrey,
-                                      fontSize: 9,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            
-                            // Row 3: Facilities (Dynamic from database)
-                            if (hotel.fasilitas.isNotEmpty) ...[
-                              const SizedBox(height: 2),
-                              Row(
-                                children: hotel.fasilitas.take(2).map((f) => Container(
-                                  margin: const EdgeInsets.only(right: 4),
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.backgroundLight,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    f,
-                                    style: const TextStyle(
-                                      color: AppTheme.deepTeal,
-                                      fontSize: 7.5,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                )).toList(),
-                              ),
-                            ],
-                            
-                            const SizedBox(height: 2),
-                            // Row 4: Price
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                priceStr,
-                                style: AppTheme.bodyStyle.copyWith(
-                                  color: AppTheme.deepTeal,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+            // Display Items
+            if (displayHotels.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Center(
+                  child: Text(
+                    'No hotels found',
+                    style: AppTheme.bodyStyle.copyWith(
+                      color: AppTheme.textGrey,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
-              );
-            }),
+              )
+            else
+              ...displayHotels.map((hotel) {
+                final String priceStr = hotel.hargaTerendah != null && hotel.hargaTerendah! > 0
+                    ? '${_formatPrice(hotel.hargaTerendah)}/Night'
+                    : 'Price unavailable';
+
+                return GestureDetector(
+                  onTap: isGuest
+                      ? _openLogin
+                      : () {
+                          setState(() {
+                            _selectedHotel = hotel;
+                            _searchController.text = hotel.nama;
+                            _searchQuery = hotel.nama;
+                            _showSearchOverlay = false; // Hide dropdown
+                          });
+                          // Move map camera directly to selected hotel location
+                          _mapController.move(
+                            LatLng(hotel.latitude, hotel.longitude),
+                            15.0
+                          );
+                        },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.borderGrey, width: 0.8),
+                    ),
+                    child: Row(
+                      children: [
+                        // Left Image (More compact)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: 68,
+                            height: 52,
+                            child: SmartImage(
+                              path: hotel.imagePath ?? 'assets/images/stay_wandala.jpg',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Right Content
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Row 1: Name and Rating
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      hotel.nama,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTheme.bodyStyle.copyWith(
+                                        color: AppTheme.deepTeal,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.star_rounded, color: Colors.amber, size: 12),
+                                      const SizedBox(width: 1),
+                                      Text(
+                                        hotel.rating.toStringAsFixed(1),
+                                        style: AppTheme.bodyStyle.copyWith(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTheme.textGrey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 1),
+                              // Row 2: Location
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on_outlined, color: AppTheme.textGrey, size: 10),
+                                  const SizedBox(width: 2),
+                                  Expanded(
+                                    child: Text(
+                                      hotel.alamat,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTheme.bodyStyle.copyWith(
+                                        color: AppTheme.textGrey,
+                                        fontSize: 9,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              
+                              // Row 3: Facilities (Dynamic from database)
+                              if (hotel.fasilitas.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: hotel.fasilitas.take(2).map((f) => Container(
+                                    margin: const EdgeInsets.only(right: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.backgroundLight,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      f,
+                                      style: const TextStyle(
+                                        color: AppTheme.deepTeal,
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                ),
+                              ],
+                              
+                              const SizedBox(height: 2),
+                              // Row 4: Price
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  priceStr,
+                                  style: AppTheme.bodyStyle.copyWith(
+                                    color: AppTheme.deepTeal,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
           ],
         ),
       ),
@@ -531,27 +556,6 @@ class _MapTabState extends ConsumerState<MapTab> {
                         _searchQuery = value;
                         _showSearchOverlay = value.isNotEmpty;
                       });
-
-                      // If user types a query, check if there is an exact/partial hotel name match
-                      if (value.isNotEmpty) {
-                        final query = value.toLowerCase();
-                        final matchedHotels = hotelsList.where((h) => 
-                          h.nama.toLowerCase().contains(query)
-                        ).toList();
-
-                        // Automatically close dropdown and fly to that hotel's coordinate on match
-                        if (matchedHotels.isNotEmpty) {
-                          final matchedHotel = matchedHotels.first;
-                          setState(() {
-                            _selectedHotel = matchedHotel;
-                            _showSearchOverlay = false; // Hide dropdown
-                          });
-                          _mapController.move(
-                            LatLng(matchedHotel.latitude, matchedHotel.longitude), 
-                            15.0
-                          );
-                        }
-                      }
                     },
                     onTap: () {
                       setState(() {

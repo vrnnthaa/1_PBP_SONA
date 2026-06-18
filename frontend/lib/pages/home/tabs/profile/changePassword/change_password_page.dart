@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/widgets/input_box.dart';
-import 'package:sona/widgets/confirmation_pop_up.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/utils/alert_success.dart';
+import 'package:sona/widgets/confirmation_pop_up.dart';
 
 class ChangePasswordPage extends ConsumerStatefulWidget {
   final String token;
@@ -66,12 +66,13 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       isValid = false;
     }
 
-    // 2. Validation: Strength check guide (mix of letters and numbers, length >= 8)
+    // 2. Validation: Strength check guide (mix of letters, numbers, and special characters, length >= 6)
     if (newPass.isNotEmpty) {
       final hasLetter = RegExp(r'[A-Za-z]').hasMatch(newPass);
       final hasDigit = RegExp(r'\d').hasMatch(newPass);
-      if (newPass.length < 8 || !hasLetter || !hasDigit) {
-        _newError = 'Must be at least 8 characters with a mix of letters and numbers';
+      final hasSpecial = RegExp(r'[@$!%*#?&]').hasMatch(newPass);
+      if (newPass.length < 6 || !hasLetter || !hasDigit || !hasSpecial) {
+        _newError = 'Password must be at least 6 characters with a mix of letters, numbers, and special characters';
         isValid = false;
       }
     }
@@ -86,6 +87,13 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       setState(() {});
       return;
     }
+
+    final confirmed = await CustomPopUp.showConfirmation(
+      context: context,
+      title: 'Change Password?',
+      subtitle: 'Are you sure you want to change your password?',
+    );
+    if (confirmed != true) return;
 
     setState(() {
       _isLoading = true;
@@ -206,7 +214,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   const Padding(
                     padding: EdgeInsets.only(left: 4),
                     child: Text(
-                      'Must be at least 8 characters with a mix of letters and numbers',
+                      'Must be at least 6 characters with a mix of letters, numbers, and special characters',
                       style: TextStyle(
                         fontSize: 11.5,
                         color: AppTheme.textGrey,

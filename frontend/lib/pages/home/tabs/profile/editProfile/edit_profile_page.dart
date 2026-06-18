@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/providers/app_providers.dart';
@@ -50,29 +48,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _nameController = TextEditingController(text: data['nama'] ?? '');
     _emailController = TextEditingController(text: data['email'] ?? '');
     _phoneController = TextEditingController(text: data['telp_no'] ?? '');
-    _dobController = TextEditingController();
+    _dobController = TextEditingController(text: _toDisplayFormat(data['tanggal_lahir'] ?? ''));
 
     _photoProfile = data['photo_profile'] ?? '';
-
-    _loadLocalDob();
-  }
-
-  Future<void> _loadLocalDob() async {
-    final email = widget.profileData['email'] ?? 'default_user';
-    final prefs = await SharedPreferences.getInstance();
-    final savedDob = prefs.getString('dob_$email');
-    if (savedDob != null && mounted) {
-      setState(() {
-        _dobController.text = savedDob;
-      });
-    } else {
-      _dobController.text = '12/27/2005'; // Default mockup Date of Birth
-    }
-  }
-
-  Future<void> _saveLocalDob(String email, String dob) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('dob_$email', dob);
   }
 
   @override
@@ -169,12 +147,44 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
 
+  String _toDisplayFormat(String dbDate) {
+    if (dbDate.isEmpty) return '';
+    try {
+      final parts = dbDate.split('-');
+      if (parts.length == 3) {
+        return '${parts[1]}/${parts[2]}/${parts[0]}';
+      }
+    } catch (_) {}
+    return dbDate;
+  }
+
+  String _toDbFormat(String displayDate) {
+    if (displayDate.isEmpty) return '';
+    try {
+      final parts = displayDate.split('/');
+      if (parts.length == 3) {
+        return '${parts[2]}-${parts[0]}-${parts[1]}';
+      }
+    } catch (_) {}
+    return displayDate;
+  }
+
+  DateTime _parseDisplayDate(String displayDate) {
+    try {
+      final parts = displayDate.split('/');
+      if (parts.length == 3) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[0]), int.parse(parts[1]));
+      }
+    } catch (_) {}
+    return DateTime.now();
+  }
+
 
   // Opens a beautiful Date Picker when tapping Date of Birth
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2005, 12, 27),
+      initialDate: _parseDisplayDate(_dobController.text),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -253,7 +263,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
 
     // Show custom confirmation pop-up dialog first
-    final bool? confirm = await CustomPopUp.showConfirmation(context: context);
+    final bool? confirm = await CustomPopUp.showConfirmation(
+      context: context,
+      title: 'Update Profile?',
+      subtitle: 'Are you sure you want to save your changes?',
+    );
     if (confirm != true) {
       return;
     }
@@ -299,10 +313,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       widget.token,
       photoProfile: finalPhotoUrl,
       email: email,
+      tanggalLahir: _toDbFormat(dob),
     );
 
     if (success) {
-      await _saveLocalDob(email, dob);
       ref.invalidate(profileProvider);
       if (mounted) {
         setState(() {
@@ -337,9 +351,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final String defaultHamster = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=400&q=80';
-    final String avatarUrl = _photoProfile.isNotEmpty ? _photoProfile : defaultHamster;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
