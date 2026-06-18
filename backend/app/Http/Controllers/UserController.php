@@ -49,6 +49,7 @@ class UserController
             'telp_no' => $request->nomor_telp ?? $user->nomor_telp,
             'email' => $request->email ?? $user->email,
             'photo_profile' => $request->photo_profile ?? $user->photo_profile,
+            'tanggal_lahir' => $request->tanggal_lahir ?? $user->tanggal_lahir,
         ]);
 
         return response()->json([

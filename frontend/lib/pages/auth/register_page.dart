@@ -58,7 +58,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 Text(
                                   "Join Sona",
                                   style: const TextStyle(
-                                    color: Color(0xFF003A3F),
+                                    color: AppTheme.primary,
                                     fontSize: 29,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -229,7 +229,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                   }
                                 ),
           
-                                const SizedBox(height: 55),
+                                const SizedBox(height: 25),
           
                                 const Text(
                                   'Or sign up with',
@@ -323,9 +323,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                       ),
                                     ),
                                   ),
-                                ),
-          
-                                const SizedBox(height: 55),
+                                ),          
                               ],
                             )
                           )
