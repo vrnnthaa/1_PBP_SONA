@@ -366,20 +366,16 @@ class HistoryTab extends ConsumerWidget {
     String statusText = "Unknown";
 
     if (isCanceled) {
-      // Jika batal/belum bayar, kunci statusnya ke Canceled, JANGAN terpengaruh tanggal
       statusColor = AppTheme.errorRed; 
       statusText = "Failed / Cancelled";
     } else {
-      // Jika pesanan VALID (Sudah Lunas), baru kita cek status review dan tanggalnya
       if (statusPemesanan == 'sudah review' || statusPemesanan == 'sudah_review') {
         statusColor = const Color(0xFF00BD25);
         statusText = "Completed";
       } else if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review' || daysToCheckOut <= 0) {
-        // Jika belum review ATAU hari ini sudah lewat check-out, paksa jadi Wait Review
         statusColor = const Color.fromARGB(255, 105, 87, 41);
         statusText = "Wait Review";
       } else {
-        // Jika belum check-out dan sudah lunas
         statusColor = AppTheme.tealLight;
         statusText = "Active Booking";
       }
@@ -402,21 +398,29 @@ class HistoryTab extends ConsumerWidget {
       buttonText = 'Already Reviewed'; 
       buttonBgColor = Colors.grey.shade300;
       buttonTextColor = Colors.grey.shade600;
-      onActionTap = null; // Mati
+      onActionTap = null;
     } else if (statusText == "Active Booking") {
-      // Tombol Cancel Warna Merah
-      buttonText = 'Cancel Book';
-      buttonBgColor = Colors.red.shade50;
-      buttonTextColor = AppTheme.errorRed;
-      onActionTap = () {
-        _showCancelConfirmation(context, ref, booking['id_pemesanan'], daysToCheckIn);
-      };
+      // CEK H-2 ATAU H-1/H-0
+      if (daysToCheckIn < 2) {
+        // MATIKAN TOMBOL CANCEL JIKA SUDAH H-1 / H-0
+        buttonText = 'Cannot Cancel';
+        buttonBgColor = Colors.grey.shade300;
+        buttonTextColor = Colors.grey.shade600;
+        onActionTap = null;
+      } else {
+        // TOMBOL CANCEL TETAP MERAH JIKA MASIH BISA
+        buttonText = 'Cancel Book';
+        buttonBgColor = Colors.red.shade50;
+        buttonTextColor = AppTheme.errorRed;
+        onActionTap = () {
+          _showCancelConfirmation(context, ref, booking['id_pemesanan'], daysToCheckIn);
+        };
+      }
     } else {
-      // Failed / Cancelled
       buttonText = 'Unpaid / Cancelled'; 
       buttonBgColor = Colors.grey.shade300;
       buttonTextColor = Colors.grey.shade600;
-      onActionTap = null; // Mati
+      onActionTap = null;
     }
 
     return Container(
@@ -502,26 +506,26 @@ class HistoryTab extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 11),
-              Container(
-                width: 33, height: 33,
-                decoration: BoxDecoration(
-                  color: AppTheme.background,
-                  border: Border.all(width: 0.6, color: AppTheme.borderTealLight),
-                  borderRadius: BorderRadius.circular(17),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
+              // --- HILANGKAN TOMBOL RECEIPT JIKA CANCELLED ---
+              if (statusText != "Failed / Cancelled") ...[
+                const SizedBox(width: 11),
+                Container(
+                  width: 33, height: 33,
+                  decoration: BoxDecoration(
+                    color: AppTheme.background,
+                    border: Border.all(width: 0.6, color: AppTheme.borderTealLight),
                     borderRadius: BorderRadius.circular(17),
-                    // Hanya pesanan sukses yang menampilkan tombol receipt
-                    onTap: (statusText == "Wait Review" || statusText == "Completed" || statusText == "Active Booking") 
-                        ? () => _showBookingDetails(context, ref, booking) 
-                        : null,
-                    child: const Icon(Icons.receipt_long, size: 18, color: AppTheme.primary),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(17),
+                      onTap: () => _showBookingDetails(context, ref, booking),
+                      child: const Icon(Icons.receipt_long, size: 18, color: AppTheme.primary),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ],

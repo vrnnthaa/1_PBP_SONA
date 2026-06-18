@@ -8,9 +8,7 @@ import 'package:sona/pages/pembayaran/verifikasi_pembayaran_page.dart';
 import 'package:sona/api/pembayaran/api_pembayaran.dart';
 
 import 'package:sona/providers/auth/token_provider.dart';
-
 import 'package:sona/utils/app_theme.dart';
-
 
 class RingkasanPembayaranPage extends ConsumerStatefulWidget {
   final int idPemesanan; 
@@ -43,8 +41,6 @@ class RingkasanPembayaranPage extends ConsumerStatefulWidget {
 }
 
 class DateUtils {
-  
-  /// Mengembalikan string berformat "Jan 12 - Jan 14, 2026 (2 nights)"
   static String formatReservationDate(String checkIn, String checkOut) {
     try {
       final DateTime inDate = DateTime.parse(checkIn);
@@ -56,12 +52,10 @@ class DateUtils {
       
       return '$inFormat - $outFormat (${nights > 0 ? nights : 1} nights)';
     } catch (e) {
-      // Fallback (nilai cadangan) jika format string salah atau gagal di-parse
       return '$checkIn - $checkOut';
     }
   }
 
-  /// Mengembalikan angka jumlah malam (berguna untuk perhitungan harga total)
   static int calculateNights(String checkIn, String checkOut) {
     try {
       final DateTime inDate = DateTime.parse(checkIn);
@@ -70,7 +64,7 @@ class DateUtils {
       
       return nights > 0 ? nights : 1;
     } catch (e) {
-      return 1; // Default minimal 1 malam jika terjadi error
+      return 1; 
     }
   }
 }
@@ -124,7 +118,6 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
   }
 
   void navigateToVerifikasiPayment(int generatedIdPembayaran) {
-
     Navigator.push(
       context, 
       MaterialPageRoute(
@@ -133,8 +126,7 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
           namaKamar: widget.namaKamar, 
           namaHotel: widget.namaHotel, 
           totalHarga: _totalBiaya,
-
-          deadlineTime: DateTime.now().add(const Duration(hours: 24)), //ini untuk perhitungan 24 jam mundurnya gengs
+          deadlineTime: DateTime.now().add(const Duration(hours: 24)), 
           imageUrl: widget.imageUrl ?? 'https://via.placeholder.com/150',
         ),
       ),
@@ -143,45 +135,44 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
 
   @override
   Widget build(BuildContext context) {
-    print('DATA ADD-ONS: ${widget.selectedAddons}');
-    
-    
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      body: Column(
-        children: [
-          _buildHeader(context),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionTitle('Booking Summary'),
-                  const SizedBox(height: 11),
-                  _buildRoomSummaryCard(),
-                  
-                  const SizedBox(height: 24),
-                  _buildReservationDetail(),
+    // --- KUNCI 1: MENCEGAH TOMBOL BACK BAWAAN HP ---
+    return PopScope(
+      canPop: false, 
+      child: Scaffold(
+        backgroundColor: AppTheme.textWhite,
+        body: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle('Booking Summary'),
+                    const SizedBox(height: 11),
+                    _buildRoomSummaryCard(),
+                    
+                    const SizedBox(height: 24),
+                    _buildReservationDetail(),
 
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Price Breakdown'),
-                  const SizedBox(height: 11),
-                  _buildPriceDetails(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Price Breakdown'),
+                    const SizedBox(height: 11),
+                    _buildPriceDetails(),
 
-                  const SizedBox(height: 11),
-                  _buildCancellationPolicy(),
-                ],
+                    const SizedBox(height: 11),
+                    _buildCancellationPolicy(),
+                  ],
+                ),
               ),
             ),
-          ),
-          _buildBottomAction(_nightCount, _totalBiaya),
-        ],
+            _buildBottomAction(_nightCount, _totalBiaya),
+          ],
+        ),
       ),
     );
   }
-
-  // --- WIDGET BUILDERS ---
 
   Widget _buildHeader(BuildContext context) {
     return Container(
@@ -194,17 +185,7 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: AppTheme.primary,
-                    size: 28,
-                  ),
-                ),
-              ),
+              // --- KUNCI 2: MENGHILANGKAN ICON PANAH KEMBALI ---
               Text(
                 'Payment Summary',
                 style: GoogleFonts.montserrat(
@@ -231,7 +212,6 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
     );
   }
 
-  // Desain kartu yang sudah dirapikan dari BookingImage sebelumnya
   Widget _buildRoomSummaryCard() {
     return Container(
       decoration: BoxDecoration(
@@ -253,7 +233,7 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: Image.network(
-              "${widget.imageUrl}", // Ganti dengan widget.pemesanan.imageUrl nanti
+              "${widget.imageUrl}", 
               height: 178,
               width: double.infinity,
               fit: BoxFit.cover,
@@ -265,7 +245,7 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${widget.namaKamar}', // Ganti dengan data dinamis
+                  widget.namaKamar, 
                   style: AppTheme.titleStyle.copyWith(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -303,7 +283,7 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withOpacity(0.12)), // Seragam dengan card lainnya
+        border: Border.all(color: Colors.black.withOpacity(0.12)), 
         boxShadow: const [
           BoxShadow(
             color: Color(0x3F000000), 
@@ -348,7 +328,6 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
                 ),
               ),
               const SizedBox(width: 14),
-              // Teks Detail
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,7 +414,7 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
                 ),
               ),
               Text(
-                currencyFormatter.format(_totalBiaya), //Biaya total yang sudah ditambahkan fee
+                currencyFormatter.format(_totalBiaya),
                 style: AppTheme.titleStyle.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -500,10 +479,11 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
     final Color highlightTextColor = isFreeCancel ? const Color(0xFF9E491A) : AppTheme.errorRed;
     final Color normalTextColor = isFreeCancel ? const Color(0xFF9E653F) : AppTheme.errorRed.withOpacity(0.8);
 
-    final String highlightText = isFreeCancel ? 'Free Cancellation ' : 'Non-Refundable. ';
+    // --- UBAH TEKS NON-REFUNDABLE MENJADI TEKS TEGAS ---
+    final String highlightText = isFreeCancel ? 'Free Cancellation ' : 'Cannot be Canceled. ';
     final String normalText = isFreeCancel 
-        ? 'until $cancelDateStr. After that, cancellation fees may apply.'
-        : 'Orders made close to the check-in date (H-1 or H-0) cannot be canceled or refunded.';
+        ? 'until $cancelDateStr. After that, cancellation fees may apply. No payment is required today'
+        : 'Orders made close to the check-in date (H-1 or H-0) cannot be canceled.';
 
     return Container(
       width: double.infinity,
@@ -570,7 +550,6 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // --- Teks Atas ---
             Text(
               'SECURE BOOKING GUARANTEED', 
               style: GoogleFonts.montserrat(
@@ -582,7 +561,6 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
             ),
             const SizedBox(height: 12),
 
-            // --- Tombol Utama ---
             Container(
               width: double.infinity,
               height: 54, 
@@ -628,9 +606,8 @@ class _RingkasanPembayaranPageState extends ConsumerState<RingkasanPembayaranPag
             ),
             const SizedBox(height: 12),
 
-            // --- Teks Bawah ---
             Text(
-              'by clicking "Confirm & Book Now" you agree to the Terms of\nService and Privacy Policy.',
+              'by clicking "Pay Now" you agree to the Terms of\nService and Privacy Policy.',
               textAlign: TextAlign.center,
               style: GoogleFonts.montserrat(
                 fontSize: 10,
