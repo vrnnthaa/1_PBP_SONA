@@ -1,3 +1,5 @@
+// ignore_for_file: use_null_aware_elements
+
 import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:sona/entity/pemesanan/pemesanan.dart';
@@ -160,14 +162,14 @@ class ApiPemesanan {
   }) async {
     try {
       final Map<String, dynamic> body = {
-        'id_user'?: idUser,
-        'id_kamar'?: idKamar,
-        'check_in'?: checkIn,
-        'check_out'?: checkOut,
-        'jumlah_pengunjung'?: jumlahPengunjung,
-        'total_biaya'?: totalBiaya,
-        'status_pemesanan'?: statusPemesanan,
-        'addons'?: addons,
+        if (idUser != null) 'id_user': idUser,
+        if (idKamar != null) 'id_kamar': idKamar,
+        if (checkIn != null) 'check_in': checkIn,
+        if (checkOut != null) 'check_out': checkOut,
+        if (jumlahPengunjung != null) 'jumlah_pengunjung': jumlahPengunjung,
+        if (totalBiaya != null) 'total_biaya': totalBiaya,
+        if (statusPemesanan != null) 'status_pemesanan': statusPemesanan,
+        if (addons != null) 'addons': addons,
       };
 
       final response = await put(

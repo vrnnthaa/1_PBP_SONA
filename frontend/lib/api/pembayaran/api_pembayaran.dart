@@ -1,3 +1,5 @@
+// ignore_for_file: use_null_aware_elements
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sona/entity/pembayaran/pembayaran.dart';
@@ -80,11 +82,11 @@ class ApiPembayaran {
   }) async {
     try {
       final Map<String, dynamic> body = {
-        'id_pemesanan'?: idPemesanan,
-        'tanggal_pembayaran'?: tanggalPembayaran != null ? "${tanggalPembayaran.year}-${tanggalPembayaran.month.toString().padLeft(2, '0')}-${tanggalPembayaran.day.toString().padLeft(2, '0')}" : null,
-        'jumlah_bayar'?: jumlahBayar,
-        'status_pembayaran'?: statusPembayaran,
-        'metode_pembayaran'?: metodePembayaran,
+        if (idPemesanan != null) 'id_pemesanan': idPemesanan,
+        if (tanggalPembayaran != null) 'tanggal_pembayaran': "${tanggalPembayaran.year}-${tanggalPembayaran.month.toString().padLeft(2, '0')}-${tanggalPembayaran.day.toString().padLeft(2, '0')}",
+        if (jumlahBayar != null) 'jumlah_bayar': jumlahBayar,
+        if (statusPembayaran != null) 'status_pembayaran': statusPembayaran,
+        if (metodePembayaran != null) 'metode_pembayaran': metodePembayaran,
       };
 
       final response = await http.put(

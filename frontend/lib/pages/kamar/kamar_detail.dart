@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:sona/entity/kamar/kamar.dart';
 import 'package:sona/entity/kamar/kamar_availability.dart';
 import 'package:sona/entity/review/hotel_review_response.dart';

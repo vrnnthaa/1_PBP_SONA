@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/providers/app_providers.dart';
@@ -52,26 +51,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _dobController = TextEditingController(text: _toDisplayFormat(data['tanggal_lahir'] ?? ''));
 
     _photoProfile = data['photo_profile'] ?? '';
-
-    // _loadLocalDob();
-  }
-
-  Future<void> _loadLocalDob() async {
-    final email = widget.profileData['email'] ?? 'default_user';
-    final prefs = await SharedPreferences.getInstance();
-    final savedDob = prefs.getString('dob_$email');
-    if (savedDob != null && mounted) {
-      setState(() {
-        _dobController.text = savedDob;
-      });
-    } else {
-      _dobController.text = '12/27/2005'; // Default mockup Date of Birth
-    }
-  }
-
-  Future<void> _saveLocalDob(String email, String dob) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('dob_$email', dob);
   }
 
   @override
@@ -284,7 +263,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
 
     // Show custom confirmation pop-up dialog first
-    final bool? confirm = await CustomPopUp.showConfirmation(context: context);
+    final bool? confirm = await CustomPopUp.showConfirmation(
+      context: context,
+      title: 'Update Profile?',
+      subtitle: 'Are you sure you want to save your changes?',
+    );
     if (confirm != true) {
       return;
     }
@@ -334,7 +317,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
 
     if (success) {
-      // await _saveLocalDob(email, dob);
       ref.invalidate(profileProvider);
       if (mounted) {
         setState(() {
