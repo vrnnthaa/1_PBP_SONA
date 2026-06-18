@@ -114,4 +114,10 @@ class AppTheme {
     fontSize: 16,
     fontWeight: FontWeight.w600,
   );
+
+  static TextStyle subtitleStyle_teal = GoogleFonts.montserrat(
+    color: textTealMedium,
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+  );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class InputBox extends StatefulWidget {
   final String label;
@@ -112,8 +113,8 @@ class _InputBoxState extends State<InputBox> {
                     data: Theme.of(context).copyWith(
                       colorScheme: const ColorScheme.light(
                         primary: Color(0xFF004D57),
-                        onPrimary: Colors.white,
-                        onSurface: Color(0xFF003A3F),
+                        onPrimary: AppTheme.textWhite,
+                        onSurface: AppTheme.primary,
                       ),
                     ),
 
