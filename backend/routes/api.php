@@ -18,8 +18,8 @@ Route::post('/test-fcm', function (Illuminate\Http\Request $request) {
     $request->validate(['fcm_token' => 'required']);
     $result = \App\Services\FcmService::sendNotification(
         $request->fcm_token,
-        'Test Notifikasi Sona',
-        'Halo! Ini adalah notifikasi uji coba dari backend Sona.'
+        'Thank you for staying! 😊',
+        'Your stay has ended. Leave a review now!'
     );
     return response()->json($result);
 });
