@@ -206,4 +206,20 @@ class ApiPemesanan {
     }
   }
 
+  Future<void> cancelPemesanan(int idPemesanan, String token) async {
+    try {
+      final response = await put(
+        Uri.parse('${ApiConfig.baseUrl}/pemesanan/$idPemesanan/cancel'),
+        headers: ApiConfig.getHeaders(token: token), // Pastikan token dikirim
+      );
+
+      if (response.statusCode != 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        throw Exception(jsonResponse['message'] ?? 'Gagal membatalkan pemesanan');
+      }
+    } catch (e) {
+      throw Exception('Terjadi kesalahan jaringan: $e');
+    }
+  }
+
 }

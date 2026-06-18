@@ -5,14 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/providers/app_providers.dart';
 import 'package:sona/providers/auth/profile_provider.dart';
 
-//Widgets
+// Widgets
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/home/smart_image.dart';
 
-//Pages
+// Pages
 import 'package:sona/pages/review/make_review_page.dart';
-import 'package:sona/pages/pembayaran/ringkasan_pembayaran_page.dart'; 
-import 'package:sona/pages/pembayaran/verifikasi_pembayaran_page.dart'; 
+import 'package:sona/api/pemesanan/api_pemesanan.dart';
 
 class HistoryTab extends ConsumerWidget {
   final String? token;
@@ -24,7 +23,7 @@ class HistoryTab extends ConsumerWidget {
     required this.onExploreTap,
   });
 
-  // --- FUNGSI FILTER KATEGORI SESUAI ALUR BARU ---
+  // --- KATEGORI TAB (HANYA 3: ALL, COMPLETED, CANCEL) ---
   String _getBookingCategory(Map<String, dynamic> booking) {
     final statusPemesanan = (booking['status_pemesanan'] ?? 'pending').toString().toLowerCase();
     
@@ -33,19 +32,13 @@ class HistoryTab extends ConsumerWidget {
         ? (paymentData.isNotEmpty ? paymentData.first : null)
         : (paymentData as Map<String, dynamic>?);
     final statusPembayaran = pembayaran != null ? pembayaran['status_pembayaran']?.toString().toLowerCase() : null;
-    //Tab Canceled: Jika batal atau pembayaran gagal
-    if (statusPemesanan == 'cancelled' || statusPembayaran == 'pembayaran gagal') {
+
+    if (statusPemesanan == 'cancelled' || statusPembayaran == 'pembayaran gagal' || statusPembayaran == null || statusPembayaran == 'menunggu pembayaran') {
       return 'Canceled';
     }
-    //Tab Completed: Pembayaran selesai, tinggal menunggu review atau sudah di-review
-    if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review' || 
-        statusPemesanan == 'sudah review' || statusPemesanan == 'sudah_review') {
-      return 'Completed';
-    }
-    //Tab Ongoing: Sisanya masuk ke sini (Termasuk belum bayar, menunggu pembayaran, dan booking aktif)
-    return 'Ongoing';
-  }
 
+    return 'Completed';
+  }
 
   void _showBookingDetails(BuildContext context, WidgetRef ref, Map<String, dynamic> booking) {
     final profile = ref.read(profileProvider).value;
@@ -84,7 +77,7 @@ class HistoryTab extends ConsumerWidget {
                 ]),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                   Text('NAME', style: AppTheme.bodyStyle.copyWith(fontSize: 10, color: AppTheme.textGrey)),
-                  Text(userName, style: AppTheme.titleStyle.copyWith(fontSize: 14)), // Nama dari profile
+                  Text(userName, style: AppTheme.titleStyle.copyWith(fontSize: 14)),
                 ]),
               ],
             ),
@@ -94,7 +87,7 @@ class HistoryTab extends ConsumerWidget {
               children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('EMAIL', style: AppTheme.bodyStyle.copyWith(fontSize: 10, color: AppTheme.textGrey)),
-                  Text(userEmail, style: AppTheme.titleStyle.copyWith(fontSize: 14)), // Email dari profile
+                  Text(userEmail, style: AppTheme.titleStyle.copyWith(fontSize: 14)),
                 ]),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                   Text('DATE', style: AppTheme.bodyStyle.copyWith(fontSize: 10, color: AppTheme.textGrey)),
@@ -120,13 +113,104 @@ class HistoryTab extends ConsumerWidget {
     );
   }
 
+  void _showCancelConfirmation(BuildContext parentContext, WidgetRef ref, int idPemesanan, int daysToCheckIn) async {
+    // 1. Validasi Lapis Pertama (Jika H-1 / H-0)
+    if (daysToCheckIn < 2 && daysToCheckIn >= 0) {
+      showDialog(
+        context: parentContext,
+        builder: (dialogContext) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text('Cancellation Unavailable', style: AppTheme.titleStyle.copyWith(color: AppTheme.errorRed, fontSize: 18)),
+          content: Text(
+            'Maaf, pesanan yang dibuat mendekati hari Check-in (H-1 / H-0) tidak dapat dibatalkan menurut kebijakan hotel.',
+            style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close', style: TextStyle(color: AppTheme.primary)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final bool isFreeCancel = daysToCheckIn >= 2;
+
+    // 2. Tampilkan Konfirmasi dan Tunggu Jawaban User (true / false)
+    final bool? shouldCancel = await showDialog<bool>(
+      context: parentContext,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          isFreeCancel ? 'Free Cancellation' : 'Late Cancellation',
+          style: AppTheme.titleStyle.copyWith(color: isFreeCancel ? AppTheme.primary : AppTheme.errorRed, fontSize: 18),
+        ),
+        content: Text(
+          isFreeCancel 
+            ? 'Anda membatalkan pesanan lebih dari H-2. Anda berhak mendapatkan pengembalian dana penuh. Apakah Anda yakin ingin membatalkan pesanan ini?'
+            : 'Anda membatalkan pesanan di ranah H-2 sebelum check-in. Biaya tidak akan dikembalikan sepenuhnya. Lanjutkan pembatalan?',
+          style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            // Kembalikan nilai FALSE jika klik Keep Booking
+            onPressed: () => Navigator.pop(dialogContext, false), 
+            child: const Text('Keep Booking', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            // Kembalikan nilai TRUE jika klik Yes, Cancel
+            onPressed: () => Navigator.pop(dialogContext, true), 
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorRed),
+            child: const Text('Yes, Cancel', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    // 3. Jika user tidak menekan 'Yes, Cancel', hentikan fungsi di sini
+    if (shouldCancel != true) return;
+    if (!parentContext.mounted) return;
+
+    // 4. Jika 'Yes, Cancel' ditekan, Tampilkan Loading
+    showDialog(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (loadingContext) => const Center(child: LoadingAnimation()),
+    );
+
+    // 5. Eksekusi API Pembatalan
+    try {
+      // Pastikan fungsi cancelPemesanan sudah kamu tambahkan di ApiPemesanan
+      await ApiPemesanan().cancelPemesanan(idPemesanan, token ?? '');
+      
+      if (parentContext.mounted) {
+        Navigator.pop(parentContext); // Tutup dialog loading
+        ref.invalidate(bookingsProvider); // Refresh data
+        
+        ScaffoldMessenger.of(parentContext).showSnackBar(
+          const SnackBar(content: Text('Pesanan berhasil dibatalkan.')),
+        );
+      }
+    } catch (e) {
+      if (parentContext.mounted) {
+        Navigator.pop(parentContext); // Tutup dialog loading
+        
+        ScaffoldMessenger.of(parentContext).showSnackBar(
+          SnackBar(content: Text('Gagal membatalkan: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isGuest = token == null || token!.isEmpty;
     final bookingsAsync = ref.watch(bookingsProvider);
 
     return DefaultTabController(
-      length: 4, 
+      length: 3, 
       child: Scaffold(
         backgroundColor: AppTheme.background,
         appBar: AppBar(
@@ -143,15 +227,12 @@ class HistoryTab extends ConsumerWidget {
             ),
           ),
           actions: [
-            if (!isGuest) // Tombol hanya muncul jika user sudah login
+            if (!isGuest) 
               IconButton(
                 icon: const Icon(Icons.refresh_rounded, color: Colors.white),
                 tooltip: 'Refresh Data',
                 onPressed: () {
-                  // Perintah Riverpod untuk memuat ulang API dari database
                   ref.invalidate(bookingsProvider);
-                  
-                  // Munculkan notifikasi kecil agar user tahu data sedang diperbarui
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Memperbarui riwayat pesanan...'),
@@ -170,9 +251,8 @@ class HistoryTab extends ConsumerWidget {
             unselectedLabelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
             tabs: [
               Tab(text: 'All'),
-              Tab(text: 'Ongoing'),
               Tab(text: 'Completed'),
-              Tab(text: 'Canceled'),
+              Tab(text: 'Cancel'),
             ],
           ),
         ),
@@ -182,17 +262,12 @@ class HistoryTab extends ConsumerWidget {
                 loading: () => const LoadingAnimation(),
                 error: (err, stack) => Center(child: Text('Error loading booking history: $err')),
                 data: (bookings) {
-                  return RefreshIndicator(
-                    onRefresh: () => ref.refresh(bookingsProvider.future),
-                    color: AppTheme.primary,
-                    child: TabBarView(
-                      children: [
-                        _buildBookingList(context, ref, bookings, 'All'),
-                        _buildBookingList(context, ref, bookings, 'Ongoing'),
-                        _buildBookingList(context, ref, bookings, 'Completed'),
-                        _buildBookingList(context, ref, bookings, 'Canceled'),
-                      ],
-                    ),
+                  return TabBarView(
+                    children: [
+                      _buildBookingList(context, ref, bookings, 'All'),
+                      _buildBookingList(context, ref, bookings, 'Completed'),
+                      _buildBookingList(context, ref, bookings, 'Canceled'),
+                    ],
                   );
                 },
               ),
@@ -206,30 +281,42 @@ class HistoryTab extends ConsumerWidget {
       return _getBookingCategory(booking) == categoryFilter;
     }).toList();
 
+    // KONDISI 1: JIKA LIST KOSONG
     if (filteredBookings.isEmpty) {
-      return SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height - 200,
-          child: _buildUserEmptyState(context, categoryFilter),
+      return RefreshIndicator(
+        onRefresh: () async => ref.refresh(bookingsProvider.future), // Aksi Swipe Down
+        color: AppTheme.primary,
+        child: SingleChildScrollView(
+          // AlwaysScrollableScrollPhysics ini WAJIB agar layar kosong tetap bisa ditarik
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height - 200,
+            child: _buildUserEmptyState(context, categoryFilter),
+          ),
         ),
       );
     }
 
-    return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 92), 
-      itemCount: filteredBookings.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        return _buildBookingCard(context, ref, filteredBookings[index]);
-      },
+    // KONDISI 2: JIKA LIST ADA ISINYA
+    return RefreshIndicator(
+      onRefresh: () async => ref.refresh(bookingsProvider.future), // Aksi Swipe Down
+      color: AppTheme.primary,
+      child: ListView.separated(
+        // AlwaysScrollableScrollPhysics ini WAJIB agar list bisa ditarik ke bawah
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 92), 
+        itemCount: filteredBookings.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 16),
+        itemBuilder: (context, index) {
+          return _buildBookingCard(context, ref, filteredBookings[index]);
+        },
+      ),
     );
   }
 
   Widget _buildBookingCard(BuildContext context, WidgetRef ref, Map<String, dynamic> booking) {
     final double cost = double.tryParse(booking['total_biaya'].toString()) ?? 0.0;
-    final String statusPemesanan = (booking['status_pemesanan'] ?? 'pending').toString().toLowerCase();
+    String statusPemesanan = (booking['status_pemesanan'] ?? 'pending').toString().toLowerCase();
 
     final dynamic paymentData = booking['pembayaran'];
     final Map<String, dynamic>? pembayaran = paymentData is List
@@ -239,26 +326,29 @@ class HistoryTab extends ConsumerWidget {
     final String? statusPembayaran = pembayaran != null ? pembayaran['status_pembayaran']?.toString().toLowerCase() : null;
 
     final kamarJson = booking['kamar'];
-    final String namaKamar = kamarJson?['nama_kamar'] ?? 'Kamar';    
-
-    final hotelJson = booking['kamar']?['hotel'];
-    final String namaHotel = hotelJson?['nama_hotel'] ?? "Unknown Hotel";
-
+    final String namaHotel = kamarJson?['hotel']?['nama_hotel'] ?? "Unknown Hotel";
+    
     String imageUrl = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&q=80';
-
     if (kamarJson != null) {
       final listGambar = kamarJson['gambar_kamar'] as List;
       if (listGambar.isNotEmpty) {
-        final gambarPertama = listGambar[0];
-        final String? urlDariDb = gambarPertama['url_gambarkamar']?.toString();
+        final String? urlDariDb = listGambar[0]['url_gambarkamar']?.toString();
         if (urlDariDb != null && urlDariDb.isNotEmpty) imageUrl = urlDariDb;
       }
     }
 
     final DateTime checkInDate = DateTime.tryParse(booking['check_in'] ?? '') ?? DateTime.now();
     final DateTime checkOutDate = DateTime.tryParse(booking['check_out'] ?? '') ?? DateTime.now();
-    final int days = checkOutDate.difference(checkInDate).inDays;
+    
+    final DateTime now = DateTime.now();
+    final DateTime nowDate = DateTime(now.year, now.month, now.day);
+    final DateTime inDate = DateTime(checkInDate.year, checkInDate.month, checkInDate.day);
+    final DateTime outDate = DateTime(checkOutDate.year, checkOutDate.month, checkOutDate.day);
 
+    final int daysToCheckIn = inDate.difference(nowDate).inDays;
+    final int daysToCheckOut = outDate.difference(nowDate).inDays;
+
+    final int days = checkOutDate.difference(checkInDate).inDays;
     final String formattedCheckIn = DateFormat('MMM dd', 'en_US').format(checkInDate);
     final String formattedCheckOut = DateFormat('MMM dd', 'en_US').format(checkOutDate);
     final String dateRange = '$formattedCheckIn - $formattedCheckOut, ${checkOutDate.year} • $days ${days > 1 ? 'Days' : 'day'}';
@@ -266,77 +356,39 @@ class HistoryTab extends ConsumerWidget {
     final NumberFormat currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp. ', decimalDigits: 0);
     final String formattedCost = currencyFormat.format(cost);
 
+    // --- 1. FILTER UTAMA: APAKAH INI PESANAN BATAL/BELUM DIBAYAR? ---
+    bool isCanceled = statusPemesanan == 'cancelled' || 
+                      statusPembayaran == 'pembayaran gagal' || 
+                      statusPembayaran == null || 
+                      statusPembayaran == 'menunggu pembayaran';
+
     Color statusColor = AppTheme.primary; 
     String statusText = "Unknown";
 
-    if (statusPemesanan == 'cancelled' || statusPembayaran == 'pembayaran gagal') {
+    if (isCanceled) {
       statusColor = AppTheme.errorRed; 
       statusText = "Failed / Cancelled";
-    } else if (statusPembayaran == null) {
-      statusColor = AppTheme.starYellow; 
-      statusText = "Payment Required";
-    } else if (statusPembayaran == 'menunggu pembayaran') {
-      statusColor = AppTheme.starYellow; 
-      statusText = "Awaiting Payment";
-    } else if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review') {
-      statusColor = const Color.fromARGB(255, 105, 87, 41);
-      statusText = "Wait Review";
-    } else if (statusPemesanan == 'sudah review' || statusPemesanan == 'sudah_review') {
-      statusColor = const Color(0xFF00BD25);
-      statusText = "Completed";
-    } else if (statusPemesanan == 'aktif' || statusPembayaran == 'pembayaran terverifikasi') {
-      statusColor = AppTheme.tealLight;
-      statusText = "Active Booking";
+    } else {
+      if (statusPemesanan == 'sudah review' || statusPemesanan == 'sudah_review') {
+        statusColor = const Color(0xFF00BD25);
+        statusText = "Completed";
+      } else if (statusPemesanan == 'menunggu review' || statusPemesanan == 'menunggu_review' || daysToCheckOut <= 0) {
+        statusColor = const Color.fromARGB(255, 105, 87, 41);
+        statusText = "Wait Review";
+      } else {
+        statusColor = AppTheme.tealLight;
+        statusText = "Active Booking";
+      }
     }
 
+    // --- 2. LOGIKA TOMBOL AKSI ---
     String buttonText = '';
     Color? buttonBgColor;
     Gradient? buttonGradient;
     Color buttonTextColor = Colors.white;
     VoidCallback? onActionTap;
 
-    if (statusText == "Payment Required") {
-      buttonText = 'Complete Payment';
-      buttonBgColor = AppTheme.primary; 
-      onActionTap = () {
-        double hargaKamarSatuan = double.tryParse(booking['kamar']?['harga']?.toString() ?? '0') ?? 0.0; 
-        int jumlahMalam = days > 0 ? days : 1; 
-        double totalHargaKamar = hargaKamarSatuan * jumlahMalam;
-        double selisihAddons = cost - totalHargaKamar;
-        List<Map<String, dynamic>> addOnsBuatan = [];
-        if (selisihAddons > 0) {
-          addOnsBuatan.add({
-            'nama': 'Add-ons / Fasilitas Tambahan',
-            'harga': selisihAddons // Halaman ringkasan akan otomatis menjumlahkan ini
-          });
-        }
-        Navigator.push(context, MaterialPageRoute(builder: (context) => RingkasanPembayaranPage(
-          idPemesanan: booking['id_pemesanan'], 
-          biayaPemesanan: cost,
-          hargaKamar: double.tryParse(booking['kamar']?['harga']?.toString() ?? '0') ?? 0.0,
-          namaKamar: namaKamar, 
-          namaHotel: namaHotel, 
-          checkIn: booking['check_in'],
-          checkOut: booking['check_out'], 
-          jumlahPengunjung: booking['jumlah_tamu'] ?? 1,
-          imageUrl: imageUrl, 
-          selectedAddons: addOnsBuatan, 
-        )));
-      };
-    } else if (statusText == "Awaiting Payment") {
-      buttonText = 'Verify Payment Now';
-      buttonBgColor = AppTheme.starYellow; 
-      buttonTextColor = Colors.black87; 
-      DateTime tglBuat = DateTime.tryParse(pembayaran?['tanggal_pembayaran'] ?? '') ?? DateTime.now();
-      DateTime deadline = tglBuat.add(const Duration(hours: 24));
-
-      onActionTap = () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyPaymentPage(
-          idPembayaran: pembayaran!['id_pembayaran'], namaKamar: namaKamar, namaHotel: namaHotel,
-          totalHarga: cost, deadlineTime: deadline, imageUrl: imageUrl,
-        )));
-      };
-    } else if (statusText == "Wait Review") {
+    if (statusText == "Wait Review") {
       buttonText = 'Write a Review';
       buttonGradient = AppTheme.primaryGradient;
       onActionTap = () {
@@ -346,17 +398,29 @@ class HistoryTab extends ConsumerWidget {
       buttonText = 'Already Reviewed'; 
       buttonBgColor = Colors.grey.shade300;
       buttonTextColor = Colors.grey.shade600;
-      onActionTap = (){print("Tombol ini tidak memiliki aksi khusus");};
-    } else if (statusText == "Failed / Cancelled") {
-      buttonText = 'View Cancellation Policy'; 
-      buttonBgColor = Colors.grey.shade300;
-      buttonTextColor = Colors.grey.shade600;
-      onActionTap = (){print("Tombol ini tidak memiliki aksi khusus");};;
+      onActionTap = null;
+    } else if (statusText == "Active Booking") {
+      // CEK H-2 ATAU H-1/H-0
+      if (daysToCheckIn < 2) {
+        // MATIKAN TOMBOL CANCEL JIKA SUDAH H-1 / H-0
+        buttonText = 'Cannot Cancel';
+        buttonBgColor = Colors.grey.shade300;
+        buttonTextColor = Colors.grey.shade600;
+        onActionTap = null;
+      } else {
+        // TOMBOL CANCEL TETAP MERAH JIKA MASIH BISA
+        buttonText = 'Cancel Book';
+        buttonBgColor = Colors.red.shade50;
+        buttonTextColor = AppTheme.errorRed;
+        onActionTap = () {
+          _showCancelConfirmation(context, ref, booking['id_pemesanan'], daysToCheckIn);
+        };
+      }
     } else {
-      buttonText = 'Paid & Active';
+      buttonText = 'Unpaid / Cancelled'; 
       buttonBgColor = Colors.grey.shade300;
       buttonTextColor = Colors.grey.shade600;
-      onActionTap = (){print("Tombol ini tidak memiliki aksi khusus");};;
+      onActionTap = null;
     }
 
     return Container(
@@ -424,34 +488,44 @@ class HistoryTab extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: GestureDetector(
-                  onTap: onActionTap,
-                  child: Container(
-                    height: 33,
-                    decoration: BoxDecoration(
-                      gradient: buttonGradient,
-                      color: buttonBgColor,
-                      borderRadius: BorderRadius.circular(10),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onActionTap,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      height: 33,
+                      decoration: BoxDecoration(
+                        gradient: buttonGradient,
+                        color: buttonBgColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(buttonText, style: TextStyle(color: buttonTextColor, fontSize: 13, fontWeight: FontWeight.w700)),
                     ),
-                    alignment: Alignment.center,
-                    child: Text(buttonText, style: TextStyle(color: buttonTextColor, fontSize: 13, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ),
-              const SizedBox(width: 11),
-              Container(
+              // --- HILANGKAN TOMBOL RECEIPT JIKA CANCELLED ---
+              if (statusText != "Failed / Cancelled") ...[
+                const SizedBox(width: 11),
+                Container(
                   width: 33, height: 33,
                   decoration: BoxDecoration(
                     color: AppTheme.background,
                     border: Border.all(width: 0.6, color: AppTheme.borderTealLight),
                     borderRadius: BorderRadius.circular(17),
                   ),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(Icons.receipt_long, size: 18, color: AppTheme.primary),
-                    onPressed: () => _showBookingDetails(context, ref, booking), 
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(17),
+                      onTap: () => _showBookingDetails(context, ref, booking),
+                      child: const Icon(Icons.receipt_long, size: 18, color: AppTheme.primary),
+                    ),
                   ),
                 ),
+              ],
             ],
           ),
         ],
@@ -465,44 +539,54 @@ class HistoryTab extends ConsumerWidget {
 
   Widget _buildUserEmptyState(BuildContext context, String category) {
     String message = 'Your past bookings will appear here';
-    if (category == 'Ongoing') message = 'You have no active or ongoing bookings.';
     if (category == 'Completed') message = 'You have not completed any stays yet.';
     if (category == 'Canceled') message = 'You have no canceled bookings.';
     
-    return _buildEmptyUI('No $category History', message);
+    return _buildEmptyUI(category == 'All' ? 'No History' : 'No $category History', message);
   }
 
   Widget _buildEmptyUI(String title, String subtitle) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Spacer(flex: 2),
-            Image.asset('assets/images/history_image.png', width: 200, height: 200, fit: BoxFit.contain),
-            const SizedBox(height: 24),
-            Text(title, textAlign: TextAlign.center, style: AppTheme.titleStyle.copyWith(color: AppTheme.deepTeal, fontSize: 18, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 10),
-            Text(subtitle, textAlign: TextAlign.center, style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 13, fontWeight: FontWeight.w500)),
-            const SizedBox(height: 24),
-            Container(
-              width: 170, height: 44,
-              decoration: BoxDecoration(
-                gradient: AppTheme.softTealGradient, 
-                borderRadius: BorderRadius.circular(20), 
-                boxShadow: [BoxShadow(color: AppTheme.deepTeal.withOpacity(0.24), blurRadius: 10, offset: const Offset(0, 4))]
+      child: SizedBox(
+        width: double.infinity, 
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Spacer(flex: 2),
+              Image.asset('assets/images/history_image.png', width: 200, height: 200, fit: BoxFit.contain),
+              const SizedBox(height: 24),
+              Text(
+                title, 
+                textAlign: TextAlign.center, 
+                style: AppTheme.titleStyle.copyWith(color: AppTheme.deepTeal, fontSize: 18, fontWeight: FontWeight.w800)
               ),
-              child: ElevatedButton.icon(
-                onPressed: onExploreTap,
-                icon: const Icon(Icons.location_on_rounded, color: Colors.white, size: 16),
-                label: Text('Explore Hotel', style: AppTheme.bodyStyle.copyWith(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+              const SizedBox(height: 10),
+              Text(
+                subtitle, 
+                textAlign: TextAlign.center, 
+                style: AppTheme.bodyStyle.copyWith(color: AppTheme.textGrey, fontSize: 13, fontWeight: FontWeight.w500)
               ),
-            ),
-            const Spacer(flex: 3),
-          ],
+              const SizedBox(height: 24),
+              Container(
+                width: 170, height: 44,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.softTealGradient, 
+                  borderRadius: BorderRadius.circular(20), 
+                  boxShadow: [BoxShadow(color: AppTheme.deepTeal.withOpacity(0.24), blurRadius: 10, offset: const Offset(0, 4))]
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: onExploreTap,
+                  icon: const Icon(Icons.location_on_rounded, color: Colors.white, size: 16),
+                  label: Text('Explore Hotel', style: AppTheme.bodyStyle.copyWith(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                ),
+              ),
+              const Spacer(flex: 3),
+            ],
+          ),
         ),
       ),
     );

@@ -260,4 +260,56 @@ class PemesananController extends Controller
             'data' => $pemesanan,
         ], 200);
     }
+
+    public function cancel($id)
+    {
+        DB::beginTransaction();
+
+        try {
+            $pemesanan = Pemesanan::with('pembayaran')->where('id_pemesanan', $id)->first();
+
+            if (!$pemesanan) {
+                return response()->json([
+                    'message' => 'Pemesanan tidak ditemukan'
+                ], 404);
+            }
+
+            // Validasi Lapis Kedua di Backend: Tolak jika sudah H-1 atau H-0
+            $now = \Carbon\Carbon::now()->startOfDay();
+            $checkIn = \Carbon\Carbon::parse($pemesanan->check_in)->startOfDay();
+            $daysDiff = $now->diffInDays($checkIn, false);
+
+            if ($daysDiff < 2 && $daysDiff >= 0) {
+                return response()->json([
+                    'message' => 'Pesanan H-1 atau H-0 tidak dapat dibatalkan menurut kebijakan hotel.'
+                ], 400);
+            }
+
+            // Update status pemesanan
+            $pemesanan->update([
+                'status_pemesanan' => Pemesanan::STATUS_CANCELLED
+            ]);
+
+            // Sinkronisasi: Update status pembayaran jika ada
+            if ($pemesanan->pembayaran) {
+                $pemesanan->pembayaran->update([
+                    'status_pembayaran' => Pembayaran::STATUS_FAILED
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Pemesanan berhasil dibatalkan',
+                'data' => $pemesanan->load('pembayaran')
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat membatalkan pesanan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
