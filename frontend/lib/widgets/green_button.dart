@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sona/utils/app_theme.dart';
 
 class GreenButton extends StatelessWidget {
   final String text;
@@ -18,8 +19,8 @@ class GreenButton extends StatelessWidget {
           end: Alignment.centerRight,
 
           colors: [
-            Color(0xFF003A3F),
-            Color(0xFF00727C),
+            AppTheme.primary,
+            AppTheme.accentTeal,
           ],
         ),
 

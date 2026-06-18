@@ -49,11 +49,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _nameController = TextEditingController(text: data['nama'] ?? '');
     _emailController = TextEditingController(text: data['email'] ?? '');
     _phoneController = TextEditingController(text: data['telp_no'] ?? '');
-    _dobController = TextEditingController();
+    _dobController = TextEditingController(text: _toDisplayFormat(data['tanggal_lahir'] ?? ''));
 
     _photoProfile = data['photo_profile'] ?? '';
 
-    _loadLocalDob();
+    // _loadLocalDob();
   }
 
   Future<void> _loadLocalDob() async {
@@ -168,12 +168,44 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
 
+  String _toDisplayFormat(String dbDate) {
+    if (dbDate.isEmpty) return '';
+    try {
+      final parts = dbDate.split('-');
+      if (parts.length == 3) {
+        return '${parts[1]}/${parts[2]}/${parts[0]}';
+      }
+    } catch (_) {}
+    return dbDate;
+  }
+
+  String _toDbFormat(String displayDate) {
+    if (displayDate.isEmpty) return '';
+    try {
+      final parts = displayDate.split('/');
+      if (parts.length == 3) {
+        return '${parts[2]}-${parts[0]}-${parts[1]}';
+      }
+    } catch (_) {}
+    return displayDate;
+  }
+
+  DateTime _parseDisplayDate(String displayDate) {
+    try {
+      final parts = displayDate.split('/');
+      if (parts.length == 3) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[0]), int.parse(parts[1]));
+      }
+    } catch (_) {}
+    return DateTime.now();
+  }
+
 
   // Opens a beautiful Date Picker when tapping Date of Birth
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2005, 12, 27),
+      initialDate: _parseDisplayDate(_dobController.text),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -298,10 +330,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       widget.token,
       photoProfile: finalPhotoUrl,
       email: email,
+      tanggalLahir: _toDbFormat(dob),
     );
 
     if (success) {
-      await _saveLocalDob(email, dob);
+      // await _saveLocalDob(email, dob);
       ref.invalidate(profileProvider);
       if (mounted) {
         setState(() {

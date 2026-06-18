@@ -10,7 +10,7 @@ class ApiUser {
         Uri.parse('${ApiConfig.baseUrl}/me'),
         headers: ApiConfig.getHeaders(token: token),
       );
-
+      
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
         return result['data']; 
@@ -23,7 +23,7 @@ class ApiUser {
   }
 
   // 2. Update Profil
-  Future<bool> updateUserProfile(int idUser, String name, String phone, String token, {String? photoProfile, String? email}) async {
+  Future<bool> updateUserProfile(int idUser, String name, String phone, String token, {String? photoProfile, String? email, String? tanggalLahir,}) async {
     try {
       final response = await http.put(
         Uri.parse('${ApiConfig.baseUrl}/user/$idUser'),
@@ -31,11 +31,11 @@ class ApiUser {
         body: jsonEncode({
           'nama': name,
           'nomor_telp': phone,
-          'photo_profile'?: photoProfile,
-          'email'?: email,
+          if (photoProfile != null) 'photo_profile': photoProfile,
+          if (email != null) 'email': email,
+          if (tanggalLahir != null) 'tanggal_lahir': tanggalLahir,
         }),
       );
-
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -125,4 +125,4 @@ class ApiUser {
       };
     }
   }
-}
+}
