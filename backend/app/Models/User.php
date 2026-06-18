@@ -31,6 +31,7 @@ class User extends Authenticatable
         'pin',
         'sidik_jari',
         'tanggal_lahir',
+        'fcm_token',
     ];
 
     protected $hidden = [
