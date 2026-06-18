@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
 import 'package:sona/widgets/input_box.dart';
-import 'package:sona/widgets/confirmation_pop_up.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/utils/alert_success.dart';
 

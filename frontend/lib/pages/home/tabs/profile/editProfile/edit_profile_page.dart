@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -337,9 +336,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final String defaultHamster = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=400&q=80';
-    final String avatarUrl = _photoProfile.isNotEmpty ? _photoProfile : defaultHamster;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

@@ -84,9 +84,6 @@ class _RoomDetailPageState extends ConsumerState<RoomDetailPage> {
     return 'Rp $formatted';
   }
 
-  String _formatShortDate(DateTime date) =>
-      DateFormat('dd MMM yyyy').format(date);
-
   int _getNightCount() {
     final nights = widget.checkOutDate.difference(widget.checkInDate).inDays;
     return nights > 0 ? nights : 1;
@@ -120,8 +117,9 @@ class _RoomDetailPageState extends ConsumerState<RoomDetailPage> {
     final desc = (_detail?.deskripsi ?? '').toLowerCase();
     final fallback = <String>[];
     if (desc.contains('wifi')) fallback.add('WiFi');
-    if (desc.contains('ac') || desc.contains('air conditioning'))
+    if (desc.contains('ac') || desc.contains('air conditioning')) {
       fallback.add('Air Conditioning');
+    }
     if (desc.contains('breakfast')) fallback.add('Breakfast');
     if (desc.contains('bathroom')) fallback.add('Private Bathroom');
     if (desc.contains('tv')) fallback.add('TV');

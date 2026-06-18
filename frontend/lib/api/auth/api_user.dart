@@ -31,8 +31,8 @@ class ApiUser {
         body: jsonEncode({
           'nama': name,
           'nomor_telp': phone,
-          if (photoProfile != null) 'photo_profile': photoProfile,
-          if (email != null) 'email': email,
+          'photo_profile'?: photoProfile,
+          'email'?: email,
         }),
       );
 

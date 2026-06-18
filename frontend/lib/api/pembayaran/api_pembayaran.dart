@@ -80,11 +80,11 @@ class ApiPembayaran {
   }) async {
     try {
       final Map<String, dynamic> body = {
-        if (idPemesanan != null) 'id_pemesanan': idPemesanan,
-        if (tanggalPembayaran != null) 'tanggal_pembayaran': "${tanggalPembayaran.year}-${tanggalPembayaran.month.toString().padLeft(2, '0')}-${tanggalPembayaran.day.toString().padLeft(2, '0')}",
-        if (jumlahBayar != null) 'jumlah_bayar': jumlahBayar,
-        if (statusPembayaran != null) 'status_pembayaran': statusPembayaran,
-        if (metodePembayaran != null) 'metode_pembayaran': metodePembayaran,
+        'id_pemesanan'?: idPemesanan,
+        'tanggal_pembayaran'?: tanggalPembayaran != null ? "${tanggalPembayaran.year}-${tanggalPembayaran.month.toString().padLeft(2, '0')}-${tanggalPembayaran.day.toString().padLeft(2, '0')}" : null,
+        'jumlah_bayar'?: jumlahBayar,
+        'status_pembayaran'?: statusPembayaran,
+        'metode_pembayaran'?: metodePembayaran,
       };
 
       final response = await http.put(
