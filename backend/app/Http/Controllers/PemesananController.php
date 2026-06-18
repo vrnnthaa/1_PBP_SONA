@@ -8,6 +8,9 @@ use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use Illuminate\Support\Facades\Http;
+use App\Services\FcmService;
 
 class PemesananController extends Controller
 {
@@ -232,13 +235,50 @@ class PemesananController extends Controller
     {
         $today = date('Y-m-d');
 
-        Pemesanan::where('id_user', $id_user)
+        $pemesananList = Pemesanan::where('id_user', $id_user)
             ->where('status_pemesanan', Pemesanan::STATUS_AKTIF)
             ->where('check_out', '<=', $today)
             ->whereHas('pembayaran', function ($query) {
                 $query->where('status_pembayaran', Pembayaran::STATUS_PAID);
             })
-            ->update(['status_pemesanan' => Pemesanan::STATUS_MENUNGGU_REVIEW]);
+            ->with('user')
+            ->get();
+
+        foreach ($pemesananList as $pemesanan) {
+            $pemesanan->update([
+                'status_pemesanan' => Pemesanan::STATUS_MENUNGGU_REVIEW
+            ]);
+
+            $pesananLengkap = $pemesanan->load('kamar.hotel');
+
+            if ($pemesanan->user && $pemesanan->user->fcm_token) {
+                $title = "Thank you for staying! 😊";
+                $body = "Your stay has ended. Leave a review now!";
+                $data = [
+                    'screen' => 'review_page',
+                    'booking_data' => json_encode($pesananLengkap->toArray()) 
+                ];
+
+                FcmService::sendNotification($pemesanan->user->fcm_token, $title, $body, $data);
+            }
+        }            
+    }
+
+    public function sendReviewNotification($fcmToken, $transaction)
+    {
+        if (!$fcmToken) {
+            return;
+        }
+
+        $message = [
+            'message' => [
+                'token' => $fcmToken,
+                'notification' => [
+                    'title' => 'Review Reminder',
+                    'body' => 'Your stay has ended. Leave a review now!'
+                ]
+            ]
+        ];
     }
 
     public function getByUser($id_user)

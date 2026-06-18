@@ -1,3 +1,5 @@
+// ignore_for_file: use_null_aware_elements
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sona/api/config/api_config.dart';
@@ -10,7 +12,7 @@ class ApiUser {
         Uri.parse('${ApiConfig.baseUrl}/me'),
         headers: ApiConfig.getHeaders(token: token),
       );
-
+      
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
         return result['data']; 
@@ -23,7 +25,7 @@ class ApiUser {
   }
 
   // 2. Update Profil
-  Future<bool> updateUserProfile(int idUser, String name, String phone, String token, {String? photoProfile, String? email}) async {
+  Future<bool> updateUserProfile(int idUser, String name, String phone, String token, {String? photoProfile, String? email, String? tanggalLahir,}) async {
     try {
       final response = await http.put(
         Uri.parse('${ApiConfig.baseUrl}/user/$idUser'),
@@ -33,9 +35,9 @@ class ApiUser {
           'nomor_telp': phone,
           if (photoProfile != null) 'photo_profile': photoProfile,
           if (email != null) 'email': email,
+          if (tanggalLahir != null) 'tanggal_lahir': tanggalLahir,
         }),
       );
-
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -125,4 +127,22 @@ class ApiUser {
       };
     }
   }
-}
+
+Future<void> saveFcmToken(
+    String token,
+    String fcmToken,
+  ) async {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/save-fcm-token'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'fcm_token': fcmToken,
+      }),
+    );
+
+    print(response.body);
+  }
+}

@@ -10,6 +10,7 @@ import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/top_bar.dart';
 import 'package:sona/api/auth/sign_in_with_google.dart';
 import 'package:sona/pages/home/home_page.dart';
+import 'package:sona/widgets/confirmation_pop_up.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -58,7 +59,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 Text(
                                   "Join Sona",
                                   style: const TextStyle(
-                                    color: Color(0xFF003A3F),
+                                    color: AppTheme.primary,
                                     fontSize: 29,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -147,7 +148,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                   onPressed: () async { 
                                     
                                     setState(() {
-                                      isLoading = true;
                                       emailError = null;
                                       passwordError = null;
                                       nameError = null;
@@ -155,15 +155,26 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                       telpError = null;
                                       confirmError = null;
                                     });
+                                    
+                                    if (controllerPassword.text != controllerConfirmPassword.text) {
+                                      setState(() {
+                                        confirmError = "Password confirmation does not match.";
+                                      });
+                                      return;
+                                    }
+                                    
+                                    final confirmed = await CustomPopUp.showConfirmation(
+                                      context: context,
+                                      title: 'Register Account?',
+                                      subtitle: 'Are you sure you want to create a new account?',
+                                    );
+                                    if (confirmed != true) return;
+                                    
+                                    setState(() {
+                                      isLoading = true;
+                                    });
 
                                     try {
-                                      if (controllerPassword.text != controllerConfirmPassword.text) {
-                                        setState(() {
-                                          confirmError = "Password confirmation does not match.";
-                                        });
-                                        return;
-                                      }
-                                      
                                       final result = await ApiAuth().register(
                                         controllerName.text,
                                         controllerEmail.text,
@@ -229,7 +240,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                   }
                                 ),
           
-                                const SizedBox(height: 55),
+                                const SizedBox(height: 25),
           
                                 const Text(
                                   'Or sign up with',
@@ -323,9 +334,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                       ),
                                     ),
                                   ),
-                                ),
-          
-                                const SizedBox(height: 55),
+                                ),          
                               ],
                             )
                           )

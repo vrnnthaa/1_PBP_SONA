@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/api/auth/api_user.dart';
-import 'package:sona/widgets/confirmation_pop_up.dart';
 import 'package:sona/widgets/loading_animation.dart';
 import 'package:sona/widgets/utils/alert_success.dart';
 

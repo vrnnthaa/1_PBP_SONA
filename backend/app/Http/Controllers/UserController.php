@@ -49,6 +49,7 @@ class UserController
             'telp_no' => $request->nomor_telp ?? $user->nomor_telp,
             'email' => $request->email ?? $user->email,
             'photo_profile' => $request->photo_profile ?? $user->photo_profile,
+            'tanggal_lahir' => $request->tanggal_lahir ?? $user->tanggal_lahir,
         ]);
 
         return response()->json([
@@ -71,6 +72,18 @@ class UserController
         {
             return response()->json([
                 'message' => 'Password lama salah.'
+            ], 400);
+        }
+
+        if (!$request->password_baru) {
+            return response()->json([
+                'message' => 'Password baru is required.'
+            ], 400);
+        }
+
+        if (!preg_match("/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{6,}$/", $request->password_baru)) {
+            return response()->json([
+                'message' => 'Password must be at least 6 characters with a mix of letters, numbers, and special characters'
             ], 400);
         }
 
@@ -151,6 +164,27 @@ class UserController
             'message' => 'Fingerprint berhasil didaftarkan',
             'data' => $user
         ], 200);
+    }
+
+    public function saveFcmToken(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required'
+        ]);
+
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'User tidak ditemukan'], 404);
+        }
+
+        $user->update([
+            'fcm_token' => $request->fcm_token
+        ]);
+
+        return response()->json([
+            'message' => 'FCM token saved'
+        ]);
     }
 }
 

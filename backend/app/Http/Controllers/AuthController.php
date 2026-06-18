@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\PemesananController;
 
 class AuthController extends Controller
 {
@@ -62,7 +63,7 @@ class AuthController extends Controller
         }
 
         //regex cek format email
-        if (!filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
+        if (!preg_match('/^[A-Za-z0-9._%+-]+@(gmail|email)\.com$/i', $request->email)) {
             return response()->json([
                 'message' => 'Email format is not valid',
                 'field' => 'email',
@@ -71,7 +72,7 @@ class AuthController extends Controller
 
         if (!preg_match("/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{6,}$/", $request->password)) {
             return response()->json([
-                'message' => 'Password must be at least 6 characters',
+                'message' => 'Password must be at least 6 characters with a mix of letters, numbers, and special characters',
                 'field' => 'password',
             ], 400);
         }
@@ -213,6 +214,8 @@ class AuthController extends Controller
                 'field' => 'password',
             ], 400);
         }
+
+        (new PemesananController())->updateStatusReview($user->id_user);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
