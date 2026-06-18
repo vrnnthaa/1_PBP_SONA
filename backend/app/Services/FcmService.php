@@ -20,7 +20,7 @@ class FcmService
     public static function sendNotification($fcmToken, $title, $body, $data = [])
     {
         try {
-            $credentialsFilePath = storage_path(env('FIREBASE_CREDENTIALS_PATH'));
+            $credentialsFilePath = app_path(env('FIREBASE_CREDENTIALS_PATH'));
 
             $client = new Google_Client();
             $client->setAuthConfig($credentialsFilePath);
