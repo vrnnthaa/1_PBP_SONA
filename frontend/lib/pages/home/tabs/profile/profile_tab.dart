@@ -105,6 +105,18 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     // Watch user profile details
     final profileAsync = ref.watch(profileProvider);
 
+    // Watch bookings list to count paid orders
+    final bookingsList = ref.watch(bookingsProvider).valueOrNull ?? [];
+    final int paidOrdersCount = bookingsList.where((booking) {
+      final dynamic paymentData = booking['pembayaran'];
+      final Map<String, dynamic>? pembayaran = paymentData is List
+          ? (paymentData.isNotEmpty ? paymentData.first : null)
+          : (paymentData as Map<String, dynamic>?);
+      if (pembayaran == null) return false;
+      final String statusPembayaran = (pembayaran['status_pembayaran'] ?? '').toString().toLowerCase();
+      return statusPembayaran == 'pembayaran terverifikasi' || statusPembayaran == 'status_paid' || statusPembayaran == 'paid';
+    }).length;
+
     if (_isSaving) {
       return const Scaffold(
         backgroundColor: AppTheme.background,
@@ -133,7 +145,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildProfileHeader(isGuest, name, email, phone, photoProfile, idUser, rawProfileData: profileData),
+                    _buildProfileHeader(isGuest, name, email, phone, photoProfile, idUser, paidOrdersCount, rawProfileData: profileData),
                     const SizedBox(height: 24),
                     Expanded(
                       child: SingleChildScrollView(
@@ -251,7 +263,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildProfileHeader(true, '', '', '', '', 0),
+        _buildProfileHeader(true, '', '', '', '', 0, 0),
         const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -295,7 +307,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     );
   }
      // Rebuilt Profile Header with custom ClipPath (ProfileHeaderClipper) to match the curved screenshot
-  Widget _buildProfileHeader(bool isGuest, String name, String email, String phone, String photoProfile, int idUser, {Map<String, dynamic>? rawProfileData}) {
+  Widget _buildProfileHeader(bool isGuest, String name, String email, String phone, String photoProfile, int idUser, int paidOrdersCount, {Map<String, dynamic>? rawProfileData}) {
     final String defaultHamster = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=400&q=80';
     final String imagePath = photoProfile.isNotEmpty ? photoProfile : defaultHamster;
 
@@ -474,7 +486,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              (rawProfileData?['orders_count'] ?? 0).toString(),
+                              paidOrdersCount.toString(),
                               style: const TextStyle(
                                 color: Color(0xFF0C3D3E),
                                 fontSize: 14,

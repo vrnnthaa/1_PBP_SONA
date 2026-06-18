@@ -274,21 +274,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             
                     const SizedBox(height: 20),
             
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-            
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4,
                       children: [
                         const Text(
                           'Don\'t have an account?',
-            
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFFA29EB6),
                           ),
                         ),
-            
                         TextButton(
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -297,10 +301,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                             );
                           },
-            
                           child: const Text(
                             'Sign Up',
-            
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,

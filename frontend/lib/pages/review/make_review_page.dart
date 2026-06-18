@@ -7,7 +7,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sona/utils/app_theme.dart';
 import 'package:sona/widgets/review/booking_detail_card.dart';
 import 'package:sona/widgets/review/star_rating_selector.dart';
-import 'package:sona/widgets/utils/alert_success.dart';
 import 'package:sona/api/review/api_review.dart';
 import 'package:sona/providers/auth/token_provider.dart';
 import 'package:sona/providers/auth/profile_provider.dart';
@@ -145,7 +144,7 @@ class _MakeReviewPageState extends ConsumerState<MakeReviewPage> {
 
       final idUser = profile['id_user'] ?? 1;
       final idPemesanan = int.tryParse(widget.booking['id_pemesanan'].toString()) ?? 0;
-      final username = profile?['nama'] ?? ''; 
+      final username = profile['nama'] ?? ''; 
 
       String? finalPhotoUrl;
       if (_photoPath != null && _photoPath!.isNotEmpty) {

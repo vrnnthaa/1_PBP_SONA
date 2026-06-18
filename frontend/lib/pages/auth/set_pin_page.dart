@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sona/pages/auth/register_success_page.dart';
 import 'package:sona/providers/app_providers.dart';
@@ -8,8 +7,6 @@ import 'package:sona/widgets/green_button.dart';
 import 'package:sona/widgets/top_bar.dart';
 import 'package:pinput/pinput.dart';
 import 'package:sona/api/auth/api_auth.dart';
-import 'package:sona/pages/auth/login_page.dart';
-import 'package:sona/pages/home/home_page.dart';
 import 'package:sona/widgets/loading_animation.dart';
 
 class SetPinPage extends ConsumerStatefulWidget {

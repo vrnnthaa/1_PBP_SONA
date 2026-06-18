@@ -1,45 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sona/utils/app_theme.dart';
 
 /// A helper class to show the custom SVG Confirmation and Success Popups.
 class CustomPopUp {
-  /// Shows the Confirmation Dialog (Confirmation Pop Up.svg).
+  /// Shows the Confirmation Dialog with customizable title and subtitle.
   /// Returns `true` if "Yes, sure!" is tapped, `false` if "Cancel" is tapped or dismissed.
   static Future<bool?> showConfirmation({
     required BuildContext context,
+    required String title,
+    String? subtitle, // Allowed but ignored to keep layout matching original SVG
   }) {
     return showGeneralDialog<bool>(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss Confirmation Dialog',
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withOpacity(0.55),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation1, animation2) {
         return const SizedBox.shrink();
       },
-      transitionBuilder: (context, anim, anim2, child) {
-        // Bounce / Scale and Fade transition
-        final double scale = 0.5 + (0.5 * anim.value);
-        final double opacity = anim.value;
+      transitionBuilder: (dialogContext, anim, anim2, child) {
+        // Elastic / Scale transition for bouncy entry
+        final double scale = CurvedAnimation(
+          parent: anim,
+          curve: Curves.elasticOut,
+        ).value;
+        final double opacity = anim.value.clamp(0.0, 1.0);
 
         return Transform.scale(
-          scale: scale,
+          scale: scale.isNaN ? 0.0 : scale,
           child: Opacity(
             opacity: opacity,
             child: Align(
               alignment: Alignment.center,
               child: Material(
                 color: Colors.transparent,
-                child: SizedBox(
+                child: Container(
                   width: 311,
                   height: 152,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF003A3F), // Original SVG fill color
+                    borderRadius: BorderRadius.circular(20), // Original SVG rx
+                  ),
                   child: Stack(
                     children: [
-                      // Render the dialog SVG background
-                      SvgPicture.asset(
-                        'assets/confirmationDialog/Confirmation Pop Up.svg',
-                        width: 311,
-                        height: 152,
+                      // Centered Title Text
+                      Positioned(
+                        left: 20,
+                        right: 20,
+                        top: 28,
+                        child: Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Montserrat',
+                          ),
+                        ),
                       ),
                       // Cancel Button Tap Target (Left, Red Button)
                       Positioned(
@@ -47,13 +67,26 @@ class CustomPopUp {
                         top: 79,
                         width: 122,
                         height: 42,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              Navigator.of(context).pop(false);
-                            },
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop(false);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFCE031B), // Original SVG red button fill
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12), // Original SVG button rx
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Montserrat',
+                            ),
                           ),
                         ),
                       ),
@@ -63,13 +96,30 @@ class CustomPopUp {
                         top: 79,
                         width: 122,
                         height: 42,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              Navigator.of(context).pop(true);
-                            },
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop(true);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white, // Original SVG white button fill
+                            foregroundColor: const Color(0xFF003A3F),
+                            elevation: 0,
+                            side: const BorderSide(
+                              color: Color(0xFF003A3F), // Original SVG button stroke
+                              width: 1,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12), // Original SVG button rx
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: const Text(
+                            'Yes, sure!',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Montserrat',
+                            ),
                           ),
                         ),
                       ),

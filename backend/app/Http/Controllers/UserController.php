@@ -75,6 +75,18 @@ class UserController
             ], 400);
         }
 
+        if (!$request->password_baru) {
+            return response()->json([
+                'message' => 'Password baru is required.'
+            ], 400);
+        }
+
+        if (!preg_match("/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{6,}$/", $request->password_baru)) {
+            return response()->json([
+                'message' => 'Password must be at least 6 characters with a mix of letters, numbers, and special characters'
+            ], 400);
+        }
+
         $user->password = Hash::make($request->password_baru);
         $user->save();
 

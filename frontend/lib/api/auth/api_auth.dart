@@ -96,6 +96,7 @@ class ApiAuth {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
+      return null;
     } catch(e) {
       throw Exception('Sign in with Google failed: $e');
     }
