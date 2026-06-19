@@ -1,7 +1,7 @@
 # SONA (Smooth Online Night Accommodation) 
 > **Tugas Besar Pemrograman Berbasis Platform - Kelompok 1**
 
-# **1. Penjelsan Aplikasi**
+# **1. Penjelasan Aplikasi**
 SONA adalah aplikasi pemesanan hotel berbasis mobile yang yang dilengkapi dengan fitur pencarian hotel dengan lokasi, pemesanan, cetak bukti pembayaran, dan sistem review pesanan. 
 Aplikasi ini dikembangkan dengan framework Flutter sebagai frontend dan didukung oleh Laravel dan Firebase sebagai sistem backend.
 
