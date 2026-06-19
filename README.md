@@ -13,9 +13,10 @@ Fitur besar aplikasi ini meliputi:
   - Pencetakan hasil bukti pembayaran dengan format PDF.
   - Sistem review dengan opsi menggunakan kamera.
   - Sistem profile yang dapat dimodifikasi.
-
+  
 # **3. Link ERD dan Figma**
 Berikut adalah ERD dan Figma SONA:
+  - https://lucid.app/lucidchart/8e3686a4-28d0-4312-97d5-ca1601662616/edit?viewport_loc=-9786%2C-885%2C7794%2C4038%2C0_0&invitationId=inv_be325e76-7641-4c0c-b836-4db530d896c5
   - https://www.figma.com/design/wCBb9kgA2DOEtQFFFdbrlG/Mock-Up-Desain?node-id=4-12&p=f&t=nQ7vU2UcDGexqiGV-0
 
 # **4. Pembagian Tugas**
