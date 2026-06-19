@@ -143,18 +143,22 @@ class FirebaseApi {
   }
 
   Future<void> initNotifications() async {
-    await _firebaseMessaging.requestPermission();
+    try {
+      await _firebaseMessaging.requestPermission();
 
-    final fCMToken = await _firebaseMessaging.getToken();
-    print('Token: $fCMToken');
-    if (fCMToken != null) {
-      await sendTokenToBackend(fCMToken);
+      final fCMToken = await _firebaseMessaging.getToken();
+      print('Token: $fCMToken');
+      if (fCMToken != null) {
+        await sendTokenToBackend(fCMToken);
+      }
+
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+        sendTokenToBackend(newToken);
+      });
+      await initPushNotifications();
+      await initLocalNotifications();
+    } catch (e) {
+      print('Error initializing Firebase Messaging: $e');
     }
-
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-      sendTokenToBackend(newToken);
-    });
-    await initPushNotifications();
-    await initLocalNotifications();
   }
 }
