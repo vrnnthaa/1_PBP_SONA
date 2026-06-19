@@ -23,30 +23,29 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();  
 
   // Initialize Supabase
-  await Supabase.initialize(
-    url: 'https://hcpzwjrquqlvqtxowsgt.supabase.co',
-    publishableKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcHp3anJxdXFsdnF0eG93c2d0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njg1MjI5NywiZXhwIjoyMDkyNDI4Mjk3fQ.NVyOZEkgpJQ2SpC6obi2cHwKBBn4VkkzWvkMIptm9ls',
-  );
+  try {
+    await Supabase.initialize(
+      url: 'https://hcpzwjrquqlvqtxowsgt.supabase.co',
+      publishableKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcHp3anJxdXFsdnF0eG93c2d0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njg1MjI5NywiZXhwIjoyMDkyNDI4Mjk3fQ.NVyOZEkgpJQ2SpC6obi2cHwKBBn4VkkzWvkMIptm9ls',
+    );
+  } catch (e) {
+    print("Error initializing Supabase: $e");
+  }
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  await FirebaseApi().initNotifications();
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    // Don't await initNotifications to prevent blocking the main thread / app startup!
+    FirebaseApi().initNotifications();
+    FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
+  } catch (e) {
+    print("Error initializing Firebase: $e");
+  }
 
   // Pre-initialize SharedPreferences synchronously for Riverpod
   final prefs = await SharedPreferences.getInstance();
-
-  await Future.wait([
-    AssetLottie('assets/Lottie/Splash_Sona.json').load(),
-    AssetLottie('assets/Lottie/Loading.json').load(),
-    AssetLottie('assets/Lottie/Onboarding_Splash.json').load(),
-    AssetLottie('assets/Lottie/SHRUG.json').load(),
-    AssetLottie('assets/Lottie/SPARKLE.json').load(),
-    AssetLottie('assets/Lottie/Luv_That.json').load(),
-  ]);
-
-  FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
 
   runApp(
     ProviderScope(

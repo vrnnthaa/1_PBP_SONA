@@ -14,6 +14,15 @@ use App\Http\Controllers\FasilitasKamarController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/google-auth', [AuthController::class, 'googleAuth']);
+Route::post('/test-fcm', function (Illuminate\Http\Request $request) {
+    $request->validate(['fcm_token' => 'required']);
+    $result = \App\Services\FcmService::sendNotification(
+        $request->fcm_token,
+        'Thank you for staying! 😊',
+        'Your stay has ended. Leave a review now!'
+    );
+    return response()->json($result);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/save-fcm-token', [UserController::class, 'saveFcmToken']);
